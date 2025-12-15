@@ -1,6 +1,6 @@
 # Stages
 
-High level stages of a marketing and sales funnel
+High level stages of a marketing and sales funnel. Customers progress linearly through the journey and are re-engaged with lifecycle marketing.
 
 ```mermaid
 %%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
