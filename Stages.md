@@ -1,6 +1,6 @@
 # Stages
 
-High level stages of a marketing and sales funnel. Customers progress linearly through the journey and are re-engaged with lifecycle marketing.
+High level stages of a marketing and sales funnel
 
 ```mermaid
 %%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
@@ -15,12 +15,14 @@ flowchart LR
     subgraph Funnel [" "]
         direction TB
         
-        subgraph S1 ["Acquisition (Marketing)"]
+        subgraph S1 ["Marketing"]
             direction TB
+            O[Advertisement]:::marketing
             A[Impression<br/><i>Sees Ad/Content</i>]:::marketing
-            B[Visitor<br/><i>Lands on Website</i>]:::marketing
+            B[Website]:::marketing
             N[SDR]:::marketing
             D[MQL]:::marketing
+            O --> A
             A -->|click| B
             A -->|calls| N
             B -->|fills form| N
