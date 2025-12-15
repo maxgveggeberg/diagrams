@@ -1,4 +1,4 @@
-# Context
+# Container
 
 Vision of future C4 container diagram.
 ```mermaid

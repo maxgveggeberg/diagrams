@@ -1,6 +1,6 @@
-# Context
+# Future Context Diagram
 
-C4 context diagram vision.
+vision of future C4 context diagram.
 ```mermaid
 
 %%{init: { "flowchart": { "nodeSpacing": 10, "rankSpacing": 20, "padding": 0, "subGraphTitleMargin": { "top": 0, "bottom": 2 } } } }%%
