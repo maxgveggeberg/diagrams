@@ -1,7 +1,9 @@
 # Stages
 
 High level stages of a marketing and sales funnel
+
 ```mermaid
+%%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
 flowchart LR
     %% Define Node Styles
     classDef marketing fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
@@ -17,20 +19,19 @@ flowchart LR
             direction TB
             A[Impression<br/><i>Sees Ad/Content</i>]:::marketing
             B[Visitor<br/><i>Lands on Website</i>]:::marketing
-            C[Lead<br/><i>Fills Form</i>]:::marketing
-            M[Call<br/><i>Inbound Call</i>]:::marketing
-            A -->|CTR| B
-            B -->|Conversion| C
-            A --> M
-            M --> C
+            N[SDR]:::marketing
+            D[MQL]:::marketing
+            A -->|click| B
+            A -->|calls| N
+            B -->|fills form| N
+            B -->|complete ecom| D
+            N --> D
         end
         style S1 fill:#ffffff,stroke:#666,stroke-width:2px,color:#000
         subgraph S2 ["Conversion (Sales)"]
             direction TB
-            D[MQL<br/><i>SDR Qualifies HO</i>]:::sales
             E[Opportunity<br/><i>Interest in HVAC Upgrade</i>]:::sales
             F[Booking<br/><i>Contract Signed</i>]:::sales
-            D -->|Discovery| E
             E -->|Close| F
         end
         style S2 fill:#ffffff,stroke:#666,stroke-width:2px,color:#000
