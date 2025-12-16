@@ -60,7 +60,7 @@ flowchart TD
     Sys_Notif --> Confirm_Loop
 
     %% --- STEP 5: CONFIRMATION WINDOW (HO PATH) ---
-    Confirm_Loop@{ shape: subproc, label: "Confirmation Loop" }
+    Confirm_Loop@{ shape: subproc, label: "Confirm visit" }
     Confirm_Loop --> HO_Needs_Change{"Homeowner Needs<br/>to Reschedule?"}:::logic
 
     HO_Needs_Change -- No --> Visit_Confirmed
@@ -92,6 +92,13 @@ flowchart TD
     %% Path B: Yes repair - review and approve
     Dec_Repair -- Yes --> HO_View["Review Diagnosis<br/>and Repair Scope"]:::user
     HO_View --> HO_Approve["Approve Scope"]:::user
+
+    %% Path C: Replace - go to Ecom
+    Dec_Repair -- Replace --> Ecom["Ecom"]:::system
+    Ecom --> Dec_Deposit{"Pay deposit?"}:::logic
+    Dec_Deposit -- Yes --> Proc_Delivery
+    Proc_Delivery@{ shape: subproc, label: "Delivery" }
+    Dec_Deposit -- No --> Dec_Repair
 
     %% --- STEP 8: COMPLETION & AUTHORIZATION ---
     HO_Approve --> HO_Sign["Sign-off on Work"]:::user
