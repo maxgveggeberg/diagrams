@@ -1,111 +1,220 @@
-# MVP HO repair user journey
-
-User journey for repair
 ```mermaid
 
 flowchart TD
     %% --- STYLING ---
-    classDef user fill:#e6f3ff,stroke:#08427b,color:#08427b,stroke-width:2px,rx:5,ry:5;
-    classDef co fill:#fff8e1,stroke:#ffa000,color:#5d4037,stroke-width:2px,rx:5,ry:5;
-    classDef system fill:#f5f5f5,stroke:#333333,color:#333333,stroke-width:1px,stroke-dasharray: 5 5;
-    classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,shape:rhombus,color:#08427b;
-    classDef alert fill:#fff0e6,stroke:#d9534f,color:#d9534f,stroke-width:2px,rx:5,ry:5;
-    classDef terminator fill:#333,stroke:#333,color:#fff,rx:10,ry:10;
-    classDef subproc fill:#f4f4f4,stroke:#333,stroke-width:2px;
+    classDef user fill:#e6f3ff,stroke:#08427b,color:#08427b,stroke-width:2px
+    classDef co fill:#fff8e1,stroke:#ffa000,color:#5d4037,stroke-width:2px
+    classDef system fill:#f5f5f5,stroke:#333333,color:#333333,stroke-width:1px,stroke-dasharray: 5 5
+    classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
+    classDef alert fill:#fff0e6,stroke:#d9534f,color:#d9534f,stroke-width:2px
+    classDef terminator fill:#333333,stroke:#333333,color:#ffffff
+    classDef tetra fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
+    classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px
 
-    %% --- STEP 1: LANDING & DATA CHECK ---
-    StartNode(["User Lands at RepairBot"]) --> HO_Entry["Enter Address<br/>& Describe Issue"]:::user
-    HO_Entry --> Sys_Check{"High Confidence<br/>in HVAC Details?"}:::logic
+    %% =============================================
+    %% STEP 1: LANDING & ADDRESS ENTRY
+    %% =============================================
+    StartNode([User Lands at RepairBot]) --> HO_Entry[Enter Address\nand Describe Issue]:::user
 
-    %% --- BRANCH: EQUIPMENT IDENTIFICATION ---
-    %% Path A: Confidence = Yes
-    Sys_Check -- Yes --> Bot_Triage
-    
-    %% Path B: Confidence = No
-    Sys_Check -- No --> Bot_Ask["'What heating system<br/>do you have?'"]:::system
-    Bot_Ask --> HO_Know{"User Knows?"}:::logic
+    %% =============================================
+    %% STEP 2: EXISTING CUSTOMER CHECK
+    %% =============================================
+    HO_Entry --> Dec_Existing{Existing\nCustomer?}:::logic
 
-    HO_Know -- No --> Bot_Guide["Guide user to answer"]:::system
+    %% --- NEW CUSTOMER PATH ---
+    Dec_Existing -- No --> Sys_Check{High Confidence\nin HVAC Details?}:::logic
+
+    %% --- EXISTING CUSTOMER PATH ---
+    Dec_Existing -- Yes --> Dec_FullyCovered{On Fully\nCovered Plan?}:::logic
+
+    Dec_FullyCovered -- Yes --> Flag_NoPay[Flag: No Payment Required]:::system
+    Flag_NoPay --> Dec_Emergency
+
+    Dec_FullyCovered -- No --> Dec_Warranty{Within 1-Year\nLabor Warranty?}:::logic
+    Dec_Warranty -- Yes --> Flag_LaborWarranty[Flag: Labor Covered\nParts may apply]:::system
+    Flag_LaborWarranty --> Dec_Emergency
+
+    Dec_Warranty -- No --> Dec_PartsWarranty{Within 5-10 Year\nParts Warranty?}:::logic
+    Dec_PartsWarranty -- Yes --> Flag_PartsWarranty[Flag: Parts Covered\nLabor billable]:::system
+    Flag_PartsWarranty --> Dec_Emergency
+    Dec_PartsWarranty -- No --> Dec_Emergency
+
+    %% =============================================
+    %% STEP 3: EQUIPMENT IDENTIFICATION - New Customers
+    %% =============================================
+    Sys_Check -- Yes --> Dec_Emergency
+
+    Sys_Check -- No --> Bot_Ask[What heating system\ndo you have?]:::system
+    Bot_Ask --> HO_Know{User Knows?}:::logic
+
+    HO_Know -- No --> Bot_Guide[Guide user to answer]:::system
     Bot_Guide --> HO_Input
-    
-    HO_Know -- Yes --> HO_Input["Select Heating Type<br/>Fuel & AC Status"]:::user
-    HO_Input --> Sys_Twin["Update Digital Twin"]:::system
-    Sys_Twin --> Bot_Triage
 
-    %% --- STEP 2: TRIAGE ---
-    Bot_Triage["Triage Symptoms<br/>& Safety Check"]:::system
-    Bot_Triage --> Dec_Sched{"Clicks schedule<br/>visit button?"}:::logic
+    HO_Know -- Yes --> HO_Input[Select Heating Type\nFuel and AC Status]:::user
+    HO_Input --> Sys_Twin[Generate Digital Twin]:::system
+    Sys_Twin --> Dec_Emergency
 
-    Dec_Sched -- No --> ExitNode(["Exit Session"]):::terminator
-    Dec_Sched -- Yes --> Sys_Cal["Display Calendar"]:::system
+    %% =============================================
+    %% STEP 4: EMERGENCY CHECK
+    %% =============================================
+    Dec_Emergency{Emergency\nVisit Needed?}:::logic
 
-    %% --- STEP 3: SCHEDULING & CONVERGENCE ---
-    Sys_Cal --> HO_Slot["Select Time Slot"]:::user
-    Sys_Cal --> HO_Emerg["Request emergency visit"]:::alert
+    Dec_Emergency -- Yes --> Flag_Emergency[Flag: Emergency Visit\nPremium Pricing]:::alert
+    Flag_Emergency --> Bot_Triage
 
-    %% The Convergence: Both paths lead to Contact Info
-    HO_Slot --> HO_Contact["Input Contact Info<br/>Name, Email, Phone"]:::user
-    HO_Emerg --> HO_Contact
+    Dec_Emergency -- No --> Bot_Triage
 
-    %% The Emergency Fork: Direct path to Call
-    HO_Emerg --> CX_Call["Receive call from CX Team"]:::system
+    %% =============================================
+    %% STEP 5: TRIAGE
+    %% =============================================
+    Bot_Triage[Triage Symptoms\nand Safety Check]:::system
+    Bot_Triage --> Dec_Sched{Clicks Schedule\nVisit Button?}:::logic
 
-    %% --- STEP 4: CLOSE OUT (Standard Flow) ---
-    HO_Contact --> HO_Book["Confirm"]:::user
-    
-    HO_Book --> HO_Dash["Go to HO Handoff"]:::system
-    HO_Book --> Sys_Notif["Send confirmation<br/>email and text"]:::system
-    
+    %% --- NO SCHEDULE PATH: OFFER CHAT REPORT ---
+    Dec_Sched -- No --> Dec_WantReport{Want Chat\nReport Emailed?}:::logic
+    Dec_WantReport -- No --> ExitNode([Exit Session]):::terminator
+    Dec_WantReport -- Yes --> HO_Report_Contact[Enter Contact Info\nName and Email]:::user
+    HO_Report_Contact --> Sys_SendReport[Send Chat Report\nvia Email]:::system
+    Sys_SendReport --> ExitNode
+
+    Dec_Sched -- Yes --> Sys_Cal[Display Calendar]:::system
+
+    %% =============================================
+    %% STEP 6: SCHEDULING
+    %% =============================================
+    Sys_Cal --> HO_Slot[Select Time Slot]:::user
+    HO_Slot --> HO_Contact[Input Contact Info\nName, Email, Phone]:::user
+
+    %% =============================================
+    %% STEP 7: BOOKING CONFIRMATION
+    %% =============================================
+    HO_Contact --> HO_Book[Confirm Booking]:::user
+
+    HO_Book --> HO_Dash[Go to HO Dashboard]:::system
+    HO_Book --> Sys_Notif[Send Confirmation\nEmail and Text]:::system
+
     HO_Dash --> Confirm_Loop
     Sys_Notif --> Confirm_Loop
 
-    %% --- STEP 5: CONFIRMATION WINDOW (HO PATH) ---
-    Confirm_Loop@{ shape: subproc, label: "Confirm visit" }
-    Confirm_Loop --> HO_Needs_Change{"Homeowner Needs<br/>to Reschedule?"}:::logic
+    %% =============================================
+    %% STEP 8: CONFIRMATION WINDOW
+    %% =============================================
+    Confirm_Loop[[Confirm Visit Subprocess]]:::subprocess
+    Confirm_Loop --> Dec_Resched{Reschedule?}:::logic
 
-    HO_Needs_Change -- No --> Visit_Confirmed
-    HO_Needs_Change -- Yes --> HO_Cancel["Cancel Current Slot"]:::user
+    Dec_Resched -- No --> Visit_Confirmed
 
-    HO_Cancel --> HO_Resched_Now{"Reschedule<br/>Immediately?"}:::logic
+    %% --- HO RESCHEDULE PATH ---
+    Dec_Resched -- HO Reschedules --> HO_Cancel[Cancel Current Slot]:::user
+    HO_Cancel --> HO_Resched_Now{Reschedule\nImmediately?}:::logic
 
-    %% Path A: Immediate Reschedule
-    HO_Resched_Now -- Yes --> HO_NewSlot["Select New Time"]:::user
-    HO_NewSlot --> Sys_Notify_CO["Notify CO: Job Moved"]:::system
-    Sys_Notify_CO --> Visit_Confirmed
+    HO_Resched_Now -- Yes --> HO_NewSlot[Select New Time]:::user
+    HO_NewSlot --> Sys_Notify_CO[Notify CO: Job Moved]:::system
+    Sys_Notify_CO --> Confirm_Loop
 
-    %% Path B: Delayed Reschedule
     HO_Resched_Now -- No --> Proc_Reengage
-    Proc_Reengage@{ shape: subproc, label: "Re-engagement Loop" }
-    Proc_Reengage --> HO_NewSlot
-    Proc_Reengage --> End_Unresponsive(["Unresponsive"]):::terminator
+    Proc_Reengage[[Re-engagement Loop]]:::subprocess
+    Proc_Reengage --> Dec_Reengage{HO Reschedules?}:::logic
+    Dec_Reengage -- Yes --> HO_NewSlot
+    Dec_Reengage -- No --> End_Unresponsive([Unresponsive]):::terminator
 
-    %% --- STEP 6: ARRIVAL ---
-    Visit_Confirmed(["Visit Confirmed"]) --> CO_Arrive["Arrive at Home"]:::co
-    CO_Arrive --> CO_Diagnose["CO Diagnoses Issue"]:::co
+    %% --- CO RESCHEDULE PATH ---
+    Dec_Resched -- CO Reschedules --> CO_NewTime[CO Proposes New Time]:::co
+    CO_NewTime --> Sys_Notify_HO[Notify HO: Time Change\nOffer alternative slots]:::system
+    Sys_Notify_HO --> Dec_HO_Accept{HO Accepts\nNew Time?}:::logic
+    Dec_HO_Accept -- Yes --> Confirm_Loop
+    Dec_HO_Accept -- No --> Proc_Reengage
 
-    %% --- STEP 7: REPAIR DECISION ---
-    CO_Diagnose --> Dec_Repair{"Repair work?"}:::logic
+    %% =============================================
+    %% STEP 9: ARRIVAL & NO-SHOW CHECK
+    %% =============================================
+    Visit_Confirmed([Visit Confirmed]):::terminator
+    Visit_Confirmed --> CO_Arrive[CO Arrives at Home]:::co
+    CO_Arrive --> CO_Checkin[CO Checks In via App]:::co
+    CO_Checkin --> Dec_HO_Home{HO Home?}:::logic
 
-    %% Path A: No repair - just pay diagnostic fee
-    Dec_Repair -- No --> HO_Pay
+    %% --- HO NO-SHOW PATH ---
+    Dec_HO_Home -- No --> CO_Wait[CO Waits and Attempts Contact]:::co
+    CO_Wait --> Dec_NoShow{HO Responds?}:::logic
+    Dec_NoShow -- No --> Sys_Log_NoShow[Log No-Show]:::system
+    Sys_Log_NoShow --> Proc_Reengage
+    Dec_NoShow -- Yes --> CO_Diagnose
 
-    %% Path B: Yes repair - review and approve
-    Dec_Repair -- Yes --> HO_View["Review Diagnosis<br/>and Repair Scope"]:::user
-    HO_View --> HO_Approve["Approve Scope"]:::user
+    Dec_HO_Home -- Yes --> CO_Diagnose
 
-    %% Path C: Replace - go to Ecom
-    Dec_Repair -- Replace --> Ecom["Ecom"]:::system
-    Ecom --> Dec_Deposit{"Pay deposit?"}:::logic
-    Dec_Deposit -- Yes --> Proc_Delivery
-    Proc_Delivery@{ shape: subproc, label: "Delivery" }
+    %% =============================================
+    %% STEP 10: DIAGNOSIS
+    %% =============================================
+    CO_Diagnose[CO Diagnoses Issue]:::co
+    CO_Diagnose --> HO_View[Review Diagnosis\nand Repair Scope]:::user
+
+    %% =============================================
+    %% STEP 11: REPAIR DECISION
+    %% =============================================
+    HO_View --> Dec_Repair{Repair Decision?}:::logic
+
+    %% Path A: No Repair - Diagnostic Fee Only
+    Dec_Repair -- Decline --> HO_Pay_Diag[Pay Diagnostic Fee]:::user
+    HO_Pay_Diag --> Sys_Pay
+
+    %% Path B: Approve Repair
+    Dec_Repair -- Approve --> HO_Approve[Approve Scope]:::user
+
+    %% Path C: Replace - Handoff to Ecom
+    Dec_Repair -- Replace --> Ecom[Ecom Flow]:::system
+    Ecom --> Dec_Deposit{Pay Deposit?}:::logic
+    Dec_Deposit -- Yes --> Proc_Delivery[[Delivery Subprocess]]:::subprocess
     Dec_Deposit -- No --> Dec_Repair
 
-    %% --- STEP 8: COMPLETION & AUTHORIZATION ---
-    HO_Approve --> HO_Sign["Sign-off on Work"]:::user
-    HO_Sign --> HO_Pay["Enter/Confirm Payment"]:::user
+    %% =============================================
+    %% STEP 12: PARTS CHECK
+    %% =============================================
+    HO_Approve --> Dec_Parts{Parts Needed?}:::logic
 
-    %% --- STEP 9: SYSTEM PROCESSING ---
-    HO_Pay --> Sys_Pay["Process Payment"]:::system
-    Sys_Pay --> Sys_Report["Send report to HO"]:::system
-    Sys_Report --> End_Journey(["Journey Complete"]):::terminator
-```
+    Dec_Parts -- No --> Dec_SameDay{Same-Day\nRepair Possible?}:::logic
+
+    Dec_Parts -- Yes --> Sys_Order[Tetra Orders Parts]:::tetra
+    Sys_Order --> Sys_Parts_ETA[Notify HO: Parts ETA]:::system
+    Sys_Parts_ETA --> Parts_Arrive[Parts Arrive]:::system
+    Parts_Arrive --> Sched_Followup
+
+    %% =============================================
+    %% STEP 13: SAME-DAY REPAIR CHECK
+    %% =============================================
+    Dec_SameDay -- Yes --> CO_Execute
+
+    %% --- REPAIR CANT BE DONE TODAY ---
+    Dec_SameDay -- No --> Sys_Explain[Explain: Repair requires\nadditional time or resources]:::system
+    Sys_Explain --> Sched_Followup
+
+    %% --- SCHEDULE FOLLOW-UP ---
+    Sched_Followup[[Schedule Follow-Up Visit]]:::subprocess
+    Sched_Followup --> HO_FollowSlot[Select Follow-Up Time]:::user
+    HO_FollowSlot --> Sys_Followup_Confirm[Confirm Follow-Up\nSend Notifications]:::system
+    Sys_Followup_Confirm --> CO_Execute
+
+    %% =============================================
+    %% STEP 14: EXECUTION & COMPLETION
+    %% =============================================
+    CO_Execute[CO Performs Repair]:::co
+    CO_Execute --> HO_Sign[Sign Off on Work]:::user
+    HO_Sign --> HO_Pay[Enter or Confirm Payment]:::user
+
+    %% =============================================
+    %% STEP 15: PAYMENT & CLOSE
+    %% =============================================
+    HO_Pay --> Dec_Payment_Flag{Payment\nFlag Set?}:::logic
+
+    Dec_Payment_Flag -- Fully Covered --> Sys_NoPay[Skip Payment\nPlan Benefit]:::system
+    Sys_NoPay --> Sys_Report
+
+    Dec_Payment_Flag -- Labor Warranty --> Sys_PartsOnly[Charge Parts Only]:::system
+    Sys_PartsOnly --> Sys_Pay
+
+    Dec_Payment_Flag -- Parts Warranty --> Sys_LaborOnly[Charge Labor Only]:::system
+    Sys_LaborOnly --> Sys_Pay
+
+    Dec_Payment_Flag -- No Flag --> Sys_Pay[Process Full Payment]:::system
+
+    Sys_Pay --> Sys_Report[Send Report to HO]:::system
+    Sys_Report --> End_Journey([Journey Complete]):::terminator
