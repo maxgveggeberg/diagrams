@@ -18,7 +18,17 @@ flowchart TD
     subgraph Phase1[PHASE 1: INTAKE AND QUALIFICATION]
         direction TB
         
-        Start([HO Calls In]) --> CSR_Answer[CSR Answers Call<br>Opens CSR RepairBot]:::tetra
+        Start([HO Calls In]) --> Dec_Answer{Call<br>Answered?}:::logic
+        
+        Dec_Answer -- Yes --> CSR_Answer[CSR Answers Call<br>Opens CSR RepairBot]:::tetra
+        
+        %% --- CALLBACK FLOW FOR MISSED CALLS ---
+        Dec_Answer -- No --> Tetra_Callback[Tetra Calls<br>Customer Back]:::tetra
+        Tetra_Callback --> Dec_Callback_Answer{Customer<br>Answers?}:::logic
+        Dec_Callback_Answer -- Yes --> CSR_Answer
+        Dec_Callback_Answer -- No --> Tetra_Voicemail[Leave Voicemail<br>Log Callback Attempt]:::tetra
+        Tetra_Voicemail --> End_Callback([Callback Logged]):::terminator
+        
         CSR_Answer --> CSR_Entry[CSR Enters Address<br>and Issue Description<br>in RepairBot]:::tetra
         
         CSR_Entry --> Dec_Existing{Existing<br>Customer?}:::logic
@@ -44,7 +54,7 @@ flowchart TD
         %% --- HOME DETAILS CONFIDENCE CHECK ---
         Dec_Confidence{High Confidence<br>in HVAC Details?}:::logic
         
-        Dec_Confidence -- Yes --> Dec_Emergency
+        Dec_Confidence -- Yes --> Bot_Triage
         
         Dec_Confidence -- No --> CSR_AskEquip[CSR Asks HO:<br>What heating system<br>do you have?]:::tetra
         CSR_AskEquip --> Dec_HOKnows{HO Knows<br>Equipment?}:::logic
@@ -54,18 +64,9 @@ flowchart TD
         CSR_Guide --> CSR_RecordEquip
         
         CSR_RecordEquip --> Sys_UpdateTwin[System Updates<br>Digital Twin]:::system
-        Sys_UpdateTwin --> Dec_Emergency
+        Sys_UpdateTwin --> Bot_Triage
         
-        %% --- EMERGENCY CHECK ---
-        Dec_Emergency{Emergency<br>Visit?}:::logic
-        Dec_Emergency -- Yes --> CSR_ValidateEmerg[CSR Validates Emergency:<br>Review Issue Description<br>Confirm Urgency with HO]:::tetra
-        CSR_ValidateEmerg --> Dec_RealEmerg{Genuine<br>Emergency?}:::logic
-        Dec_RealEmerg -- Yes --> Flag_Emergency[Set Flag:<br>Emergency + Premium Rate]:::alert
-        Dec_RealEmerg -- No --> CSR_Downgrade[CSR Informs HO:<br>Standard Pricing Applies]:::tetra
-        CSR_Downgrade --> Bot_Triage
-        Flag_Emergency --> Bot_Triage
-        
-        Dec_Emergency -- No --> Bot_Triage[RepairBot: Triage Symptoms<br>and Safety Check]:::system
+        Bot_Triage[RepairBot: Triage Symptoms<br>and Safety Check]:::system
     end
 
     %% =============================================
@@ -83,14 +84,33 @@ flowchart TD
         Sys_SendReport --> End_NoSchedule([Call End:<br>Lead Captured]):::terminator
         Dec_WantReport -- No --> End_Exit([Call End:<br>No Capture]):::terminator
         
-        Dec_Schedule -- Yes --> CSR_ShowCal[CSR Reviews Available<br>Time Slots with HO]:::tetra
+        %% --- EMERGENCY CHECK AFTER SCHEDULE CLICK ---
+        Dec_Schedule -- Yes --> Dec_Emergency{Emergency<br>Visit?}:::logic
+        Dec_Emergency -- Yes --> CSR_ValidateEmerg[CSR Validates Emergency:<br>Review Issue Description<br>Confirm Urgency with HO]:::tetra
+        CSR_ValidateEmerg --> Dec_RealEmerg{Genuine<br>Emergency?}:::logic
+        Dec_RealEmerg -- Yes --> Flag_Emergency[Set Flag:<br>Emergency + Premium Rate]:::alert
+        Dec_RealEmerg -- No --> CSR_Downgrade[CSR Informs HO:<br>Standard Pricing Applies]:::tetra
+        CSR_Downgrade --> CSR_ShowCal
+        Flag_Emergency --> CSR_ShowCal
+        Dec_Emergency -- No --> CSR_ShowCal
+        
+        CSR_ShowCal[CSR Reviews Available<br>Time Slots with HO]:::tetra
         CSR_ShowCal --> HO_SelectSlot[HO Selects Time Slot]:::user
         HO_SelectSlot --> CSR_ConfirmContact[CSR Confirms Contact Info:<br>Name, Phone, Email]:::tetra
         CSR_ConfirmContact --> Sys_CreateJob[System Creates Job<br>in ServiceTitan:<br>Attach All Flags<br>Set Priority Level]:::system
         
         Sys_CreateJob --> Sys_AssignCO[System Assigns Contractor:<br>Match Skills<br>Check Availability<br>Optimize Route]:::system
         
-        Sys_AssignCO --> Sys_NotifyBoth[System Sends Confirmations:<br>HO: Email + SMS<br>CO: App Notification]:::system
+        %% --- EMERGENCY: CALL CO ---
+        Sys_AssignCO --> Dec_EmergencyFlag{Emergency<br>Flag Set?}:::logic
+        Dec_EmergencyFlag -- Yes --> Tetra_Call_CO[Tetra Calls CO:<br>Alert Emergency Visit<br>Confirm Availability]:::tetra
+        Tetra_Call_CO --> Dec_CO_Avail{CO<br>Available?}:::logic
+        Dec_CO_Avail -- Yes --> Sys_NotifyBoth
+        Dec_CO_Avail -- No --> Sys_Reassign[Reassign to<br>Available CO]:::system
+        Sys_Reassign --> Sys_NotifyBoth
+        Dec_EmergencyFlag -- No --> Sys_NotifyBoth
+        
+        Sys_NotifyBoth[System Sends Confirmations:<br>HO: Email + SMS<br>CO: App Notification]:::system
         Sys_NotifyBoth --> CSR_ConfirmEnd[CSR Confirms Booking<br>with HO and Ends Call]:::tetra
         CSR_ConfirmEnd --> Confirm_Window
     end
@@ -114,7 +134,8 @@ flowchart TD
         Sys_UpdateJob --> Confirm_Window
         Dec_HOImmediate -- No --> Reengage_Loop
         
-        Dec_Resched -- CO Reschedules --> Tetra_COResched[Tetra Processes Reschedule:<br>Get New Time from CO<br>Notify HO with Options]:::tetra
+        Dec_Resched -- CO Reschedules --> Sys_Pull_Avail[Pull CO Availability<br>from ServiceTitan]:::system
+        Sys_Pull_Avail --> Tetra_COResched[Tetra Notifies HO:<br>Time Change Options]:::tetra
         Tetra_COResched --> Dec_HOAccept{HO Accepts<br>New Time?}:::logic
         Dec_HOAccept -- Yes --> Sys_UpdateJob
         Dec_HOAccept -- No --> Reengage_Loop
@@ -150,24 +171,43 @@ flowchart TD
     end
 
     %% =============================================
-    %% PHASE 5: DIAGNOSIS & DECISION
+    %% PHASE 5: DIAGNOSIS & SCOPE
     %% =============================================
-    subgraph Phase5[PHASE 5: DIAGNOSIS AND DECISION]
+    subgraph Phase5[PHASE 5: DIAGNOSIS AND SCOPE]
         direction TB
         
         CO_Diagnose --> Sys_GenScope[System Generates Scope:<br>Recommended Fix<br>Line Items<br>Pricing]:::system
         Sys_GenScope --> CO_Review[CO Reviews<br>and Edits Scope]:::co
-        CO_Review --> CO_Present[CO Presents<br>Scope to HO]:::co
         
-        CO_Present --> Dec_Repair{HO<br>Decision?}:::logic
+        %% --- PAYMENT FLAG CHECK BEFORE PRESENTING SCOPE ---
+        CO_Review --> Dec_Payment_Flag_Scope{Payment<br>Flag Set?}:::logic
+        
+        Dec_Payment_Flag_Scope -- Fully Covered --> CO_Present_NoPay[CO Presents Scope:<br>No Payment Required]:::co
+        Dec_Payment_Flag_Scope -- Labor Warranty --> CO_Present_PartsOnly[CO Presents Scope:<br>Parts Only Pricing]:::co
+        Dec_Payment_Flag_Scope -- Parts Warranty --> CO_Present_LaborOnly[CO Presents Scope:<br>Labor Only Pricing]:::co
+        Dec_Payment_Flag_Scope -- No Flag --> CO_Present_Full[CO Presents Scope:<br>Full Pricing]:::co
+        
+        CO_Present_NoPay --> Dec_Repair
+        CO_Present_PartsOnly --> Dec_Repair
+        CO_Present_LaborOnly --> Dec_Repair
+        CO_Present_Full --> Dec_Repair
+        
+        Dec_Repair{HO<br>Decision?}:::logic
         
         Dec_Repair -- Decline --> Tetra_DiagFee[Process Diagnostic Fee:<br>Check Payment Flags<br>Collect or Waive]:::tetra
         Tetra_DiagFee --> End_DiagOnly([Diagnostic Complete]):::terminator
         
-        Dec_Repair -- Replace --> Tetra_Ecom[Handoff to Ecom:<br>Create Replacement Quote<br>Schedule Consultation]:::tetra
+        Dec_Repair -- Replace --> CO_SetLead[CO Sets<br>Replacement Lead]:::co
+        CO_SetLead --> Tetra_PayLeadComm[Pay CO<br>Lead Commission]:::tetra
+        Tetra_PayLeadComm --> Tetra_Ecom[Handoff to Ecom:<br>Create Replacement Quote<br>Schedule Consultation]:::tetra
         Tetra_Ecom --> End_Ecom([Ecom Handoff]):::terminator
         
-        Dec_Repair -- Approve --> Dec_Parts{Parts<br>Needed?}:::logic
+        Dec_Repair -- Repair + Replace --> CO_SetLead_Both[CO Sets<br>Replacement Lead]:::co
+        CO_SetLead_Both --> Tetra_PayLeadComm_Both[Pay CO<br>Lead Commission]:::tetra
+        Tetra_PayLeadComm_Both --> HO_Approve
+        
+        Dec_Repair -- Approve --> HO_Approve[HO Approves Scope<br>and Payment]:::user
+        HO_Approve --> Dec_Parts{Parts<br>Needed?}:::logic
     end
 
     %% =============================================
@@ -178,7 +218,8 @@ flowchart TD
         
         Dec_Parts -- No --> Dec_SameDay{Same-Day<br>Repair?}:::logic
         
-        Dec_Parts -- Yes --> Tetra_OrderParts[Tetra Orders Parts:<br>Identify Supplier<br>Place Order<br>Track Shipment]:::tetra
+        Dec_Parts -- Yes --> Alert_Tetra[Alert Tetra:<br>Parts Needed]:::tetra
+        Alert_Tetra --> Tetra_OrderParts[Tetra Orders Parts:<br>Identify Supplier<br>Place Order<br>Track Shipment]:::tetra
         Tetra_OrderParts --> Sys_PartsETA[System Notifies HO and CO:<br>Parts ETA<br>Expected Delivery Date]:::system
         Sys_PartsETA --> Tetra_TrackParts[Tetra Tracks Parts:<br>Monitor Shipment<br>Alert on Delays]:::monitor
         Tetra_TrackParts --> Parts_Arrive[Parts Arrive<br>at CO Warehouse]:::system
@@ -190,10 +231,9 @@ flowchart TD
         Tetra_ExplainDelay --> Sched_Followup
         
         Sched_Followup[[Schedule Follow-Up]]:::subprocess
-        Sched_Followup --> Sys_CreateFollowup[System Creates Follow-Up Job:<br>Link to Original<br>Carry Forward Flags]:::system
-        Sys_CreateFollowup --> HO_FollowSlot[HO Selects<br>Follow-Up Time]:::user
-        HO_FollowSlot --> Sys_ConfirmFollowup[System Confirms Follow-Up:<br>Notify HO and CO<br>Update Calendar]:::system
-        Sys_ConfirmFollowup --> CO_Execute
+        Sched_Followup --> HO_FollowSlot[HO Selects<br>Follow-Up Time]:::user
+        HO_FollowSlot --> Sys_CreateFollowup[System Creates Follow-Up Job:<br>Link to Original<br>Carry Forward Flags]:::system
+        Sys_CreateFollowup --> Confirm_Window
     end
 
     %% =============================================
@@ -207,25 +247,34 @@ flowchart TD
         
         Tetra_Monitor3 --> CO_Complete[CO Marks Complete<br>Uploads Photos]:::co
         CO_Complete --> HO_Sign[HO Signs Off]:::user
+    end
+
+    %% =============================================
+    %% PHASE 8: PAYMENT COLLECTION (After Repair)
+    %% =============================================
+    subgraph Phase8[PHASE 8: PAYMENT COLLECTION]
+        direction TB
         
-        HO_Sign --> Tetra_Payment[Tetra Processes Payment:<br>Check Flags<br>Apply Warranty Credits<br>Charge Appropriate Amount]:::tetra
+        HO_Sign --> CO_Collect[CO Collects Payment]:::co
+        CO_Collect --> Dec_HO_Pays{HO<br>Pays?}:::logic
         
-        Tetra_Payment --> Dec_PayFlag{Payment<br>Flag?}:::logic
-        Dec_PayFlag -- Fully Covered --> Tetra_NoPay[Waive Payment<br>Log Plan Usage]:::tetra
-        Dec_PayFlag -- Labor Warranty --> Tetra_PartsOnly[Charge Parts Only<br>Log Warranty Usage]:::tetra
-        Dec_PayFlag -- Parts Warranty --> Tetra_LaborOnly[Charge Labor Only<br>Log Warranty Usage]:::tetra
-        Dec_PayFlag -- Standard --> Tetra_FullPay[Process Full Payment]:::tetra
-        
-        Tetra_NoPay --> Sys_Report
-        Tetra_PartsOnly --> Sys_Report
-        Tetra_LaborOnly --> Sys_Report
-        Tetra_FullPay --> Sys_Report
-        
-        Sys_Report[System Generates and Sends Report:<br>HO: Service Summary + Invoice<br>CO: Job Summary + Payment<br>Internal: Analytics Update]:::system
-        
+        %% --- PAYMENT COLLECTED ---
+        Dec_HO_Pays -- Yes --> Tetra_Payment[Tetra Processes Payment:<br>Apply Warranty Credits<br>Charge Appropriate Amount]:::tetra
+        Tetra_Payment --> Sys_Report[System Generates Reports:<br>HO: Summary + Invoice<br>CO: Summary + Payment]:::system
         Sys_Report --> Tetra_PayCO[Tetra Pays Contractor:<br>Calculate Commission<br>Process Payment]:::tetra
         Tetra_PayCO --> Sys_UpdateRecords[System Updates Records:<br>Digital Twin<br>Service History<br>Warranty Usage]:::system
         Sys_UpdateRecords --> End_Complete([Journey Complete]):::terminator
+        
+        %% --- PAYMENT NOT COLLECTED ---
+        Dec_HO_Pays -- No --> CO_Log_NoPay[CO Logs: Payment<br>Not Collected]:::co
+        CO_Log_NoPay --> Tetra_Collection[Tetra Reaches Out<br>for Payment Collection]:::tetra
+        Tetra_Collection --> Dec_Collection{Payment<br>Collected?}:::logic
+        Dec_Collection -- Yes --> Tetra_Payment_Late[Tetra Processes<br>Late Payment]:::tetra
+        Tetra_Payment_Late --> Sys_Report_Late[Send Reports]:::system
+        Sys_Report_Late --> Tetra_PayCO_Late[Pay CO<br>After Collection]:::tetra
+        Tetra_PayCO_Late --> End_Complete_Late([Journey Complete - Late Pay]):::terminator
+        Dec_Collection -- No --> Tetra_Flag_Unpaid[Flag: Unpaid<br>Send to Collections]:::tetra
+        Tetra_Flag_Unpaid --> End_Unpaid([Unpaid - Collections]):::terminator
     end
 
     %% =============================================
