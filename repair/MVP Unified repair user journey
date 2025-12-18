@@ -22,23 +22,23 @@ flowchart TD
         Start_Web([HO Lands on RepairBot]):::user
         Start_Phone([HO Calls In]):::user
         
-        Start_Web --> HO_Entry_Web[HO Enters Address\nand Describes Issue]:::user
-        Start_Phone --> CSR_Answer[CSR Answers Call\nOpens CSR RepairBot]:::tetra
-        CSR_Answer --> CSR_Entry[CSR Enters Address\nand Issue Description]:::tetra
+        Start_Web --> HO_Entry_Web[HO Enters Address<br>and Describes Issue]:::user
+        Start_Phone --> CSR_Answer[CSR Answers Call<br>Opens CSR RepairBot]:::tetra
+        CSR_Answer --> CSR_Entry[CSR Enters Address<br>and Issue Description]:::tetra
         
         HO_Entry_Web --> Dec_Existing
         CSR_Entry --> Dec_Existing
         
         %% Customer Check
-        Dec_Existing{Existing\nCustomer?}:::logic
+        Dec_Existing{Existing<br>Customer?}:::logic
         
-        Dec_Existing -- Yes --> Sys_PullFlags[System Pulls Flags:\nPlan Status\nWarranty Status\nService History]:::system
-        Sys_PullFlags --> Dec_FullyCovered{Fully\nCovered?}:::logic
+        Dec_Existing -- Yes --> Sys_PullFlags[System Pulls Flags:<br>Plan, Warranty, History]:::system
+        Sys_PullFlags --> Dec_FullyCovered{Fully<br>Covered?}:::logic
         
         Dec_FullyCovered -- Yes --> Flag_NoPay[Flag: No Payment]:::system
-        Dec_FullyCovered -- No --> Dec_Warranty{Labor\nWarranty?}:::logic
+        Dec_FullyCovered -- No --> Dec_Warranty{Labor<br>Warranty?}:::logic
         Dec_Warranty -- Yes --> Flag_Labor[Flag: Labor Covered]:::system
-        Dec_Warranty -- No --> Dec_PartsWarranty{Parts\nWarranty?}:::logic
+        Dec_Warranty -- No --> Dec_PartsWarranty{Parts<br>Warranty?}:::logic
         Dec_PartsWarranty -- Yes --> Flag_Parts[Flag: Parts Covered]:::system
         Dec_PartsWarranty -- No --> Flag_Standard[Flag: Standard Billing]:::system
         
@@ -51,23 +51,23 @@ flowchart TD
         Flag_NewCust --> Dec_Confidence
         
         %% Equipment Confidence
-        Dec_Confidence{High Confidence\nin HVAC Details?}:::logic
+        Dec_Confidence{High Confidence<br>in HVAC Details?}:::logic
         
         Dec_Confidence -- Yes --> Dec_Emergency
-        Dec_Confidence -- No --> Guide_Equip[Guide Equipment ID:\nHeating Type\nFuel Type\nAC Status]:::system
+        Dec_Confidence -- No --> Guide_Equip[Guide Equipment ID:<br>Heating, Fuel, AC]:::system
         Guide_Equip --> Sys_UpdateTwin[Update Digital Twin]:::system
         Sys_UpdateTwin --> Dec_Emergency
         
         %% Emergency Check
-        Dec_Emergency{Emergency\nVisit?}:::logic
-        Dec_Emergency -- Yes --> Validate_Emerg[Validate Emergency\nConfirm Premium Rate]:::tetra
-        Validate_Emerg --> Dec_RealEmerg{Genuine\nEmergency?}:::logic
-        Dec_RealEmerg -- Yes --> Flag_Emergency[Flag: Emergency\nPremium Rate]:::alert
+        Dec_Emergency{Emergency<br>Visit?}:::logic
+        Dec_Emergency -- Yes --> Validate_Emerg[Validate Emergency<br>Confirm Premium Rate]:::tetra
+        Validate_Emerg --> Dec_RealEmerg{Genuine<br>Emergency?}:::logic
+        Dec_RealEmerg -- Yes --> Flag_Emergency[Flag: Emergency<br>Premium Rate]:::alert
         Dec_RealEmerg -- No --> Bot_Triage
         Flag_Emergency --> Bot_Triage
         Dec_Emergency -- No --> Bot_Triage
         
-        Bot_Triage[Triage Symptoms\nSafety Check]:::system
+        Bot_Triage[Triage Symptoms<br>Safety Check]:::system
     end
 
     %% =============================================
@@ -76,30 +76,30 @@ flowchart TD
     subgraph Phase2[PHASE 2: SCHEDULING]
         direction TB
         
-        Bot_Triage --> Dec_Schedule{HO Wants to\nSchedule?}:::logic
+        Bot_Triage --> Dec_Schedule{HO Wants to<br>Schedule?}:::logic
         
         %% No Schedule Path
         Dec_Schedule -- No --> Offer_Report[Offer Chat Report]:::system
-        Offer_Report --> Dec_WantReport{HO Wants\nReport?}:::logic
+        Offer_Report --> Dec_WantReport{HO Wants<br>Report?}:::logic
         Dec_WantReport -- Yes --> Collect_Contact[Collect Contact Info]:::user
-        Collect_Contact --> Send_Report[Send Chat Report\nvia Email]:::system
+        Collect_Contact --> Send_Report[Send Chat Report<br>via Email]:::system
         Send_Report --> End_Lead([Lead Captured]):::terminator
         Dec_WantReport -- No --> End_Exit([Session End]):::terminator
         
         %% Schedule Path
-        Dec_Schedule -- Yes --> Show_Calendar[Display Available\nTime Slots]:::system
-        Show_Calendar --> HO_SelectSlot[HO Selects\nTime Slot]:::user
-        HO_SelectSlot --> HO_ConfirmContact[HO Confirms\nContact Info]:::user
-        HO_ConfirmContact --> Sys_CreateJob[Create Job in\nServiceTitan]:::system
-        Sys_CreateJob --> Sys_AssignCO[Assign Contractor:\nSkills, Availability, Route]:::system
-        Sys_AssignCO --> Sys_NotifyAll[Send Confirmations:\nHO: Email + SMS\nCO: App Notification]:::system
+        Dec_Schedule -- Yes --> Show_Calendar[Display Available<br>Time Slots]:::system
+        Show_Calendar --> HO_SelectSlot[HO Selects<br>Time Slot]:::user
+        HO_SelectSlot --> HO_ConfirmContact[HO Confirms<br>Contact Info]:::user
+        HO_ConfirmContact --> Sys_CreateJob[Create Job in<br>ServiceTitan]:::system
+        Sys_CreateJob --> Sys_AssignCO[Assign Contractor:<br>Skills, Availability, Route]:::system
+        Sys_AssignCO --> Sys_NotifyAll[Send Confirmations:<br>HO: Email + SMS<br>CO: App Notification]:::system
         
         %% CO Receives Job
-        Sys_NotifyAll --> CO_ReceiveJob[CO: Job Appears\non Calendar]:::co
+        Sys_NotifyAll --> CO_ReceiveJob[CO: Job Appears<br>on Calendar]:::co
         Sys_NotifyAll --> HO_Dashboard[HO: Go to Dashboard]:::user
         
-        CO_ReceiveJob --> Dec_EmergencyFlag{Emergency\nFlag?}:::logic
-        Dec_EmergencyFlag -- Yes --> CO_Prioritize[CO Prioritizes Job\nPremium Rate Applies]:::co
+        CO_ReceiveJob --> Dec_EmergencyFlag{Emergency<br>Flag?}:::logic
+        Dec_EmergencyFlag -- Yes --> CO_Prioritize[CO Prioritizes Job<br>Premium Rate Applies]:::co
         Dec_EmergencyFlag -- No --> Confirm_Window
         CO_Prioritize --> Confirm_Window
         HO_Dashboard --> Confirm_Window
@@ -111,35 +111,35 @@ flowchart TD
     subgraph Phase3[PHASE 3: CONFIRMATION WINDOW]
         direction TB
         
-        Confirm_Window[[Confirmation Window\n24-48 hrs before visit]]:::subprocess
-        Confirm_Window --> Sys_Reminder[System Sends Reminders:\nHO: Confirm/Reschedule\nCO: Job Brief]:::system
+        Confirm_Window[[Confirmation Window<br>24-48 hrs before visit]]:::subprocess
+        Confirm_Window --> Sys_Reminder[System Sends Reminders:<br>HO: Confirm/Reschedule<br>CO: Job Brief]:::system
         
-        Sys_Reminder --> Dec_Resched{Reschedule\nRequested?}:::logic
+        Sys_Reminder --> Dec_Resched{Reschedule<br>Requested?}:::logic
         
         Dec_Resched -- No --> Visit_Confirmed([Visit Confirmed])
         
         %% HO Reschedule
-        Dec_Resched -- HO Reschedules --> HO_Cancel[HO Cancels\nCurrent Slot]:::user
-        HO_Cancel --> Dec_HOImmediate{Reschedule\nImmediately?}:::logic
-        Dec_HOImmediate -- Yes --> HO_NewSlot[HO Selects\nNew Time]:::user
-        HO_NewSlot --> Sys_NotifyCO[Notify CO:\nJob Moved]:::system
+        Dec_Resched -- HO Reschedules --> HO_Cancel[HO Cancels<br>Current Slot]:::user
+        HO_Cancel --> Dec_HOImmediate{Reschedule<br>Immediately?}:::logic
+        Dec_HOImmediate -- Yes --> HO_NewSlot[HO Selects<br>New Time]:::user
+        HO_NewSlot --> Sys_NotifyCO[Notify CO:<br>Job Moved]:::system
         Sys_NotifyCO --> Confirm_Window
         Dec_HOImmediate -- No --> Reengage_Loop
         
         %% CO Reschedule
-        Dec_Resched -- CO Reschedules --> CO_ProposeTime[CO Proposes\nNew Time]:::co
-        CO_ProposeTime --> Sys_NotifyHO[Notify HO:\nTime Change Options]:::system
+        Dec_Resched -- CO Reschedules --> CO_ProposeTime[CO Proposes<br>New Time]:::co
+        CO_ProposeTime --> Sys_NotifyHO[Notify HO:<br>Time Change Options]:::system
         Sys_NotifyHO --> Dec_HOAccept{HO Accepts?}:::logic
-        Dec_HOAccept -- Yes --> Sys_UpdateJob[Update Job\nNotify Both Parties]:::system
+        Dec_HOAccept -- Yes --> Sys_UpdateJob[Update Job<br>Notify Both Parties]:::system
         Sys_UpdateJob --> Confirm_Window
         Dec_HOAccept -- No --> Reengage_Loop
         
         %% Re-engagement
         Reengage_Loop[[Re-engagement Loop]]:::subprocess
-        Reengage_Loop --> Tetra_Outreach[Tetra Outreach:\nDay 1: SMS\nDay 2: Email\nDay 3: Call]:::tetra
-        Tetra_Outreach --> Dec_Respond{HO\nResponds?}:::logic
+        Reengage_Loop --> Tetra_Outreach[Tetra Outreach:<br>Day 1: SMS<br>Day 2: Email<br>Day 3: Call]:::tetra
+        Tetra_Outreach --> Dec_Respond{HO<br>Responds?}:::logic
         Dec_Respond -- Yes --> HO_NewSlot
-        Dec_Respond -- No --> Mark_Cold[Mark Lead Cold\nRemove from CO Calendar]:::tetra
+        Dec_Respond -- No --> Mark_Cold[Mark Lead Cold<br>Remove from CO Calendar]:::tetra
         Mark_Cold --> End_Cancelled([Job Cancelled]):::terminator
     end
 
@@ -149,17 +149,17 @@ flowchart TD
     subgraph Phase4[PHASE 4: VISIT DAY]
         direction TB
         
-        Visit_Confirmed --> Tetra_Monitor[Day-Of Monitoring:\nCO En Route\nHO Notified]:::monitor
+        Visit_Confirmed --> Tetra_Monitor[Day-Of Monitoring:<br>CO En Route, HO Notified]:::monitor
         
-        Tetra_Monitor --> CO_Arrive[CO Arrives\nat Home]:::co
-        CO_Arrive --> CO_Checkin[CO Checks In\nvia App]:::co
+        Tetra_Monitor --> CO_Arrive[CO Arrives<br>at Home]:::co
+        CO_Arrive --> CO_Checkin[CO Checks In<br>via App]:::co
         
-        CO_Checkin --> Dec_HOHome{HO\nHome?}:::logic
+        CO_Checkin --> Dec_HOHome{HO<br>Home?}:::logic
         
         %% No-Show Path
-        Dec_HOHome -- No --> CO_Wait[CO Waits\nAttempts Contact]:::co
-        CO_Wait --> Dec_NoShow{HO\nResponds?}:::logic
-        Dec_NoShow -- No --> Log_NoShow[Log No-Show\nin ServiceTitan]:::system
+        Dec_HOHome -- No --> CO_Wait[CO Waits<br>Attempts Contact]:::co
+        CO_Wait --> Dec_NoShow{HO<br>Responds?}:::logic
+        Dec_NoShow -- No --> Log_NoShow[Log No-Show<br>in ServiceTitan]:::system
         Log_NoShow --> Reengage_Loop
         Dec_NoShow -- Yes --> CO_Diagnose
         
@@ -172,28 +172,28 @@ flowchart TD
     subgraph Phase5[PHASE 5: DIAGNOSIS]
         direction TB
         
-        CO_Diagnose[CO Diagnoses Issue:\nQ&A, Photos, Readings]:::co
-        CO_Diagnose --> Sys_GenScope[System Generates:\nRecommended Fix\nLine Items\nPricing]:::system
-        Sys_GenScope --> CO_ReviewScope[CO Reviews and\nEdits Scope]:::co
-        CO_ReviewScope --> CO_PresentHO[CO Presents\nScope to HO]:::co
-        CO_PresentHO --> HO_ReviewScope[HO Reviews Diagnosis\nand Repair Scope]:::user
+        CO_Diagnose[CO Diagnoses Issue:<br>Q&A, Photos, Readings]:::co
+        CO_Diagnose --> Sys_GenScope[System Generates:<br>Fix, Line Items, Pricing]:::system
+        Sys_GenScope --> CO_ReviewScope[CO Reviews and<br>Edits Scope]:::co
+        CO_ReviewScope --> CO_PresentHO[CO Presents<br>Scope to HO]:::co
+        CO_PresentHO --> HO_ReviewScope[HO Reviews Diagnosis<br>and Repair Scope]:::user
         
-        HO_ReviewScope --> Dec_Repair{HO\nDecision?}:::logic
+        HO_ReviewScope --> Dec_Repair{HO<br>Decision?}:::logic
         
         %% Decline Path
-        Dec_Repair -- Decline --> Dec_DiagPayment{Payment\nFlag?}:::logic
-        Dec_DiagPayment -- Fully Covered --> Skip_DiagFee[Skip Diagnostic Fee\nPlan Benefit]:::system
+        Dec_Repair -- Decline --> Dec_DiagPayment{Payment<br>Flag?}:::logic
+        Dec_DiagPayment -- Fully Covered --> Skip_DiagFee[Skip Diagnostic Fee<br>Plan Benefit]:::system
         Skip_DiagFee --> End_DiagOnly([Diagnostic Complete]):::terminator
-        Dec_DiagPayment -- Other --> Collect_DiagFee[HO Pays\nDiagnostic Fee]:::user
-        Collect_DiagFee --> Process_DiagFee[Process\nDiagnostic Fee]:::system
+        Dec_DiagPayment -- Other --> Collect_DiagFee[HO Pays<br>Diagnostic Fee]:::user
+        Collect_DiagFee --> Process_DiagFee[Process<br>Diagnostic Fee]:::system
         Process_DiagFee --> End_DiagOnly
         
         %% Replace Path
-        Dec_Repair -- Replace --> Ecom_Handoff[Handoff to Ecom:\nReplacement Quote\nConsultation]:::system
+        Dec_Repair -- Replace --> Ecom_Handoff[Handoff to Ecom:<br>Replacement Quote]:::system
         Ecom_Handoff --> End_Ecom([Ecom Flow]):::terminator
         
         %% Approve Path
-        Dec_Repair -- Approve --> HO_Approve[HO Approves\nRepair Scope]:::user
+        Dec_Repair -- Approve --> HO_Approve[HO Approves<br>Repair Scope]:::user
     end
 
     %% =============================================
@@ -202,28 +202,28 @@ flowchart TD
     subgraph Phase6[PHASE 6: PARTS AND FOLLOW-UP]
         direction TB
         
-        HO_Approve --> Dec_Parts{Parts\nNeeded?}:::logic
+        HO_Approve --> Dec_Parts{Parts<br>Needed?}:::logic
         
         %% No Parts Path
-        Dec_Parts -- No --> Dec_SameDay{Same-Day\nRepair?}:::logic
+        Dec_Parts -- No --> Dec_SameDay{Same-Day<br>Repair?}:::logic
         Dec_SameDay -- Yes --> CO_Execute
-        Dec_SameDay -- No --> Explain_Delay[Explain to HO:\nAdditional Time Needed]:::system
+        Dec_SameDay -- No --> Explain_Delay[Explain to HO:<br>Additional Time Needed]:::system
         Explain_Delay --> Sched_Followup
         
         %% Parts Needed Path
-        Dec_Parts -- Yes --> Tetra_OrderParts[Tetra Orders Parts:\nIdentify Supplier\nPlace Order]:::tetra
-        Tetra_OrderParts --> Sys_PartsETA[Notify HO and CO:\nParts ETA]:::system
-        Sys_PartsETA --> Tetra_TrackParts[Tetra Tracks Parts:\nMonitor Shipment]:::monitor
-        Tetra_TrackParts --> Parts_Arrive[Parts Arrive\nat CO Warehouse]:::system
-        Parts_Arrive --> Sys_NotifyPartsReady[Notify CO:\nParts Ready]:::system
+        Dec_Parts -- Yes --> Tetra_OrderParts[Tetra Orders Parts:<br>Identify Supplier, Place Order]:::tetra
+        Tetra_OrderParts --> Sys_PartsETA[Notify HO and CO:<br>Parts ETA]:::system
+        Sys_PartsETA --> Tetra_TrackParts[Tetra Tracks Parts:<br>Monitor Shipment]:::monitor
+        Tetra_TrackParts --> Parts_Arrive[Parts Arrive<br>at CO Warehouse]:::system
+        Parts_Arrive --> Sys_NotifyPartsReady[Notify CO:<br>Parts Ready]:::system
         Sys_NotifyPartsReady --> Sched_Followup
         
         %% Schedule Follow-Up
         Sched_Followup[[Schedule Follow-Up]]:::subprocess
-        Sched_Followup --> Sys_CreateFollowup[Create Follow-Up Job\nLink to Original]:::system
-        Sys_CreateFollowup --> HO_FollowSlot[HO Selects\nFollow-Up Time]:::user
-        HO_FollowSlot --> Sys_ConfirmFollowup[Confirm Follow-Up\nNotify HO and CO]:::system
-        Sys_ConfirmFollowup --> CO_ReceiveFollowup[CO: Follow-Up\non Calendar]:::co
+        Sched_Followup --> Sys_CreateFollowup[Create Follow-Up Job<br>Link to Original]:::system
+        Sys_CreateFollowup --> HO_FollowSlot[HO Selects<br>Follow-Up Time]:::user
+        HO_FollowSlot --> Sys_ConfirmFollowup[Confirm Follow-Up<br>Notify HO and CO]:::system
+        Sys_ConfirmFollowup --> CO_ReceiveFollowup[CO: Follow-Up<br>on Calendar]:::co
         CO_ReceiveFollowup --> CO_Execute
     end
 
@@ -233,10 +233,10 @@ flowchart TD
     subgraph Phase7[PHASE 7: EXECUTION]
         direction TB
         
-        CO_Execute[CO Performs\nRepair Work]:::co
-        CO_Execute --> CO_Photos[CO Takes\nVerification Photos]:::co
-        CO_Photos --> CO_Complete[CO Marks\nComplete in App]:::co
-        CO_Complete --> HO_SignOff[HO Signs Off\non Work]:::user
+        CO_Execute[CO Performs<br>Repair Work]:::co
+        CO_Execute --> CO_Photos[CO Takes<br>Verification Photos]:::co
+        CO_Photos --> CO_Complete[CO Marks<br>Complete in App]:::co
+        CO_Complete --> HO_SignOff[HO Signs Off<br>on Work]:::user
     end
 
     %% =============================================
@@ -245,13 +245,13 @@ flowchart TD
     subgraph Phase8[PHASE 8: PAYMENT AND CLOSE]
         direction TB
         
-        HO_SignOff --> HO_ConfirmPay[HO Confirms\nPayment]:::user
+        HO_SignOff --> HO_ConfirmPay[HO Confirms<br>Payment]:::user
         
-        HO_ConfirmPay --> Dec_PayFlag{Payment\nFlag?}:::logic
+        HO_ConfirmPay --> Dec_PayFlag{Payment<br>Flag?}:::logic
         
-        Dec_PayFlag -- Fully Covered --> Tetra_NoPay[Waive Payment\nLog Plan Usage]:::tetra
-        Dec_PayFlag -- Labor Warranty --> Tetra_PartsOnly[Charge Parts Only\nLog Warranty Usage]:::tetra
-        Dec_PayFlag -- Parts Warranty --> Tetra_LaborOnly[Charge Labor Only\nLog Warranty Usage]:::tetra
+        Dec_PayFlag -- Fully Covered --> Tetra_NoPay[Waive Payment<br>Log Plan Usage]:::tetra
+        Dec_PayFlag -- Labor Warranty --> Tetra_PartsOnly[Charge Parts Only<br>Log Warranty Usage]:::tetra
+        Dec_PayFlag -- Parts Warranty --> Tetra_LaborOnly[Charge Labor Only<br>Log Warranty Usage]:::tetra
         Dec_PayFlag -- Standard --> Tetra_FullPay[Process Full Payment]:::tetra
         
         Tetra_NoPay --> Sys_Report
@@ -259,14 +259,14 @@ flowchart TD
         Tetra_LaborOnly --> Sys_Report
         Tetra_FullPay --> Sys_Report
         
-        Sys_Report[Generate and Send Reports:\nHO: Summary + Invoice\nCO: Summary + Payment]:::system
+        Sys_Report[Generate and Send Reports:<br>HO: Summary + Invoice<br>CO: Summary + Payment]:::system
         
-        Sys_Report --> Tetra_PayCO[Pay Contractor:\nCalculate Commission\nProcess Payment]:::tetra
-        Tetra_PayCO --> CO_Paid[CO Receives\nPayment]:::co
+        Sys_Report --> Tetra_PayCO[Pay Contractor:<br>Calculate Commission]:::tetra
+        Tetra_PayCO --> CO_Paid[CO Receives<br>Payment]:::co
         
-        Sys_Report --> HO_ReceiveReport[HO Receives\nService Report]:::user
+        Sys_Report --> HO_ReceiveReport[HO Receives<br>Service Report]:::user
         
-        Tetra_PayCO --> Sys_UpdateRecords[Update Records:\nDigital Twin\nService History\nWarranty Usage]:::system
+        Tetra_PayCO --> Sys_UpdateRecords[Update Records:<br>Digital Twin, History, Warranty]:::system
         
         CO_Paid --> End_Journey([Journey Complete]):::terminator
         HO_ReceiveReport --> End_Journey
@@ -280,14 +280,14 @@ flowchart TD
         direction TB
         
         Esc_Trigger([Escalation Triggered]):::alert
-        Esc_Trigger --> Tetra_Triage[Tetra Triages:\nIdentify Issue Type\nAssess Severity]:::tetra
+        Esc_Trigger --> Tetra_Triage[Tetra Triages:<br>Identify Issue, Assess Severity]:::tetra
         
         Tetra_Triage --> Dec_EscType{Type?}:::logic
         
-        Dec_EscType -- Complaint --> Handle_Complaint[Review History\nContact HO\nResolve]:::tetra
-        Dec_EscType -- Dispute --> Handle_Dispute[Review Scope\nMediate\nResolve]:::tetra
-        Dec_EscType -- CO Issue --> Handle_CO[Reassign if Needed\nDocument]:::tetra
-        Dec_EscType -- System --> Handle_System[Manual Override\nLog for Eng]:::tetra
+        Dec_EscType -- Complaint --> Handle_Complaint[Review History<br>Contact HO, Resolve]:::tetra
+        Dec_EscType -- Dispute --> Handle_Dispute[Review Scope<br>Mediate, Resolve]:::tetra
+        Dec_EscType -- CO Issue --> Handle_CO[Reassign if Needed<br>Document]:::tetra
+        Dec_EscType -- System --> Handle_System[Manual Override<br>Log for Eng]:::tetra
         
         Handle_Complaint --> Esc_Resolved([Resolved]):::terminator
         Handle_Dispute --> Esc_Resolved

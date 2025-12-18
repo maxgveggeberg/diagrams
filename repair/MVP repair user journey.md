@@ -14,28 +14,28 @@ flowchart TD
     %% =============================================
     %% STEP 1: LANDING & ADDRESS ENTRY
     %% =============================================
-    StartNode([User Lands at RepairBot]) --> HO_Entry[Enter Address\nand Describe Issue]:::user
+    StartNode([User Lands at RepairBot]) --> HO_Entry[Enter Address<br>and Describe Issue]:::user
 
     %% =============================================
     %% STEP 2: EXISTING CUSTOMER CHECK
     %% =============================================
-    HO_Entry --> Dec_Existing{Existing\nCustomer?}:::logic
+    HO_Entry --> Dec_Existing{Existing<br>Customer?}:::logic
 
     %% --- NEW CUSTOMER PATH ---
-    Dec_Existing -- No --> Sys_Check{High Confidence\nin HVAC Details?}:::logic
+    Dec_Existing -- No --> Sys_Check{High Confidence<br>in HVAC Details?}:::logic
 
     %% --- EXISTING CUSTOMER PATH ---
-    Dec_Existing -- Yes --> Dec_FullyCovered{On Fully\nCovered Plan?}:::logic
+    Dec_Existing -- Yes --> Dec_FullyCovered{On Fully<br>Covered Plan?}:::logic
 
     Dec_FullyCovered -- Yes --> Flag_NoPay[Flag: No Payment Required]:::system
     Flag_NoPay --> Dec_Emergency
 
-    Dec_FullyCovered -- No --> Dec_Warranty{Within 1-Year\nLabor Warranty?}:::logic
-    Dec_Warranty -- Yes --> Flag_LaborWarranty[Flag: Labor Covered\nParts may apply]:::system
+    Dec_FullyCovered -- No --> Dec_Warranty{Within 1-Year<br>Labor Warranty?}:::logic
+    Dec_Warranty -- Yes --> Flag_LaborWarranty[Flag: Labor Covered<br>Parts may apply]:::system
     Flag_LaborWarranty --> Dec_Emergency
 
-    Dec_Warranty -- No --> Dec_PartsWarranty{Within 5-10 Year\nParts Warranty?}:::logic
-    Dec_PartsWarranty -- Yes --> Flag_PartsWarranty[Flag: Parts Covered\nLabor billable]:::system
+    Dec_Warranty -- No --> Dec_PartsWarranty{Within 5-10 Year<br>Parts Warranty?}:::logic
+    Dec_PartsWarranty -- Yes --> Flag_PartsWarranty[Flag: Parts Covered<br>Labor billable]:::system
     Flag_PartsWarranty --> Dec_Emergency
     Dec_PartsWarranty -- No --> Dec_Emergency
 
@@ -44,22 +44,22 @@ flowchart TD
     %% =============================================
     Sys_Check -- Yes --> Dec_Emergency
 
-    Sys_Check -- No --> Bot_Ask[What heating system\ndo you have?]:::system
+    Sys_Check -- No --> Bot_Ask[What heating system<br>do you have?]:::system
     Bot_Ask --> HO_Know{User Knows?}:::logic
 
     HO_Know -- No --> Bot_Guide[Guide user to answer]:::system
     Bot_Guide --> HO_Input
 
-    HO_Know -- Yes --> HO_Input[Select Heating Type\nFuel and AC Status]:::user
+    HO_Know -- Yes --> HO_Input[Select Heating Type<br>Fuel and AC Status]:::user
     HO_Input --> Sys_Twin[Generate Digital Twin]:::system
     Sys_Twin --> Dec_Emergency
 
     %% =============================================
     %% STEP 4: EMERGENCY CHECK
     %% =============================================
-    Dec_Emergency{Emergency\nVisit Needed?}:::logic
+    Dec_Emergency{Emergency<br>Visit Needed?}:::logic
 
-    Dec_Emergency -- Yes --> Flag_Emergency[Flag: Emergency Visit\nPremium Pricing]:::alert
+    Dec_Emergency -- Yes --> Flag_Emergency[Flag: Emergency Visit<br>Premium Pricing]:::alert
     Flag_Emergency --> Bot_Triage
 
     Dec_Emergency -- No --> Bot_Triage
@@ -67,14 +67,14 @@ flowchart TD
     %% =============================================
     %% STEP 5: TRIAGE
     %% =============================================
-    Bot_Triage[Triage Symptoms\nand Safety Check]:::system
-    Bot_Triage --> Dec_Sched{Clicks Schedule\nVisit Button?}:::logic
+    Bot_Triage[Triage Symptoms<br>and Safety Check]:::system
+    Bot_Triage --> Dec_Sched{Clicks Schedule<br>Visit Button?}:::logic
 
     %% --- NO SCHEDULE PATH: OFFER CHAT REPORT ---
-    Dec_Sched -- No --> Dec_WantReport{Want Chat\nReport Emailed?}:::logic
+    Dec_Sched -- No --> Dec_WantReport{Want Chat<br>Report Emailed?}:::logic
     Dec_WantReport -- No --> ExitNode([Exit Session]):::terminator
-    Dec_WantReport -- Yes --> HO_Report_Contact[Enter Contact Info\nName and Email]:::user
-    HO_Report_Contact --> Sys_SendReport[Send Chat Report\nvia Email]:::system
+    Dec_WantReport -- Yes --> HO_Report_Contact[Enter Contact Info<br>Name and Email]:::user
+    HO_Report_Contact --> Sys_SendReport[Send Chat Report<br>via Email]:::system
     Sys_SendReport --> ExitNode
 
     Dec_Sched -- Yes --> Sys_Cal[Display Calendar]:::system
@@ -83,7 +83,7 @@ flowchart TD
     %% STEP 6: SCHEDULING
     %% =============================================
     Sys_Cal --> HO_Slot[Select Time Slot]:::user
-    HO_Slot --> HO_Contact[Input Contact Info\nName, Email, Phone]:::user
+    HO_Slot --> HO_Contact[Input Contact Info<br>Name, Email, Phone]:::user
 
     %% =============================================
     %% STEP 7: BOOKING CONFIRMATION
@@ -91,7 +91,7 @@ flowchart TD
     HO_Contact --> HO_Book[Confirm Booking]:::user
 
     HO_Book --> HO_Dash[Go to HO Dashboard]:::system
-    HO_Book --> Sys_Notif[Send Confirmation\nEmail and Text]:::system
+    HO_Book --> Sys_Notif[Send Confirmation<br>Email and Text]:::system
 
     HO_Dash --> Confirm_Loop
     Sys_Notif --> Confirm_Loop
@@ -106,7 +106,7 @@ flowchart TD
 
     %% --- HO RESCHEDULE PATH ---
     Dec_Resched -- HO Reschedules --> HO_Cancel[Cancel Current Slot]:::user
-    HO_Cancel --> HO_Resched_Now{Reschedule\nImmediately?}:::logic
+    HO_Cancel --> HO_Resched_Now{Reschedule<br>Immediately?}:::logic
 
     HO_Resched_Now -- Yes --> HO_NewSlot[Select New Time]:::user
     HO_NewSlot --> Sys_Notify_CO[Notify CO: Job Moved]:::system
@@ -120,8 +120,8 @@ flowchart TD
 
     %% --- CO RESCHEDULE PATH ---
     Dec_Resched -- CO Reschedules --> CO_NewTime[CO Proposes New Time]:::co
-    CO_NewTime --> Sys_Notify_HO[Notify HO: Time Change\nOffer alternative slots]:::system
-    Sys_Notify_HO --> Dec_HO_Accept{HO Accepts\nNew Time?}:::logic
+    CO_NewTime --> Sys_Notify_HO[Notify HO: Time Change<br>Offer alternative slots]:::system
+    Sys_Notify_HO --> Dec_HO_Accept{HO Accepts<br>New Time?}:::logic
     Dec_HO_Accept -- Yes --> Confirm_Loop
     Dec_HO_Accept -- No --> Proc_Reengage
 
@@ -146,7 +146,7 @@ flowchart TD
     %% STEP 10: DIAGNOSIS
     %% =============================================
     CO_Diagnose[CO Diagnoses Issue]:::co
-    CO_Diagnose --> HO_View[Review Diagnosis\nand Repair Scope]:::user
+    CO_Diagnose --> HO_View[Review Diagnosis<br>and Repair Scope]:::user
 
     %% =============================================
     %% STEP 11: REPAIR DECISION
@@ -171,7 +171,7 @@ flowchart TD
     %% =============================================
     HO_Approve --> Dec_Parts{Parts Needed?}:::logic
 
-    Dec_Parts -- No --> Dec_SameDay{Same-Day\nRepair Possible?}:::logic
+    Dec_Parts -- No --> Dec_SameDay{Same-Day<br>Repair Possible?}:::logic
 
     Dec_Parts -- Yes --> Sys_Order[Tetra Orders Parts]:::tetra
     Sys_Order --> Sys_Parts_ETA[Notify HO: Parts ETA]:::system
@@ -184,13 +184,13 @@ flowchart TD
     Dec_SameDay -- Yes --> CO_Execute
 
     %% --- REPAIR CANT BE DONE TODAY ---
-    Dec_SameDay -- No --> Sys_Explain[Explain: Repair requires\nadditional time or resources]:::system
+    Dec_SameDay -- No --> Sys_Explain[Explain: Repair requires<br>additional time or resources]:::system
     Sys_Explain --> Sched_Followup
 
     %% --- SCHEDULE FOLLOW-UP ---
     Sched_Followup[[Schedule Follow-Up Visit]]:::subprocess
     Sched_Followup --> HO_FollowSlot[Select Follow-Up Time]:::user
-    HO_FollowSlot --> Sys_Followup_Confirm[Confirm Follow-Up\nSend Notifications]:::system
+    HO_FollowSlot --> Sys_Followup_Confirm[Confirm Follow-Up<br>Send Notifications]:::system
     Sys_Followup_Confirm --> CO_Execute
 
     %% =============================================
@@ -203,9 +203,9 @@ flowchart TD
     %% =============================================
     %% STEP 15: PAYMENT & CLOSE
     %% =============================================
-    HO_Pay --> Dec_Payment_Flag{Payment\nFlag Set?}:::logic
+    HO_Pay --> Dec_Payment_Flag{Payment<br>Flag Set?}:::logic
 
-    Dec_Payment_Flag -- Fully Covered --> Sys_NoPay[Skip Payment\nPlan Benefit]:::system
+    Dec_Payment_Flag -- Fully Covered --> Sys_NoPay[Skip Payment<br>Plan Benefit]:::system
     Sys_NoPay --> Sys_Report
 
     Dec_Payment_Flag -- Labor Warranty --> Sys_PartsOnly[Charge Parts Only]:::system

@@ -15,15 +15,15 @@ flowchart TD
     %% STEP 1: JOB ASSIGNMENT
     %% =============================================
     StartNode([HO Books Visit]) --> Sys_ST[Job Created in ServiceTitan]:::system
-    Sys_ST --> Sys_Flags[Job Includes Customer Flags:\nExisting Customer Status\nWarranty Status\nEmergency Flag]:::system
-    Sys_Flags --> CO_Cal[Appointment Appears\non CO Calendar]:::co
+    Sys_ST --> Sys_Flags[Job Includes Customer Flags:<br>Existing Customer Status<br>Warranty Status<br>Emergency Flag]:::system
+    Sys_Flags --> CO_Cal[Appointment Appears<br>on CO Calendar]:::co
 
     %% =============================================
     %% STEP 2: EMERGENCY HANDLING
     %% =============================================
-    CO_Cal --> Dec_Emergency{Emergency\nFlag Set?}:::logic
+    CO_Cal --> Dec_Emergency{Emergency<br>Flag Set?}:::logic
 
-    Dec_Emergency -- Yes --> CO_Priority[Prioritize Job\nPremium Rate Applies]:::co
+    Dec_Emergency -- Yes --> CO_Priority[Prioritize Job<br>Premium Rate Applies]:::co
     CO_Priority --> Confirm_Loop
 
     Dec_Emergency -- No --> Confirm_Loop
@@ -38,7 +38,7 @@ flowchart TD
 
     %% --- CO RESCHEDULE PATH ---
     Dec_Resched -- CO Reschedules --> CO_NewTime[CO Proposes New Time]:::co
-    CO_NewTime --> Sys_Notify_HO[Notify HO: Time Change\nOffer alternative slots]:::system
+    CO_NewTime --> Sys_Notify_HO[Notify HO: Time Change<br>Offer alternative slots]:::system
     Sys_Notify_HO --> Dec_HO_Accept{HO Accepts?}:::logic
     Dec_HO_Accept -- Yes --> Confirm_Loop
     Dec_HO_Accept -- No --> Proc_Reengage
@@ -70,9 +70,9 @@ flowchart TD
     %% =============================================
     %% STEP 5: DIAGNOSIS
     %% =============================================
-    CO_Diagnose[Diagnose Issue\nQ and A, Photos, Readings]:::co
-    CO_Diagnose --> Sys_Gen[Generate Recommended\nFix and Line Items]:::system
-    Sys_Gen --> CO_Review[Review and Edit\nLine Items]:::co
+    CO_Diagnose[Diagnose Issue<br>Q and A, Photos, Readings]:::co
+    CO_Diagnose --> Sys_Gen[Generate Recommended<br>Fix and Line Items]:::system
+    Sys_Gen --> CO_Review[Review and Edit<br>Line Items]:::co
     CO_Review --> CO_Present[Review Scope with HO]:::co
 
     %% =============================================
@@ -82,8 +82,8 @@ flowchart TD
 
     %% Path A: No Repair - Diagnostic Fee Only
     Dec_Repair -- Decline Repair --> CO_Collect_Diag[Collect Diagnostic Fee]:::co
-    CO_Collect_Diag --> Dec_Diag_Payment{Payment\nFlag Set?}:::logic
-    Dec_Diag_Payment -- Fully Covered --> Sys_Skip_Diag[Skip Diagnostic Fee\nPlan Benefit]:::system
+    CO_Collect_Diag --> Dec_Diag_Payment{Payment<br>Flag Set?}:::logic
+    Dec_Diag_Payment -- Fully Covered --> Sys_Skip_Diag[Skip Diagnostic Fee<br>Plan Benefit]:::system
     Sys_Skip_Diag --> End_DiagOnly([Diagnostic Complete]):::terminator
     Dec_Diag_Payment -- No Flag --> Sys_Collect_Diag[Process Diagnostic Fee]:::system
     Sys_Collect_Diag --> End_DiagOnly
@@ -97,11 +97,11 @@ flowchart TD
     %% =============================================
     %% STEP 7: PARTS CHECK
     %% =============================================
-    Dec_Parts -- No --> Dec_SameDay{Same-Day\nRepair Possible?}:::logic
+    Dec_Parts -- No --> Dec_SameDay{Same-Day<br>Repair Possible?}:::logic
 
     Dec_Parts -- Yes --> Tetra_Order[Tetra Orders Parts]:::tetra
-    Tetra_Order --> Sys_Parts_ETA[Notify HO and CO:\nParts ETA]:::system
-    Sys_Parts_ETA --> Parts_Arrive[Parts Arrive\nat CO Warehouse]:::system
+    Tetra_Order --> Sys_Parts_ETA[Notify HO and CO:<br>Parts ETA]:::system
+    Sys_Parts_ETA --> Parts_Arrive[Parts Arrive<br>at CO Warehouse]:::system
     Parts_Arrive --> Sched_Loop
 
     %% =============================================
@@ -109,14 +109,14 @@ flowchart TD
     %% =============================================
     Dec_SameDay -- Yes --> CO_Execute
 
-    Dec_SameDay -- No --> CO_Explain[Explain to HO:\nRepair requires additional\ntime or resources]:::co
+    Dec_SameDay -- No --> CO_Explain[Explain to HO:<br>Repair requires additional<br>time or resources]:::co
     CO_Explain --> Sched_Loop
 
     %% --- SCHEDULE FOLLOW-UP ---
     Sched_Loop[[Schedule Follow-Up]]:::subprocess
-    Sched_Loop --> Sys_ST_Followup[Create Follow-Up\nin ServiceTitan]:::system
+    Sched_Loop --> Sys_ST_Followup[Create Follow-Up<br>in ServiceTitan]:::system
     Sys_ST_Followup --> HO_FollowSlot[HO Selects Follow-Up Time]:::user
-    HO_FollowSlot --> Sys_Followup_Confirm[Confirm Follow-Up\nNotify CO]:::system
+    HO_FollowSlot --> Sys_Followup_Confirm[Confirm Follow-Up<br>Notify CO]:::system
     Sys_Followup_Confirm --> CO_Execute
 
     %% =============================================
@@ -132,9 +132,9 @@ flowchart TD
     CO_Complete --> HO_Sign[HO Signs Off]:::user
     HO_Sign --> HO_Pay[HO Confirms Payment]:::user
 
-    HO_Pay --> Dec_Payment_Flag{Payment\nFlag Set?}:::logic
+    HO_Pay --> Dec_Payment_Flag{Payment<br>Flag Set?}:::logic
 
-    Dec_Payment_Flag -- Fully Covered --> Sys_NoPay[Skip Payment\nPlan Benefit]:::system
+    Dec_Payment_Flag -- Fully Covered --> Sys_NoPay[Skip Payment<br>Plan Benefit]:::system
     Sys_NoPay --> Sys_Report
 
     Dec_Payment_Flag -- Labor Warranty --> Sys_PartsOnly[Charge Parts Only]:::system
@@ -145,6 +145,6 @@ flowchart TD
 
     Dec_Payment_Flag -- No Flag --> Sys_Pay[Process Full Payment]:::system
 
-    Sys_Pay --> Sys_Report[Send Report\nto HO and CO]:::system
+    Sys_Pay --> Sys_Report[Send Report<br>to HO and CO]:::system
     Sys_Report --> CO_Paid[CO Receives Payment]:::co
     CO_Paid --> End_Journey([Journey Complete]):::terminator
