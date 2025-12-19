@@ -1,0 +1,40 @@
+```mermaid
+
+block-beta
+    columns 13
+    
+    %% Header Row - Phases
+    space:1 P1["📞 INTAKE"]:2 P2["📅 SCHEDULING"]:2 P3["✅ CONFIRMATION"]:2 P4["🏠 VISIT DAY"]:2 P5["🔍 DIAGNOSIS"]:2 P6["💳 COMPLETION"]:2
+    
+    %% Physical Evidence Row
+    PE["📋 Physical<br>Evidence"]:1 PE1["RepairBot UI<br>Phone System<br>Customer Profile"]:2 PE2["Calendar UI<br>Emergency Notice<br>Confirmation Email"]:2 PE3["Reminder SMS<br>Reschedule UI<br>Outreach Messages"]:2 PE4["En Route Alert<br>Arrival Notice<br>No-Show Log"]:2 PE5["Diagnosis Form<br>Pricing Display<br>Line Items Screen"]:2 PE6["Sign-Off Form<br>Payment Receipt<br>Service Report"]:2
+    
+    %% Customer Actions Row
+    CA["🏠 Customer<br>Actions"]:1 CA1["Enter address<br>Describe issue<br>Call in"]:2 CA2["Select time slot<br>Confirm contact<br>Confirm booking"]:2 CA3["Confirm visit<br>Accept/decline<br>reschedule"]:2 CA4["Greet CO<br>Answer door<br>(or no-show)"]:2 CA5["Answer questions<br>View pricing<br>Approve scope"]:2 CA6["Sign off work<br>Pay for service<br>Receive report"]:2
+    
+    %% Line of Interaction
+    LOI["━━━ LINE OF INTERACTION ━━━"]:13
+    
+    %% Frontstage - Tetra
+    FT["👥 Frontstage<br>TETRA"]:1 FT1["CSR answers call<br>Collects contact<br>Callbacks"]:2 FT2["Validate emergency<br>Inform surcharge<br>Call CO"]:2 FT3["Process reschedule<br>Re-engagement<br>SMS/Email/Call"]:2 FT4["Monitor en route<br>Monitor arrival<br>Log no-show"]:2 FT5["—"]:2 FT6["Process payment<br>Collection outreach<br>Pay CO"]:2
+    
+    %% Frontstage - CO
+    FC["🔧 Frontstage<br>CO"]:1 FC1["—"]:2 FC2["Confirm availability<br>Review handoff<br>Get parts"]:2 FC3["—"]:2 FC4["Travel to home<br>Check in via app<br>Wait if no-show"]:2 FC5["Diagnose issue<br>Present pricing<br>Edit line items"]:2 FC6["Perform repair<br>Take photos<br>Collect payment"]:2
+    
+    %% Line of Visibility
+    LOV["━━━ LINE OF VISIBILITY ━━━"]:13
+    
+    %% Backstage - System
+    BS["⚙️ Backstage<br>SYSTEM"]:1 BS1["Load RepairBot<br>Route calls<br>Pull customer flags"]:2 BS2["Display calendar<br>Create job in ST<br>Assign CO"]:2 BS3["Send reminders<br>Update job<br>Track attempts"]:2 BS4["GPS tracking<br>Log check-in<br>Trigger re-engage"]:2 BS5["Generate scope<br>Check warranty<br>Calculate totals"]:2 BS6["Process payment<br>Update records<br>Send reports"]:2
+    
+    %% Support Processes
+    SP["🔧 Support<br>Processes"]:1 SP1["CRM lookup<br>Phone routing<br>Warranty DB"]:2 SP2["Availability engine<br>ServiceTitan API<br>Dispatch algorithm"]:2 SP3["Notification service<br>Outreach queue<br>Re-engage rules"]:2 SP4["Location services<br>CO mobile app<br>No-show rules"]:2 SP5["Diagnostic engine<br>Pricing engine<br>Line item catalog"]:2 SP6["Payment processor<br>AR management<br>Reporting engine"]:2
+
+    style LOI fill:#1976D2,color:#fff
+    style LOV fill:#E53935,color:#fff
+    style PE fill:#ECEFF1,stroke:#9E9E9E
+    style CA fill:#E3F2FD,stroke:#1565C0
+    style FT fill:#E8F5E9,stroke:#2E7D32
+    style FC fill:#FFF3E0,stroke:#F57C00
+    style BS fill:#FAFAFA,stroke:#616161
+    style SP fill:#ECEFF1,stroke:#37474F
