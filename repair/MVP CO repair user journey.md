@@ -15,22 +15,31 @@ flowchart TD
     %% STEP 1: JOB ASSIGNMENT
     %% =============================================
     StartNode([HO Books Visit]) --> Sys_ST[Job Created in ServiceTitan]:::system
-    Sys_ST --> Sys_Flags[Job Includes Customer Flags:<br>Existing Customer Status<br>Warranty Status<br>Emergency Flag]:::system
+    Sys_ST --> Sys_Flags[Job Includes Customer Flags:<br>Existing Customer Status<br>Warranty Status<br>Emergency/After-Hours Flag]:::system
     Sys_Flags --> CO_Cal[Appointment Appears<br>on CO Calendar]:::co
 
     %% =============================================
-    %% STEP 2: EMERGENCY HANDLING
+    %% STEP 2: EMERGENCY vs AFTER-HOURS HANDLING
     %% =============================================
     CO_Cal --> Dec_Emergency{Emergency<br>Flag Set?}:::logic
 
-    Dec_Emergency -- Yes --> Tetra_Call_CO[Tetra Calls CO:<br>Alert Emergency Visit<br>Confirm Availability]:::tetra
-    Tetra_Call_CO --> Dec_CO_Avail{CO<br>Available?}:::logic
-    Dec_CO_Avail -- Yes --> CO_Priority[CO Prioritizes Job<br>Premium Rate Applies]:::co
-    Dec_CO_Avail -- No --> Sys_Reassign[Reassign to<br>Available CO]:::system
-    Sys_Reassign --> CO_Priority
-    CO_Priority --> CO_Review_Handoff
+    Dec_Emergency -- Yes --> Tetra_Call_CO_Emerg[Tetra Calls CO:<br>Alert Emergency Visit<br>Confirm Availability]:::tetra
+    Tetra_Call_CO_Emerg --> Dec_CO_Avail_Emerg{CO<br>Available?}:::logic
+    Dec_CO_Avail_Emerg -- Yes --> CO_Priority_Emerg[CO Prioritizes Job<br>Emergency Premium Rate]:::co
+    Dec_CO_Avail_Emerg -- No --> Sys_Reassign_Emerg[Reassign to<br>Available CO]:::system
+    Sys_Reassign_Emerg --> CO_Priority_Emerg
+    CO_Priority_Emerg --> CO_Review_Handoff
 
-    Dec_Emergency -- No --> CO_Review_Handoff
+    Dec_Emergency -- No --> Dec_AfterHours{After-Hours<br>Flag Set?}:::logic
+    
+    Dec_AfterHours -- Yes --> Tetra_Call_CO_AH[Tetra Calls CO:<br>Alert After-Hours Visit<br>Confirm Availability]:::tetra
+    Tetra_Call_CO_AH --> Dec_CO_Avail_AH{CO<br>Available?}:::logic
+    Dec_CO_Avail_AH -- Yes --> CO_Priority_AH[CO Accepts Job<br>After-Hours Surcharge]:::co
+    Dec_CO_Avail_AH -- No --> Sys_Reassign_AH[Reassign to<br>Available CO]:::system
+    Sys_Reassign_AH --> CO_Priority_AH
+    CO_Priority_AH --> CO_Review_Handoff
+
+    Dec_AfterHours -- No --> CO_Review_Handoff
 
     %% =============================================
     %% STEP 3: HANDOFF DOCUMENT REVIEW
@@ -85,27 +94,31 @@ flowchart TD
     %% =============================================
     CO_Diagnose[Diagnose Issue<br>Q and A, Photos, Readings]:::co
     CO_Diagnose --> Sys_Gen[Generate Recommended<br>Fix and Line Items]:::system
-    Sys_Gen --> CO_Review[Review and Edit<br>Line Items]:::co
 
     %% =============================================
-    %% STEP 7: PAYMENT FLAG CHECK (Before Scope Presentation)
+    %% STEP 7: PAYMENT FLAG CHECK (Before Line Items Review)
     %% =============================================
-    CO_Review --> Dec_Payment_Flag_Scope{Payment<br>Flag Set?}:::logic
+    Sys_Gen --> Dec_Payment_Flag{Payment<br>Flag Set?}:::logic
 
-    Dec_Payment_Flag_Scope -- Fully Covered --> CO_Present_NoPay[Present Scope:<br>No Payment Required<br>Plan Benefit]:::co
-    Dec_Payment_Flag_Scope -- Labor Warranty --> CO_Present_PartsOnly[Present Scope:<br>Parts Only<br>Labor Covered]:::co
-    Dec_Payment_Flag_Scope -- Parts Warranty --> CO_Present_LaborOnly[Present Scope:<br>Labor Only<br>Parts Covered]:::co
-    Dec_Payment_Flag_Scope -- No Flag --> CO_Present_Full[Present Scope:<br>Full Price]:::co
+    Dec_Payment_Flag -- Fully Covered --> Show_NoPay[Show Pricing:<br>No Payment Required<br>Plan Benefit]:::system
+    Dec_Payment_Flag -- Labor Warranty --> Show_PartsOnly[Show Pricing:<br>Parts Only<br>Labor Covered]:::system
+    Dec_Payment_Flag -- Parts Warranty --> Show_LaborOnly[Show Pricing:<br>Labor Only<br>Parts Covered]:::system
+    Dec_Payment_Flag -- No Flag --> Show_FullPrice[Show Pricing:<br>Full Price]:::system
 
-    CO_Present_NoPay --> Dec_Repair
-    CO_Present_PartsOnly --> Dec_Repair
-    CO_Present_LaborOnly --> Dec_Repair
-    CO_Present_Full --> Dec_Repair
+    Show_NoPay --> CO_Review_Lines
+    Show_PartsOnly --> CO_Review_Lines
+    Show_LaborOnly --> CO_Review_Lines
+    Show_FullPrice --> CO_Review_Lines
 
     %% =============================================
-    %% STEP 8: REPAIR DECISION
+    %% STEP 8: CO REVIEWS LINE ITEMS WITH HO (After Payment Flag)
     %% =============================================
-    Dec_Repair{HO Decision?}:::logic
+    CO_Review_Lines[CO Reviews and Edits<br>Line Items with HO]:::co
+    CO_Review_Lines --> Dec_Repair{HO Decision?}:::logic
+
+    %% =============================================
+    %% STEP 9: REPAIR DECISION
+    %% =============================================
 
     %% Path A: No Repair - Diagnostic Fee Only
     Dec_Repair -- Decline Repair --> CO_Collect_Diag[Collect Diagnostic Fee]:::co
@@ -130,7 +143,7 @@ flowchart TD
     Sys_CO_Commission_Both --> HO_Approve
 
     %% =============================================
-    %% STEP 9: PARTS CHECK
+    %% STEP 10: PARTS CHECK
     %% =============================================
     Dec_Parts -- No --> Dec_SameDay{Same-Day<br>Repair Possible?}:::logic
 
@@ -141,28 +154,28 @@ flowchart TD
     Parts_Arrive --> Sched_Loop
 
     %% =============================================
-    %% STEP 10: SAME-DAY REPAIR CHECK
+    %% STEP 11: SAME-DAY REPAIR CHECK
     %% =============================================
     Dec_SameDay -- Yes --> CO_Execute
 
     Dec_SameDay -- No --> CO_Explain[Explain to HO:<br>Repair requires additional<br>time or resources]:::co
     CO_Explain --> Sched_Loop
 
-    %% --- SCHEDULE FOLLOW-UP (Reordered) ---
+    %% --- SCHEDULE FOLLOW-UP ---
     Sched_Loop[[Schedule Follow-Up]]:::subprocess
     Sched_Loop --> HO_FollowSlot[HO Selects Follow-Up Time]:::user
     HO_FollowSlot --> Sys_ST_Followup[Create Follow-Up<br>in ServiceTitan]:::system
     Sys_ST_Followup --> Confirm_Loop
 
     %% =============================================
-    %% STEP 11: EXECUTION
+    %% STEP 12: EXECUTION
     %% =============================================
     CO_Execute[Perform Repair Work]:::co
     CO_Execute --> CO_Photo[Take Verification Photos]:::co
     CO_Photo --> CO_Complete[Mark Complete in App]:::co
 
     %% =============================================
-    %% STEP 12: COMPLETION & PAYMENT (After Repair)
+    %% STEP 13: COMPLETION & PAYMENT (After Repair)
     %% =============================================
     CO_Complete --> HO_Sign[HO Signs Off]:::user
     HO_Sign --> CO_Collect_Payment[CO Collects Payment]:::co
