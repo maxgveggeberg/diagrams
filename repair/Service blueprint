@@ -1,40 +1,1401 @@
-```mermaid
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVAC Repair Service Blueprint</title>
+    <style>
+        :root {
+            --primary: #1565C0;
+            --primary-light: #E3F2FD;
+            --secondary: #2E7D32;
+            --secondary-light: #E8F5E9;
+            --accent: #FFA000;
+            --accent-light: #FFF8E1;
+            --dark: #333333;
+            --gray: #F5F5F5;
+            --red-light: #FFEBEE;
+            --border: #E0E0E0;
+        }
 
-block-beta
-    columns 13
-    
-    %% Header Row - Phases
-    space:1 P1["📞 INTAKE"]:2 P2["📅 SCHEDULING"]:2 P3["✅ CONFIRMATION"]:2 P4["🏠 VISIT DAY"]:2 P5["🔍 DIAGNOSIS"]:2 P6["💳 COMPLETION"]:2
-    
-    %% Physical Evidence Row
-    PE["📋 Physical<br>Evidence"]:1 PE1["RepairBot UI<br>Phone System<br>Customer Profile"]:2 PE2["Calendar UI<br>Emergency Notice<br>Confirmation Email"]:2 PE3["Reminder SMS<br>Reschedule UI<br>Outreach Messages"]:2 PE4["En Route Alert<br>Arrival Notice<br>No-Show Log"]:2 PE5["Diagnosis Form<br>Pricing Display<br>Line Items Screen"]:2 PE6["Sign-Off Form<br>Payment Receipt<br>Service Report"]:2
-    
-    %% Customer Actions Row
-    CA["🏠 Customer<br>Actions"]:1 CA1["Enter address<br>Describe issue<br>Call in"]:2 CA2["Select time slot<br>Confirm contact<br>Confirm booking"]:2 CA3["Confirm visit<br>Accept/decline<br>reschedule"]:2 CA4["Greet CO<br>Answer door<br>(or no-show)"]:2 CA5["Answer questions<br>View pricing<br>Approve scope"]:2 CA6["Sign off work<br>Pay for service<br>Receive report"]:2
-    
-    %% Line of Interaction
-    LOI["━━━ LINE OF INTERACTION ━━━"]:13
-    
-    %% Frontstage - Tetra
-    FT["👥 Frontstage<br>TETRA"]:1 FT1["CSR answers call<br>Collects contact<br>Callbacks"]:2 FT2["Validate emergency<br>Inform surcharge<br>Call CO"]:2 FT3["Process reschedule<br>Re-engagement<br>SMS/Email/Call"]:2 FT4["Monitor en route<br>Monitor arrival<br>Log no-show"]:2 FT5["—"]:2 FT6["Process payment<br>Collection outreach<br>Pay CO"]:2
-    
-    %% Frontstage - CO
-    FC["🔧 Frontstage<br>CO"]:1 FC1["—"]:2 FC2["Confirm availability<br>Review handoff<br>Get parts"]:2 FC3["—"]:2 FC4["Travel to home<br>Check in via app<br>Wait if no-show"]:2 FC5["Diagnose issue<br>Present pricing<br>Edit line items"]:2 FC6["Perform repair<br>Take photos<br>Collect payment"]:2
-    
-    %% Line of Visibility
-    LOV["━━━ LINE OF VISIBILITY ━━━"]:13
-    
-    %% Backstage - System
-    BS["⚙️ Backstage<br>SYSTEM"]:1 BS1["Load RepairBot<br>Route calls<br>Pull customer flags"]:2 BS2["Display calendar<br>Create job in ST<br>Assign CO"]:2 BS3["Send reminders<br>Update job<br>Track attempts"]:2 BS4["GPS tracking<br>Log check-in<br>Trigger re-engage"]:2 BS5["Generate scope<br>Check warranty<br>Calculate totals"]:2 BS6["Process payment<br>Update records<br>Send reports"]:2
-    
-    %% Support Processes
-    SP["🔧 Support<br>Processes"]:1 SP1["CRM lookup<br>Phone routing<br>Warranty DB"]:2 SP2["Availability engine<br>ServiceTitan API<br>Dispatch algorithm"]:2 SP3["Notification service<br>Outreach queue<br>Re-engage rules"]:2 SP4["Location services<br>CO mobile app<br>No-show rules"]:2 SP5["Diagnostic engine<br>Pricing engine<br>Line item catalog"]:2 SP6["Payment processor<br>AR management<br>Reporting engine"]:2
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    style LOI fill:#1976D2,color:#fff
-    style LOV fill:#E53935,color:#fff
-    style PE fill:#ECEFF1,stroke:#9E9E9E
-    style CA fill:#E3F2FD,stroke:#1565C0
-    style FT fill:#E8F5E9,stroke:#2E7D32
-    style FC fill:#FFF3E0,stroke:#F57C00
-    style BS fill:#FAFAFA,stroke:#616161
-    style SP fill:#ECEFF1,stroke:#37474F
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: #FAFAFA;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #0D47A1 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        nav {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        nav ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            list-style: none;
+            justify-content: center;
+        }
+
+        nav a {
+            color: var(--primary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        nav a:hover {
+            background: var(--primary-light);
+        }
+
+        section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: var(--primary);
+            color: white;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .section-content {
+            padding: 1.5rem;
+        }
+
+        .section-content > p {
+            margin-bottom: 1.5rem;
+            color: #666;
+        }
+
+        h3 {
+            color: var(--primary);
+            margin: 1.5rem 0 1rem;
+            font-size: 1.25rem;
+        }
+
+        /* Stakeholder Cards */
+        .stakeholder-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stakeholder-card {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .stakeholder-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stakeholder-card.ho { border-left: 4px solid var(--primary); background: var(--primary-light); }
+        .stakeholder-card.co { border-left: 4px solid var(--accent); background: var(--accent-light); }
+        .stakeholder-card.tetra { border-left: 4px solid var(--secondary); background: var(--secondary-light); }
+        .stakeholder-card.ops { border-left: 4px solid var(--dark); background: var(--gray); }
+
+        .stakeholder-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stakeholder-card .abbrev {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Phase Cards */
+        .phase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+        }
+
+        .phase-card {
+            background: var(--gray);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .phase-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .phase-card .phase-num {
+            background: var(--primary);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .phase-card h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .phase-card p {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Blueprint Tables */
+        .blueprint-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        .blueprint-table th {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 60px;
+        }
+
+        .blueprint-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .blueprint-table tr:hover {
+            background: #FAFAFA;
+        }
+
+        .blueprint-table .swimlane {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Swimlane colors */
+        .swimlane-customer { background: var(--primary-light) !important; }
+        .swimlane-co { background: var(--accent-light) !important; }
+        .swimlane-tetra { background: var(--secondary-light) !important; }
+        .swimlane-frontstage { background: white !important; }
+        .swimlane-backstage { background: #FFF3E0 !important; }
+        .swimlane-support { background: var(--secondary-light) !important; }
+        .swimlane-systems { background: var(--gray) !important; }
+        .swimlane-evidence { background: white !important; }
+        .swimlane-flags { background: var(--red-light) !important; }
+        .swimlane-line { 
+            background: #ECEFF1 !important; 
+            text-align: center;
+            color: #90A4AE;
+            font-size: 0.75rem;
+            padding: 0.25rem !important;
+        }
+
+        /* Special Scenario Tables */
+        .scenario-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            margin: 1rem 0;
+        }
+
+        .scenario-table th {
+            background: var(--dark);
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .scenario-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .scenario-table tr:nth-child(even) {
+            background: var(--gray);
+        }
+
+        /* Matrix Tables */
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            margin: 1rem 0;
+        }
+
+        .matrix-table th {
+            background: var(--secondary);
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .matrix-table td {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+        }
+
+        .matrix-table .covered {
+            background: #C8E6C9;
+            color: #2E7D32;
+            font-weight: 600;
+        }
+
+        .matrix-table .not-covered {
+            background: #FFCDD2;
+            color: #C62828;
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.125rem;
+        }
+
+        .tag-primary { background: var(--primary-light); color: var(--primary); }
+        .tag-success { background: var(--secondary-light); color: var(--secondary); }
+        .tag-warning { background: var(--accent-light); color: #E65100; }
+        .tag-danger { background: var(--red-light); color: #C62828; }
+        .tag-gray { background: var(--gray); color: var(--dark); }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .kpi-card {
+            background: var(--gray);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .kpi-card .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .kpi-card .label {
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .kpi-card .phase {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 0.25rem;
+        }
+
+        /* Systems Grid */
+        .systems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .system-card {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .system-card h4 {
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .system-card .type {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .system-card p {
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        /* Legend */
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .legend-color {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.75rem; }
+            .container { padding: 1rem; }
+            nav ul { justify-content: flex-start; overflow-x: auto; }
+            .blueprint-table { font-size: 0.75rem; }
+            .blueprint-table th, .blueprint-table td { padding: 0.5rem; }
+        }
+
+        /* Print styles */
+        @media print {
+            nav { display: none; }
+            section { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+            .section-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>HVAC Repair Service Blueprint</h1>
+        <p>Comprehensive Service Design Documentation</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#phase1">1. Intake</a></li>
+            <li><a href="#phase2">2. Scheduling</a></li>
+            <li><a href="#phase3">3. Confirmation</a></li>
+            <li><a href="#phase4">4. Visit Day</a></li>
+            <li><a href="#phase5">5. Diagnosis</a></li>
+            <li><a href="#phase6">6. Parts</a></li>
+            <li><a href="#phase7">7. Execution</a></li>
+            <li><a href="#phase8">8. Payment</a></li>
+            <li><a href="#scenarios">Scenarios</a></li>
+            <li><a href="#systems">Systems</a></li>
+            <li><a href="#kpis">KPIs</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Overview Section -->
+        <section id="overview">
+            <div class="section-header">
+                <h2>Service Overview</h2>
+            </div>
+            <div class="section-content">
+                <p>This service blueprint documents the end-to-end HVAC repair service offering, integrating four distinct user journey perspectives: the Homeowner (HO) experience, the Contractor Operator (CO) workflow, the Internal Team operations, and the Unified system view.</p>
+
+                <h3>Key Stakeholders</h3>
+                <div class="stakeholder-grid">
+                    <div class="stakeholder-card ho">
+                        <h4>Homeowner</h4>
+                        <div class="abbrev">HO</div>
+                        <p>End customer receiving HVAC repair services. Initiates service requests, approves repairs, and provides payment.</p>
+                    </div>
+                    <div class="stakeholder-card co">
+                        <h4>Contractor Operator</h4>
+                        <div class="abbrev">CO</div>
+                        <p>HVAC technician who performs on-site diagnosis, repairs, and installations. Reviews handoff documents and collects payment.</p>
+                    </div>
+                    <div class="stakeholder-card tetra">
+                        <h4>Tetra System</h4>
+                        <div class="abbrev">Tetra</div>
+                        <p>AI-powered communication platform. Handles calls, callbacks, parts ordering, and payment collection.</p>
+                    </div>
+                    <div class="stakeholder-card ops">
+                        <h4>Internal Team</h4>
+                        <div class="abbrev">OPS/CSR</div>
+                        <p>Customer Service Representatives and Operations staff. Manages escalations, disputes, and system monitoring.</p>
+                    </div>
+                </div>
+
+                <h3>Service Phases</h3>
+                <div class="phase-grid">
+                    <a href="#phase1" class="phase-card">
+                        <div class="phase-num">1</div>
+                        <h4>Intake</h4>
+                        <p>Contact & identification</p>
+                    </a>
+                    <a href="#phase2" class="phase-card">
+                        <div class="phase-num">2</div>
+                        <h4>Scheduling</h4>
+                        <p>Booking & assignment</p>
+                    </a>
+                    <a href="#phase3" class="phase-card">
+                        <div class="phase-num">3</div>
+                        <h4>Confirmation</h4>
+                        <p>Reminders & changes</p>
+                    </a>
+                    <a href="#phase4" class="phase-card">
+                        <div class="phase-num">4</div>
+                        <h4>Visit Day</h4>
+                        <p>Arrival & check-in</p>
+                    </a>
+                    <a href="#phase5" class="phase-card">
+                        <div class="phase-num">5</div>
+                        <h4>Diagnosis</h4>
+                        <p>Assessment & scope</p>
+                    </a>
+                    <a href="#phase6" class="phase-card">
+                        <div class="phase-num">6</div>
+                        <h4>Parts</h4>
+                        <p>Ordering & follow-up</p>
+                    </a>
+                    <a href="#phase7" class="phase-card">
+                        <div class="phase-num">7</div>
+                        <h4>Execution</h4>
+                        <p>Repair & documentation</p>
+                    </a>
+                    <a href="#phase8" class="phase-card">
+                        <div class="phase-num">8</div>
+                        <h4>Payment</h4>
+                        <p>Collection & completion</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Phase 1: Intake -->
+        <section id="phase1">
+            <div class="section-header">
+                <h2>Phase 1: Intake</h2>
+            </div>
+            <div class="section-content">
+                <p>The intake phase handles initial customer contact through multiple channels (web and phone), collects essential information, and establishes customer context including warranty status and equipment details.</p>
+                
+                <table class="blueprint-table">
+                    <thead>
+                        <tr>
+                            <th>Swimlane</th>
+                            <th>Web Entry</th>
+                            <th>Phone Entry</th>
+                            <th>Customer Check</th>
+                            <th>Equipment ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="swimlane-customer">
+                            <td class="swimlane">Customer Actions</td>
+                            <td>Enter address, describe issue</td>
+                            <td>Call service number</td>
+                            <td>Provide information</td>
+                            <td>Select heating type, fuel, AC status</td>
+                        </tr>
+                        <tr class="swimlane-frontstage">
+                            <td class="swimlane">Frontstage</td>
+                            <td>RepairBot interface displayed</td>
+                            <td>CSR answers call, greets customer</td>
+                            <td>System shows existing booking status</td>
+                            <td>Guided equipment identification</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="5">─── LINE OF INTERACTION ───</td>
+                        </tr>
+                        <tr class="swimlane-backstage">
+                            <td class="swimlane">Backstage</td>
+                            <td>Session tracking initiated</td>
+                            <td>Contact info stored in system</td>
+                            <td>Customer record lookup</td>
+                            <td>Digital twin generated</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="5">─── LINE OF VISIBILITY ───</td>
+                        </tr>
+                        <tr class="swimlane-support">
+                            <td class="swimlane">Support Processes</td>
+                            <td>Load balancing, CDN</td>
+                            <td>Call routing, queue management</td>
+                            <td>CRM query, warranty check</td>
+                            <td>Equipment database lookup</td>
+                        </tr>
+                        <tr class="swimlane-systems">
+                            <td class="swimlane">Systems</td>
+                            <td><span class="tag tag-primary">RepairBot</span> <span class="tag tag-gray">Analytics</span></td>
+                            <td><span class="tag tag-success">Tetra</span> <span class="tag tag-gray">Phone</span></td>
+                            <td><span class="tag tag-primary">ServiceTitan</span> <span class="tag tag-gray">CRM</span></td>
+                            <td><span class="tag tag-gray">Equipment DB</span></td>
+                        </tr>
+                        <tr class="swimlane-flags">
+                            <td class="swimlane">Flags Set</td>
+                            <td>New vs. returning visitor</td>
+                            <td>Callback logged if no answer</td>
+                            <td>Plan coverage, warranty status</td>
+                            <td>HVAC configuration stored</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Phase 2: Scheduling -->
+        <section id="phase2">
+            <div class="section-header">
+                <h2>Phase 2: Scheduling</h2>
+            </div>
+            <div class="section-content">
+                <p>This phase manages appointment booking, handles emergency and after-hours requests, assigns contractors, and sets appropriate pricing flags based on customer status and timing.</p>
+                
+                <table class="blueprint-table">
+                    <thead>
+                        <tr>
+                            <th>Swimlane</th>
+                            <th>Calendar Display</th>
+                            <th>Slot Selection</th>
+                            <th>Emergency/AH Check</th>
+                            <th>CO Assignment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="swimlane-customer">
+                            <td class="swimlane">Customer Actions</td>
+                            <td>View available times</td>
+                            <td>Select preferred slot, confirm booking</td>
+                            <td>Acknowledge premium pricing</td>
+                            <td>—</td>
+                        </tr>
+                        <tr class="swimlane-frontstage">
+                            <td class="swimlane">Frontstage</td>
+                            <td>Calendar UI with available slots</td>
+                            <td>Booking confirmation shown</td>
+                            <td>Emergency/AH surcharge displayed</td>
+                            <td>CO info shared with HO</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="5">─── LINE OF INTERACTION ───</td>
+                        </tr>
+                        <tr class="swimlane-backstage">
+                            <td class="swimlane">Backstage</td>
+                            <td>Pull CO availability from ServiceTitan</td>
+                            <td>Job created in ServiceTitan</td>
+                            <td>Flag set: Emergency or After-Hours</td>
+                            <td>Match CO to job based on location/skills</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="5">─── LINE OF VISIBILITY ───</td>
+                        </tr>
+                        <tr class="swimlane-support">
+                            <td class="swimlane">Support Processes</td>
+                            <td>Availability algorithm, geo-matching</td>
+                            <td>Confirmation SMS/email triggered</td>
+                            <td>Pricing rules engine</td>
+                            <td>CO notification, calendar update</td>
+                        </tr>
+                        <tr class="swimlane-systems">
+                            <td class="swimlane">Systems</td>
+                            <td><span class="tag tag-primary">ServiceTitan</span></td>
+                            <td><span class="tag tag-gray">Notifications</span></td>
+                            <td><span class="tag tag-warning">Pricing Engine</span></td>
+                            <td><span class="tag tag-success">Dispatch</span> <span class="tag tag-success">Tetra</span></td>
+                        </tr>
+                        <tr class="swimlane-flags">
+                            <td class="swimlane">Flags Set</td>
+                            <td>—</td>
+                            <td>Job ID created</td>
+                            <td><span class="tag tag-danger">Emergency</span> <span class="tag tag-warning">After-Hours</span></td>
+                            <td>CO assigned, Handoff doc created</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Phase 3: Confirmation -->
+        <section id="phase3">
+            <div class="section-header">
+                <h2>Phase 3: Confirmation</h2>
+            </div>
+            <div class="section-content">
+                <p>The confirmation phase manages the window between booking and visit, handling reschedule requests from both homeowners and contractors, and implementing re-engagement loops for unresponsive customers.</p>
+                
+                <table class="blueprint-table">
+                    <thead>
+                        <tr>
+                            <th>Swimlane</th>
+                            <th>Confirmation Window</th>
+                            <th>Reschedule Handling</th>
+                            <th>Re-engagement Loop</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="swimlane-customer">
+                            <td class="swimlane">Customer Actions</td>
+                            <td>Receive and review reminders</td>
+                            <td>Request reschedule (optional)</td>
+                            <td>Respond to outreach or remain silent</td>
+                        </tr>
+                        <tr class="swimlane-co">
+                            <td class="swimlane">Contractor Actions</td>
+                            <td>Review handoff document, confirm availability</td>
+                            <td>Request reschedule if needed</td>
+                            <td>—</td>
+                        </tr>
+                        <tr class="swimlane-frontstage">
+                            <td class="swimlane">Frontstage</td>
+                            <td>Reminder SMS/email with visit details</td>
+                            <td>Reschedule options presented</td>
+                            <td>Outreach calls/SMS/email</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF INTERACTION ───</td>
+                        </tr>
+                        <tr class="swimlane-backstage">
+                            <td class="swimlane">Backstage</td>
+                            <td>Automated reminder scheduling</td>
+                            <td>Calendar update, notify other party</td>
+                            <td>Re-engagement sequence triggered</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF VISIBILITY ───</td>
+                        </tr>
+                        <tr class="swimlane-support">
+                            <td class="swimlane">Support Processes</td>
+                            <td>Reminder timing logic</td>
+                            <td>Availability re-matching</td>
+                            <td>Lead scoring, cold marking</td>
+                        </tr>
+                        <tr class="swimlane-systems">
+                            <td class="swimlane">Systems</td>
+                            <td><span class="tag tag-gray">Notifications</span> <span class="tag tag-primary">ServiceTitan</span></td>
+                            <td><span class="tag tag-primary">Calendar API</span> <span class="tag tag-success">Tetra</span></td>
+                            <td><span class="tag tag-gray">CRM</span> <span class="tag tag-success">Tetra</span></td>
+                        </tr>
+                        <tr class="swimlane-flags">
+                            <td class="swimlane">Failure Path</td>
+                            <td>—</td>
+                            <td>If HO declines all options → Re-engagement</td>
+                            <td>If no response → Mark cold, cancel job</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Phase 4: Visit Day -->
+        <section id="phase4">
+            <div class="section-header">
+                <h2>Phase 4: Visit Day</h2>
+            </div>
+            <div class="section-content">
+                <p>Visit day operations include contractor arrival, check-in procedures, and handling no-show scenarios with appropriate logging and re-engagement protocols.</p>
+                
+                <table class="blueprint-table">
+                    <thead>
+                        <tr>
+                            <th>Swimlane</th>
+                            <th>CO En Route</th>
+                            <th>Arrival & Check-in</th>
+                            <th>No-Show Handling</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="swimlane-customer">
+                            <td class="swimlane">Customer Actions</td>
+                            <td>Prepare for visit</td>
+                            <td>Greet CO at door</td>
+                            <td>Respond to contact attempts (if absent)</td>
+                        </tr>
+                        <tr class="swimlane-co">
+                            <td class="swimlane">Contractor Actions</td>
+                            <td>Travel to location</td>
+                            <td>Check in via Contractor Dashboard</td>
+                            <td>Wait, attempt contact, log no-show</td>
+                        </tr>
+                        <tr class="swimlane-frontstage">
+                            <td class="swimlane">Frontstage</td>
+                            <td>HO receives "on the way" notification</td>
+                            <td>CO confirms arrival</td>
+                            <td>CO attempts door knock, phone call</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF INTERACTION ───</td>
+                        </tr>
+                        <tr class="swimlane-backstage">
+                            <td class="swimlane">Backstage</td>
+                            <td>GPS tracking, ETA calculation</td>
+                            <td>Arrival logged in system</td>
+                            <td>No-show logged, re-engagement triggered</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF VISIBILITY ───</td>
+                        </tr>
+                        <tr class="swimlane-support">
+                            <td class="swimlane">Support Processes</td>
+                            <td>Route optimization</td>
+                            <td>Timestamp logging</td>
+                            <td>Re-engagement loop subprocess</td>
+                        </tr>
+                        <tr class="swimlane-systems">
+                            <td class="swimlane">Systems</td>
+                            <td><span class="tag tag-gray">GPS</span> <span class="tag tag-warning">Contractor Dashboard</span></td>
+                            <td><span class="tag tag-warning">Contractor Dashboard</span> <span class="tag tag-primary">ServiceTitan</span></td>
+                            <td><span class="tag tag-primary">ServiceTitan</span> <span class="tag tag-success">Tetra</span></td>
+                        </tr>
+                        <tr class="swimlane-flags">
+                            <td class="swimlane">Monitor Status</td>
+                            <td><span class="tag tag-primary">En Route</span></td>
+                            <td><span class="tag tag-success">Arrived</span></td>
+                            <td><span class="tag tag-danger">No-Show</span> → Re-engagement</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Phase 5: Diagnosis -->
+        <section id="phase5">
+            <div class="section-header">
+                <h2>Phase 5: Diagnosis & Scope</h2>
+            </div>
+            <div class="section-content">
+                <p>During diagnosis, contractors assess the issue, the system generates repair recommendations with appropriate pricing based on warranty/plan flags, and the homeowner makes repair decisions.</p>
+                
+                <table class="blueprint-table">
+                    <thead>
+                        <tr>
+                            <th>Swimlane</th>
+                            <th>Diagnosis</th>
+                            <th>Scope & Pricing</th>
+                            <th>Decision</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="swimlane-customer">
+                            <td class="swimlane">Customer Actions</td>
+                            <td>Answer CO questions, provide access</td>
+                            <td>Review pricing and line items</td>
+                            <td>Approve, decline, or request replacement</td>
+                        </tr>
+                        <tr class="swimlane-co">
+                            <td class="swimlane">Contractor Actions</td>
+                            <td>Diagnose issue (Q&A, photos, readings)</td>
+                            <td>Review/edit line items with HO</td>
+                            <td>Process decision, collect diagnostic if declined</td>
+                        </tr>
+                        <tr class="swimlane-frontstage">
+                            <td class="swimlane">Frontstage</td>
+                            <td>CO explains diagnostic process</td>
+                            <td>Pricing breakdown shown to HO</td>
+                            <td>Decision confirmation</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF INTERACTION ───</td>
+                        </tr>
+                        <tr class="swimlane-backstage">
+                            <td class="swimlane">Backstage</td>
+                            <td>Diagnostic data captured</td>
+                            <td>System generates recommended fix + line items</td>
+                            <td>Decision logged, workflow branched</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF VISIBILITY ───</td>
+                        </tr>
+                        <tr class="swimlane-support">
+                            <td class="swimlane">Support Processes</td>
+                            <td>Photo upload, readings storage</td>
+                            <td>Pricing engine, warranty flag check</td>
+                            <td>Commission calculation (if replacement)</td>
+                        </tr>
+                        <tr class="swimlane-systems">
+                            <td class="swimlane">Systems</td>
+                            <td><span class="tag tag-warning">Contractor Dashboard</span> <span class="tag tag-gray">Camera</span></td>
+                            <td><span class="tag tag-warning">Pricing Engine</span> <span class="tag tag-primary">ServiceTitan</span></td>
+                            <td><span class="tag tag-primary">ServiceTitan</span> <span class="tag tag-gray">Ecom</span></td>
+                        </tr>
+                        <tr class="swimlane-flags">
+                            <td class="swimlane">Pricing Display</td>
+                            <td>—</td>
+                            <td><span class="tag tag-success">No Pay</span> <span class="tag tag-primary">Parts Only</span> <span class="tag tag-warning">Labor Only</span> <span class="tag tag-gray">Full</span></td>
+                            <td>Diagnostic fee if declined</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Phase 6: Parts -->
+        <section id="phase6">
+            <div class="section-header">
+                <h2>Phase 6: Parts & Follow-up</h2>
+            </div>
+            <div class="section-content">
+                <p>This phase manages parts ordering through Tetra, tracks shipments, schedules follow-up visits when same-day repair isn't possible, and coordinates between all parties.</p>
+                
+                <table class="blueprint-table">
+                    <thead>
+                        <tr>
+                            <th>Swimlane</th>
+                            <th>Parts Ordering</th>
+                            <th>Shipment Tracking</th>
+                            <th>Follow-up Scheduling</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="swimlane-customer">
+                            <td class="swimlane">Customer Actions</td>
+                            <td>—</td>
+                            <td>Receive parts ETA notification</td>
+                            <td>Select follow-up time slot</td>
+                        </tr>
+                        <tr class="swimlane-co">
+                            <td class="swimlane">Contractor Actions</td>
+                            <td>—</td>
+                            <td>Receive notification when parts ready</td>
+                            <td>Confirm availability for follow-up</td>
+                        </tr>
+                        <tr class="swimlane-tetra">
+                            <td class="swimlane">Tetra Actions</td>
+                            <td>Alert received, order parts</td>
+                            <td>Track shipment, notify parties</td>
+                            <td>—</td>
+                        </tr>
+                        <tr class="swimlane-frontstage">
+                            <td class="swimlane">Frontstage</td>
+                            <td>—</td>
+                            <td>ETA communicated to HO and CO</td>
+                            <td>Calendar shown with available slots</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF INTERACTION ───</td>
+                        </tr>
+                        <tr class="swimlane-backstage">
+                            <td class="swimlane">Backstage</td>
+                            <td>Parts database queried, order placed</td>
+                            <td>Shipment tracking updated</td>
+                            <td>Follow-up job created in ServiceTitan</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF VISIBILITY ───</td>
+                        </tr>
+                        <tr class="swimlane-support">
+                            <td class="swimlane">Support Processes</td>
+                            <td>Parts inventory management</td>
+                            <td>Carrier integration</td>
+                            <td>Confirmation loop re-entered</td>
+                        </tr>
+                        <tr class="swimlane-systems">
+                            <td class="swimlane">Systems</td>
+                            <td><span class="tag tag-gray">Parts System</span> <span class="tag tag-success">Tetra</span></td>
+                            <td><span class="tag tag-gray">Shipping API</span> <span class="tag tag-gray">Notifications</span></td>
+                            <td><span class="tag tag-primary">ServiceTitan</span> <span class="tag tag-primary">Calendar</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Phase 7: Execution -->
+        <section id="phase7">
+            <div class="section-header">
+                <h2>Phase 7: Execution</h2>
+            </div>
+            <div class="section-content">
+                <p>The execution phase covers the actual repair work, documentation through photos, work verification, and customer sign-off.</p>
+                
+                <table class="blueprint-table">
+                    <thead>
+                        <tr>
+                            <th>Swimlane</th>
+                            <th>Repair Work</th>
+                            <th>Documentation</th>
+                            <th>Completion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="swimlane-customer">
+                            <td class="swimlane">Customer Actions</td>
+                            <td>Provide access, observe work</td>
+                            <td>—</td>
+                            <td>Sign off on completed work</td>
+                        </tr>
+                        <tr class="swimlane-co">
+                            <td class="swimlane">Contractor Actions</td>
+                            <td>Perform repair per approved scope</td>
+                            <td>Take verification photos</td>
+                            <td>Mark job complete in dashboard</td>
+                        </tr>
+                        <tr class="swimlane-frontstage">
+                            <td class="swimlane">Frontstage</td>
+                            <td>CO performs visible repair work</td>
+                            <td>CO shows completed work to HO</td>
+                            <td>HO reviews and signs off</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF INTERACTION ───</td>
+                        </tr>
+                        <tr class="swimlane-backstage">
+                            <td class="swimlane">Backstage</td>
+                            <td>Time tracking, work logging</td>
+                            <td>Photos uploaded to job record</td>
+                            <td>Completion status updated</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF VISIBILITY ───</td>
+                        </tr>
+                        <tr class="swimlane-support">
+                            <td class="swimlane">Support Processes</td>
+                            <td>Quality standards reference</td>
+                            <td>Photo storage, tagging</td>
+                            <td>Report generation triggered</td>
+                        </tr>
+                        <tr class="swimlane-systems">
+                            <td class="swimlane">Systems</td>
+                            <td><span class="tag tag-warning">Contractor Dashboard</span> <span class="tag tag-gray">Timer</span></td>
+                            <td><span class="tag tag-gray">Camera</span> <span class="tag tag-gray">Cloud Storage</span></td>
+                            <td><span class="tag tag-primary">ServiceTitan</span> <span class="tag tag-gray">Reports</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Phase 8: Payment -->
+        <section id="phase8">
+            <div class="section-header">
+                <h2>Phase 8: Payment & Completion</h2>
+            </div>
+            <div class="section-content">
+                <p>The final phase manages payment collection, processes chargebacks for warranty/alternate contractor scenarios, handles late payments, and ensures contractor compensation.</p>
+                
+                <table class="blueprint-table">
+                    <thead>
+                        <tr>
+                            <th>Swimlane</th>
+                            <th>Payment Collection</th>
+                            <th>Chargeback Processing</th>
+                            <th>Completion & Reporting</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="swimlane-customer">
+                            <td class="swimlane">Customer Actions</td>
+                            <td>Provide payment</td>
+                            <td>—</td>
+                            <td>Receive service report</td>
+                        </tr>
+                        <tr class="swimlane-co">
+                            <td class="swimlane">Contractor Actions</td>
+                            <td>Collect payment from HO</td>
+                            <td>—</td>
+                            <td>Receive payment from platform</td>
+                        </tr>
+                        <tr class="swimlane-frontstage">
+                            <td class="swimlane">Frontstage</td>
+                            <td>Payment interface presented</td>
+                            <td>—</td>
+                            <td>Report delivered via email</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF INTERACTION ───</td>
+                        </tr>
+                        <tr class="swimlane-backstage">
+                            <td class="swimlane">Backstage</td>
+                            <td>Payment processed through gateway</td>
+                            <td>Deduct from original installer's invoice</td>
+                            <td>CO payment processed, records updated</td>
+                        </tr>
+                        <tr class="swimlane-line">
+                            <td colspan="4">─── LINE OF VISIBILITY ───</td>
+                        </tr>
+                        <tr class="swimlane-support">
+                            <td class="swimlane">Support Processes</td>
+                            <td>Payment validation, fraud check</td>
+                            <td>Active/inactive installer check</td>
+                            <td>Invoice generation, accounting</td>
+                        </tr>
+                        <tr class="swimlane-systems">
+                            <td class="swimlane">Systems</td>
+                            <td><span class="tag tag-gray">Payment Gateway</span> <span class="tag tag-warning">Contractor Dashboard</span></td>
+                            <td><span class="tag tag-gray">Billing</span> <span class="tag tag-primary">ServiceTitan</span></td>
+                            <td><span class="tag tag-gray">Reports</span> <span class="tag tag-gray">Email</span></td>
+                        </tr>
+                        <tr class="swimlane-flags">
+                            <td class="swimlane">Failure Path</td>
+                            <td><span class="tag tag-danger">Non-payment</span> → Tetra collection</td>
+                            <td><span class="tag tag-danger">Inactive installer</span> → Flag debt</td>
+                            <td><span class="tag tag-danger">Unpaid</span> → Collections</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Special Scenarios -->
+        <section id="scenarios">
+            <div class="section-header">
+                <h2>Special Scenarios & Exception Handling</h2>
+            </div>
+            <div class="section-content">
+                <h3>Contractor Chargeback Process</h3>
+                <p>When the original installing contractor declines to service a customer, an alternate contractor is assigned and the original installer is charged back for the service costs.</p>
+                
+                <table class="scenario-table">
+                    <thead>
+                        <tr>
+                            <th>Step</th>
+                            <th>Action</th>
+                            <th>System Behavior</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1. Decline</td>
+                            <td>Original CO declines to service (logs reason)</td>
+                            <td>System flags job for alternate assignment</td>
+                        </tr>
+                        <tr>
+                            <td>2. Reassignment</td>
+                            <td>Find and assign alternate servicing CO</td>
+                            <td>Tetra calls alternate contractors until accepted</td>
+                        </tr>
+                        <tr>
+                            <td>3. Flag Set</td>
+                            <td>Chargeback flag set on job</td>
+                            <td>Original installer linked to job for billing</td>
+                        </tr>
+                        <tr>
+                            <td>4. Service Completed</td>
+                            <td>Alternate CO completes service</td>
+                            <td>Job proceeds through normal workflow</td>
+                        </tr>
+                        <tr>
+                            <td>5. Payment Processed</td>
+                            <td>Customer pays for service</td>
+                            <td>Payment received by platform</td>
+                        </tr>
+                        <tr>
+                            <td>6. Chargeback Applied</td>
+                            <td>Check if original installer still active</td>
+                            <td>If active: Deduct from next invoice</td>
+                        </tr>
+                        <tr>
+                            <td>7. Debt Flagged</td>
+                            <td>If installer inactive</td>
+                            <td>Flag outstanding debt from former contractor</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Emergency & After-Hours Handling</h3>
+                <table class="scenario-table">
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Trigger</th>
+                            <th>Handling</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="tag tag-danger">Emergency Visit</span></td>
+                            <td>Customer reports safety issue (gas leak, no heat in winter)</td>
+                            <td>Premium pricing applied, Tetra calls CO to confirm availability, priority dispatch</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag tag-warning">After-Hours Visit</span></td>
+                            <td>Booking requested outside 8am-6pm window</td>
+                            <td>After-hours surcharge applied, Tetra confirms CO availability</td>
+                        </tr>
+                        <tr>
+                            <td>CO Unavailable (Emergency)</td>
+                            <td>Assigned CO cannot accept emergency</td>
+                            <td>Immediate reassignment to available CO, no delay</td>
+                        </tr>
+                        <tr>
+                            <td>CO Unavailable (After-Hours)</td>
+                            <td>Assigned CO cannot accept after-hours</td>
+                            <td>Reassignment with after-hours premium maintained</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Warranty & Plan Coverage Matrix</h3>
+                <table class="matrix-table">
+                    <thead>
+                        <tr>
+                            <th>Customer Status</th>
+                            <th>Labor Coverage</th>
+                            <th>Parts Coverage</th>
+                            <th>Pricing Display</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Fully Covered Plan</td>
+                            <td class="covered">Covered</td>
+                            <td class="covered">Covered</td>
+                            <td><span class="tag tag-success">No Payment Required – Plan Benefit</span></td>
+                        </tr>
+                        <tr>
+                            <td>1-Year Labor Warranty</td>
+                            <td class="covered">Covered</td>
+                            <td class="not-covered">Not Covered</td>
+                            <td><span class="tag tag-primary">Parts Only – Labor Covered</span></td>
+                        </tr>
+                        <tr>
+                            <td>5-10 Year Parts Warranty</td>
+                            <td class="not-covered">Not Covered</td>
+                            <td class="covered">Covered</td>
+                            <td><span class="tag tag-warning">Labor Only – Parts Covered</span></td>
+                        </tr>
+                        <tr>
+                            <td>No Coverage / New Customer</td>
+                            <td class="not-covered">Not Covered</td>
+                            <td class="not-covered">Not Covered</td>
+                            <td><span class="tag tag-gray">Full Price</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Escalation Matrix</h3>
+                <table class="scenario-table">
+                    <thead>
+                        <tr>
+                            <th>Escalation Type</th>
+                            <th>Trigger</th>
+                            <th>Handler</th>
+                            <th>Resolution Path</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Customer Complaint</td>
+                            <td>HO dissatisfaction with service</td>
+                            <td>Customer Service (CS)</td>
+                            <td>Investigation, resolution offer, follow-up</td>
+                        </tr>
+                        <tr>
+                            <td>Payment Dispute</td>
+                            <td>HO disputes charges</td>
+                            <td>Customer Service (CS)</td>
+                            <td>Review job records, mediation, adjustment if warranted</td>
+                        </tr>
+                        <tr>
+                            <td>CO Issue</td>
+                            <td>CO no-show, quality problem</td>
+                            <td>Dispatch</td>
+                            <td>Reassignment, quality review, potential contractor action</td>
+                        </tr>
+                        <tr>
+                            <td>System Error</td>
+                            <td>Technical failure affecting service</td>
+                            <td>Operations</td>
+                            <td>System recovery, manual intervention, root cause analysis</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Systems -->
+        <section id="systems">
+            <div class="section-header">
+                <h2>Supporting Systems & Technology</h2>
+            </div>
+            <div class="section-content">
+                <div class="systems-grid">
+                    <div class="system-card">
+                        <h4>ServiceTitan</h4>
+                        <div class="type">Field Service Management</div>
+                        <p>Job creation, scheduling, contractor management, work order tracking, invoicing</p>
+                    </div>
+                    <div class="system-card">
+                        <h4>RepairBot</h4>
+                        <div class="type">Customer Intake Platform</div>
+                        <p>Web/mobile interface for symptom triage, equipment identification, scheduling</p>
+                    </div>
+                    <div class="system-card">
+                        <h4>Tetra</h4>
+                        <div class="type">AI Communication System</div>
+                        <p>Inbound/outbound calls, callbacks, parts ordering, payment collection, re-engagement</p>
+                    </div>
+                    <div class="system-card">
+                        <h4>Contractor Dashboard</h4>
+                        <div class="type">Contractor Web App</div>
+                        <p>Check-in, diagnosis capture, photos, job completion, payment collection</p>
+                    </div>
+                    <div class="system-card">
+                        <h4>Digital Twin</h4>
+                        <div class="type">Equipment Database</div>
+                        <p>Customer HVAC configuration storage, repair history, warranty tracking</p>
+                    </div>
+                    <div class="system-card">
+                        <h4>Payment Gateway</h4>
+                        <div class="type">Financial Processing</div>
+                        <p>Credit card processing, payment validation, fraud detection</p>
+                    </div>
+                    <div class="system-card">
+                        <h4>Notification Service</h4>
+                        <div class="type">Communications</div>
+                        <p>SMS, email confirmations, reminders, and status updates</p>
+                    </div>
+                    <div class="system-card">
+                        <h4>Monitor Dashboard</h4>
+                        <div class="type">Operations Tool</div>
+                        <p>Real-time job status tracking across all phases</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KPIs -->
+        <section id="kpis">
+            <div class="section-header">
+                <h2>Key Performance Indicators</h2>
+            </div>
+            <div class="section-content">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="value">&gt;85%</div>
+                        <div class="label">Intake Completion Rate</div>
+                        <div class="phase">Phase 1</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="value">&gt;70%</div>
+                        <div class="label">First-Call Resolution</div>
+                        <div class="phase">Phase 1</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="value">&gt;90%</div>
+                        <div class="label">Confirmation Rate</div>
+                        <div class="phase">Phase 3</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="value">&lt;5%</div>
+                        <div class="label">No-Show Rate</div>
+                        <div class="phase">Phase 4</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="value">&gt;75%</div>
+                        <div class="label">Repair Approval Rate</div>
+                        <div class="phase">Phase 5</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="value">&gt;60%</div>
+                        <div class="label">Same-Day Completion</div>
+                        <div class="phase">Phase 6-7</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="value">&gt;95%</div>
+                        <div class="label">Payment Collection Rate</div>
+                        <div class="phase">Phase 8</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="value">&gt;4.5/5</div>
+                        <div class="label">Customer Satisfaction</div>
+                        <div class="phase">All Phases</div>
+                    </div>
+                </div>
+
+                <h3>Swimlane Legend</h3>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--primary-light);"></div>
+                        <div><strong>Customer Actions</strong> – Activities performed by the homeowner</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--accent-light);"></div>
+                        <div><strong>Contractor Actions</strong> – Activities performed by the CO on-site</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--secondary-light);"></div>
+                        <div><strong>Tetra Actions</strong> – AI communication system activities</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: white; border: 1px solid #ddd;"></div>
+                        <div><strong>Frontstage</strong> – Interactions visible to the customer</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FFF3E0;"></div>
+                        <div><strong>Backstage</strong> – Hidden activities supporting the service</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--secondary-light);"></div>
+                        <div><strong>Support Processes</strong> – Backend operations</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--gray);"></div>
+                        <div><strong>Systems</strong> – Technology platforms and integrations</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: var(--red-light);"></div>
+                        <div><strong>Flags/Status</strong> – System states and decision points</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer style="text-align: center; padding: 2rem; color: #666; font-size: 0.875rem;">
+        <p>HVAC Repair Service Blueprint v1.0 | Confidential</p>
+    </footer>
+</body>
+</html>
