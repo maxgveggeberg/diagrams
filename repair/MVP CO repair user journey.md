@@ -10,6 +10,7 @@ flowchart TD
     classDef terminator fill:#333333,stroke:#333333,color:#ffffff
     classDef tetra fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
     classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px
+    classDef chargeback fill:#ffebee,stroke:#c62828,color:#b71c1c,stroke-width:2px
 
     %% =============================================
     %% STEP 1: JOB ASSIGNMENT
@@ -45,20 +46,39 @@ flowchart TD
     %% STEP 3: HANDOFF DOCUMENT REVIEW
     %% =============================================
     CO_Review_Handoff[CO Reviews<br>Handoff Document]:::co
-    CO_Review_Handoff --> Dec_Has_Parts{Has Required<br>Parts/Equipment?}:::logic
+
+    %% =============================================
+    %% CONTRACTOR SERVICE DECISION
+    %% =============================================
+    CO_Review_Handoff --> Dec_WillService{CO Will Service<br>Customer?}:::logic
+
+    %% --- DEFAULT PATH: CO SERVICES THE CUSTOMER ---
+    Dec_WillService -- "Yes - Default" --> Dec_Has_Parts
+
+    %% --- ALTERNATE PATH: CO DECLINES TO SERVICE ---
+    Dec_WillService -- No --> CO_Decline_Reason[CO Logs Reason:<br>Unavailable or Unwilling]:::co
+    CO_Decline_Reason --> Sys_Find_Alt[Find Alternative<br>Servicing Contractor]:::system
+    Sys_Find_Alt --> Tetra_Call_Alt[Tetra Calls<br>Alt Contractor]:::tetra
+    Tetra_Call_Alt --> Dec_Alt_Avail{Alt CO<br>Available?}:::logic
+    Dec_Alt_Avail -- No --> Sys_Find_Alt
+    Dec_Alt_Avail -- Yes --> Alt_CO_Accept[Alt CO Accepts Job]:::co
+    Alt_CO_Accept --> Flag_Chargeback[Flag: Chargeback<br>Original Installer]:::chargeback
+    Flag_Chargeback --> Dec_Has_Parts
+
+    %% =============================================
+    %% STEP 4: PARTS CHECK AND CONFIRMATION
+    %% =============================================
+    Dec_Has_Parts{Has Required<br>Parts/Equipment?}:::logic
     Dec_Has_Parts -- Yes --> Confirm_Loop
     Dec_Has_Parts -- No --> CO_Get_Parts[CO Gets Required<br>Parts/Equipment]:::co
     CO_Get_Parts --> Confirm_Loop
 
-    %% =============================================
-    %% STEP 4: CONFIRMATION WINDOW
-    %% =============================================
     Confirm_Loop[[Confirmation Loop]]:::subprocess
     Confirm_Loop --> Dec_Resched{Reschedule?}:::logic
 
     Dec_Resched -- No --> CO_Arrive
 
-    %% --- CO RESCHEDULE PATH (System-driven) ---
+    %% --- CO RESCHEDULE PATH ---
     Dec_Resched -- CO Reschedules --> Sys_Pull_Avail[Pull CO Availability<br>from ServiceTitan]:::system
     Sys_Pull_Avail --> Sys_Notify_HO[Notify HO: Time Change<br>Offer alternative slots]:::system
     Sys_Notify_HO --> Dec_HO_Accept{HO Accepts?}:::logic
@@ -74,7 +94,7 @@ flowchart TD
     Sys_Remove --> End_Cancelled([Job Cancelled]):::terminator
 
     %% =============================================
-    %% STEP 5: ARRIVAL & NO-SHOW CHECK
+    %% STEP 5: ARRIVAL AND NO-SHOW CHECK
     %% =============================================
     CO_Arrive[Arrive at Home]:::co
     CO_Arrive --> CO_Checkin[Check-in via App]:::co
@@ -92,11 +112,11 @@ flowchart TD
     %% =============================================
     %% STEP 6: DIAGNOSIS
     %% =============================================
-    CO_Diagnose[Diagnose Issue<br>Q and A, Photos, Readings]:::co
+    CO_Diagnose[Diagnose Issue<br>QandA, Photos, Readings]:::co
     CO_Diagnose --> Sys_Gen[Generate Recommended<br>Fix and Line Items]:::system
 
     %% =============================================
-    %% STEP 7: PAYMENT FLAG CHECK (Before Line Items Review)
+    %% STEP 7: PAYMENT FLAG CHECK
     %% =============================================
     Sys_Gen --> Dec_Payment_Flag{Payment<br>Flag Set?}:::logic
 
@@ -111,7 +131,7 @@ flowchart TD
     Show_FullPrice --> CO_Review_Lines
 
     %% =============================================
-    %% STEP 8: CO REVIEWS LINE ITEMS WITH HO (After Payment Flag)
+    %% STEP 8: CO REVIEWS LINE ITEMS WITH HO
     %% =============================================
     CO_Review_Lines[CO Reviews and Edits<br>Line Items with HO]:::co
     CO_Review_Lines --> Dec_Repair{HO Decision?}:::logic
@@ -124,7 +144,10 @@ flowchart TD
     Dec_Repair -- Decline Repair --> CO_Collect_Diag[Collect Diagnostic Fee]:::co
     CO_Collect_Diag --> Dec_Diag_Paid{HO Pays<br>Diagnostic?}:::logic
     Dec_Diag_Paid -- Yes --> Sys_Diag_Pay[Process Diagnostic Fee]:::system
-    Sys_Diag_Pay --> End_DiagOnly([Diagnostic Complete]):::terminator
+    Sys_Diag_Pay --> Check_Chargeback_Diag{Chargeback<br>Flagged?}:::logic
+    Check_Chargeback_Diag -- Yes --> Process_CB_Diag[Process Chargeback:<br>Original Installer]:::chargeback
+    Process_CB_Diag --> End_DiagOnly([Diagnostic Complete]):::terminator
+    Check_Chargeback_Diag -- No --> End_DiagOnly
     Dec_Diag_Paid -- No --> Flag_Diag_Unpaid[Flag: Diagnostic Unpaid]:::system
     Flag_Diag_Unpaid --> End_DiagOnly
 
@@ -138,7 +161,7 @@ flowchart TD
     Sys_CO_Commission --> End_Ecom([Handoff to Ecom]):::terminator
 
     %% Path D: Repair AND Replace
-    Dec_Repair -- Repair + Replace --> CO_Set_Lead_Both[CO Sets Replacement Lead]:::co
+    Dec_Repair -- Repair and Replace --> CO_Set_Lead_Both[CO Sets Replacement Lead]:::co
     CO_Set_Lead_Both --> Sys_CO_Commission_Both[Pay CO Lead Commission]:::system
     Sys_CO_Commission_Both --> HO_Approve
 
@@ -175,7 +198,7 @@ flowchart TD
     CO_Photo --> CO_Complete[Mark Complete in App]:::co
 
     %% =============================================
-    %% STEP 13: COMPLETION & PAYMENT (After Repair)
+    %% STEP 13: COMPLETION AND PAYMENT
     %% =============================================
     CO_Complete --> HO_Sign[HO Signs Off]:::user
     HO_Sign --> CO_Collect_Payment[CO Collects Payment]:::co
@@ -183,7 +206,15 @@ flowchart TD
 
     %% --- PAYMENT COLLECTED ---
     Dec_HO_Pays -- Yes --> Sys_Pay[Process Payment]:::system
-    Sys_Pay --> Sys_Report[Send Report<br>to HO and CO]:::system
+    Sys_Pay --> Check_Chargeback{Chargeback<br>Flagged?}:::logic
+    Check_Chargeback -- Yes --> Process_Chargeback[Process Chargeback:<br>Original Installer]:::chargeback
+    Process_Chargeback --> Dec_Still_Active{Original Installer<br>Still Active?}:::logic
+    Dec_Still_Active -- Yes --> Deduct_Invoice[Deduct Service Call +<br>Repair from Next Invoice]:::chargeback
+    Dec_Still_Active -- No --> Flag_Debt[Flag: Outstanding Debt<br>from Former Contractor]:::chargeback
+    Deduct_Invoice --> Sys_Report
+    Flag_Debt --> Sys_Report
+    Check_Chargeback -- No --> Sys_Report
+    Sys_Report[Send Report<br>to HO and CO]:::system
     Sys_Report --> CO_Paid[CO Receives Payment]:::co
     CO_Paid --> End_Journey([Journey Complete]):::terminator
 
@@ -193,7 +224,15 @@ flowchart TD
     CO_No_Pay_Yet --> Tetra_Collection[Tetra Reaches Out<br>for Payment Collection]:::tetra
     Tetra_Collection --> Dec_Collection{Payment<br>Collected?}:::logic
     Dec_Collection -- Yes --> Sys_Pay_Late[Process Late Payment]:::system
-    Sys_Pay_Late --> CO_Paid_Late[CO Receives Payment]:::co
+    Sys_Pay_Late --> Check_Chargeback_Late{Chargeback<br>Flagged?}:::logic
+    Check_Chargeback_Late -- Yes --> Process_CB_Late[Process Chargeback:<br>Original Installer]:::chargeback
+    Process_CB_Late --> Dec_Active_Late{Original Installer<br>Still Active?}:::logic
+    Dec_Active_Late -- Yes --> Deduct_Late[Deduct Service Call +<br>Repair from Next Invoice]:::chargeback
+    Dec_Active_Late -- No --> Flag_Debt_Late[Flag: Outstanding Debt]:::chargeback
+    Deduct_Late --> CO_Paid_Late
+    Flag_Debt_Late --> CO_Paid_Late
+    Check_Chargeback_Late -- No --> CO_Paid_Late
+    CO_Paid_Late[CO Receives Payment]:::co
     CO_Paid_Late --> End_Journey_Late([Journey Complete - Late Pay]):::terminator
     Dec_Collection -- No --> Flag_Unpaid[Flag: Unpaid<br>Send to Collections]:::system
     Flag_Unpaid --> End_Unpaid([Unpaid - Collections]):::terminator

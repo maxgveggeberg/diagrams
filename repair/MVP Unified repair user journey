@@ -11,6 +11,7 @@ flowchart TD
     classDef terminator fill:#333333,stroke:#333333,color:#ffffff
     classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px
     classDef monitor fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
+    classDef chargeback fill:#ffebee,stroke:#c62828,color:#b71c1c,stroke-width:2px
 
     %% =============================================
     %% PHASE 1: INTAKE
@@ -134,7 +135,26 @@ flowchart TD
         Sys_Notify[Send Confirmations]:::system
         Sys_Notify --> CO_Receive[CO Receives Job]:::co
         CO_Receive --> CO_Handoff[CO Reviews Handoff Doc]:::co
-        CO_Handoff --> Dec_Parts_Ready{Has Parts?}:::logic
+        
+        %% =============================================
+        %% CONTRACTOR SERVICE DECISION
+        %% =============================================
+        CO_Handoff --> Dec_WillService{CO Will Service<br>Customer?}:::logic
+        
+        %% --- DEFAULT PATH: CO SERVICES ---
+        Dec_WillService -- "Yes - Default" --> Dec_Parts_Ready
+        
+        %% --- ALTERNATE PATH: CO DECLINES ---
+        Dec_WillService -- No --> CO_Decline[CO Logs Reason:<br>Unavailable or Unwilling]:::co
+        CO_Decline --> Find_Alt_CO[Find Alternative<br>Servicing Contractor]:::system
+        Find_Alt_CO --> Tetra_Call_Alt[Tetra Calls<br>Alt Contractor]:::tetra
+        Tetra_Call_Alt --> Dec_Alt_Avail{Alt CO<br>Available?}:::logic
+        Dec_Alt_Avail -- No --> Find_Alt_CO
+        Dec_Alt_Avail -- Yes --> Alt_Accept[Alt CO Accepts Job]:::co
+        Alt_Accept --> Flag_Chargeback[Flag: Chargeback<br>Original Installer]:::chargeback
+        Flag_Chargeback --> Dec_Parts_Ready
+        
+        Dec_Parts_Ready{Has Parts?}:::logic
         Dec_Parts_Ready -- Yes --> Confirm_Window
         Dec_Parts_Ready -- No --> CO_Get_Parts[CO Gets Parts]:::co
         CO_Get_Parts --> Confirm_Window
@@ -194,7 +214,7 @@ flowchart TD
     end
 
     %% =============================================
-    %% PHASE 5: DIAGNOSIS & SCOPE
+    %% PHASE 5: DIAGNOSIS AND SCOPE
     %% =============================================
     subgraph Phase5[PHASE 5: DIAGNOSIS]
         direction TB
@@ -214,19 +234,22 @@ flowchart TD
         Show_Labor --> CO_Review_Lines
         Show_Full --> CO_Review_Lines
         
-        %% --- CO REVIEWS LINE ITEMS WITH HO (After Payment Flag) ---
+        %% --- CO REVIEWS LINE ITEMS WITH HO ---
         CO_Review_Lines[CO Reviews and Edits<br>Line Items with HO]:::co
         CO_Review_Lines --> Dec_Decision{Decision?}:::logic
         
         Dec_Decision -- Decline --> Collect_Diag[Collect Diagnostic]:::co
-        Collect_Diag --> End_Diag([Diagnostic Done]):::terminator
+        Collect_Diag --> Check_CB_Diag{Chargeback<br>Flagged?}:::logic
+        Check_CB_Diag -- Yes --> Process_CB_Diag[Process Chargeback:<br>Original Installer]:::chargeback
+        Process_CB_Diag --> End_Diag([Diagnostic Done]):::terminator
+        Check_CB_Diag -- No --> End_Diag
         
         Dec_Decision -- Replace --> CO_Lead[CO Sets Lead]:::co
         CO_Lead --> Pay_Commission[Pay CO Commission]:::system
         Pay_Commission --> Sales[[Sales Process]]:::subprocess
         Sales --> End_Ecom([Ecom Flow]):::terminator
         
-        Dec_Decision -- Repair + Replace --> CO_Lead_Both[CO Sets Lead]:::co
+        Dec_Decision -- Repair and Replace --> CO_Lead_Both[CO Sets Lead]:::co
         CO_Lead_Both --> Pay_Comm_Both[Pay CO Commission]:::system
         Pay_Comm_Both --> HO_Approve
         
@@ -234,7 +257,7 @@ flowchart TD
     end
 
     %% =============================================
-    %% PHASE 6: PARTS & FOLLOW-UP
+    %% PHASE 6: PARTS AND FOLLOW-UP
     %% =============================================
     subgraph Phase6[PHASE 6: PARTS]
         direction TB
@@ -280,7 +303,15 @@ flowchart TD
         CO_Collect --> Dec_Paid{Paid?}:::logic
         
         Dec_Paid -- Yes --> Process_Pay[Process Payment]:::tetra
-        Process_Pay --> Send_Report[Send Reports]:::system
+        Process_Pay --> Check_Chargeback{Chargeback<br>Flagged?}:::logic
+        Check_Chargeback -- Yes --> Process_Chargeback[Process Chargeback:<br>Original Installer]:::chargeback
+        Process_Chargeback --> Dec_Still_Active{Original Installer<br>Still Active?}:::logic
+        Dec_Still_Active -- Yes --> Deduct_Invoice[Deduct Service Call +<br>Repair from Next Invoice]:::chargeback
+        Dec_Still_Active -- No --> Flag_Debt[Flag: Outstanding Debt<br>from Former Contractor]:::chargeback
+        Deduct_Invoice --> Send_Report
+        Flag_Debt --> Send_Report
+        Check_Chargeback -- No --> Send_Report
+        Send_Report[Send Reports]:::system
         Send_Report --> Pay_CO[Pay CO]:::tetra
         Pay_CO --> Update_Records[Update Records]:::system
         Update_Records --> End_Complete([Complete]):::terminator
@@ -290,7 +321,15 @@ flowchart TD
         CO_Waits --> Collection[Tetra Collection]:::tetra
         Collection --> Dec_Collected{Collected?}:::logic
         Dec_Collected -- Yes --> Process_Late[Process Late]:::tetra
-        Process_Late --> Pay_CO_Late[Pay CO]:::tetra
+        Process_Late --> Check_CB_Late{Chargeback<br>Flagged?}:::logic
+        Check_CB_Late -- Yes --> Process_CB_Late[Process Chargeback:<br>Original Installer]:::chargeback
+        Process_CB_Late --> Dec_Active_Late{Original Installer<br>Still Active?}:::logic
+        Dec_Active_Late -- Yes --> Deduct_Late[Deduct from Next Invoice]:::chargeback
+        Dec_Active_Late -- No --> Flag_Debt_Late[Flag: Outstanding Debt]:::chargeback
+        Deduct_Late --> Pay_CO_Late
+        Flag_Debt_Late --> Pay_CO_Late
+        Check_CB_Late -- No --> Pay_CO_Late
+        Pay_CO_Late[Pay CO]:::tetra
         Pay_CO_Late --> End_Late([Complete - Late]):::terminator
         Dec_Collected -- No --> Flag_Unpaid[Send to Collections]:::tetra
         Flag_Unpaid --> End_Unpaid([Unpaid]):::terminator
