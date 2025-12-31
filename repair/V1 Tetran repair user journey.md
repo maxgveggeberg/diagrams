@@ -120,21 +120,16 @@ flowchart TD
             direction TB
             Monitor_VisitStarts[Visit Starts]:::monitor
             Monitor_VisitStarts --> Dec_HOInterested{HO Interested in<br>Replacement?}:::logic
-            Dec_HOInterested -- Yes --> TransferToSales[Transfer to Sales]:::tetra
-            Dec_HOInterested -- Yes --> Dec_VisitComplete{Visit<br>Complete?}:::logic
-            Dec_HOInterested -- No --> Dec_VisitComplete
+            Dec_HOInterested -- Yes --> NotifySales[Notify Sales Team]:::tetra
+            Dec_HOInterested -- Yes or No --> FourHrsCheck[">4 hrs since<br>visit start"]:::monitor
+            FourHrsCheck --> CallCOCheckIn[[Call CO to check-in]]:::subprocess
+            CallCOCheckIn --> Dec_COForgot{CO forgot to<br>close visit?}:::logic
+            Dec_COForgot -- No --> VisitComplete[Visit Complete]:::monitor
+            Dec_COForgot -- Yes --> RemindCO[Remind CO]:::tetra
+            RemindCO --> CloseVisit24[Close visit<br>after 24 hours]:::tetra
+            CloseVisit24 --> VisitComplete
         end
         style Visit fill:none,stroke:#333333,stroke-dasharray: 5 5
-        
-        %% --- SALES (dotted subgraph) ---
-        subgraph Sales["Sales"]
-            direction TB
-            SalesFollowup[[Sales Follow Up]]:::subprocess
-        end
-        style Sales fill:none,stroke:#333333,stroke-dasharray: 5 5
-        
-        %% --- TRANSFER TO SALES CONNECTION ---
-        TransferToSales --> SalesFollowup
         
         %% --- CHANGE SCH TIME (dotted subgraph) ---
         subgraph ChangeSchTime["Change Sch Time"]
@@ -154,7 +149,7 @@ flowchart TD
             HO_CO_Late[HO/CO Running Late]:::tetra
             HO_CO_Late --> CallOtherParty["Call Other Party<br>(HO/CO)"]:::tetra
             CallOtherParty --> Dec_CancelVisitLate{Cancel<br>Visit?}:::logic
-            Dec_CancelVisitLate -- Yes --> Dec_Schedule
+            Dec_CancelVisitLate -- Yes --> Phase2Scheduling_RL[[Phase 2: Scheduling]]:::subprocess
             Dec_CancelVisitLate -- No --> NotifyWithETA[Notify HO/CO<br>with ETA]:::tetra
         end
         style RunningLate fill:none,stroke:#333333,stroke-dasharray: 5 5
@@ -169,7 +164,7 @@ flowchart TD
     end
 
     %% --- CONNECTION FROM VISIT COMPLETE TO PHASE 4 ---
-    Dec_VisitComplete --> Dec_PaymentCollected
+    VisitComplete --> Dec_PaymentCollected
 
     %% =============================================
     %% PHASE 4: FOLLOW UP
@@ -177,13 +172,20 @@ flowchart TD
     subgraph Phase4[PHASE 4: FOLLOW UP]
         direction TB
         
+        %% --- SALES (dotted subgraph) ---
+        subgraph Sales["Sales"]
+            direction TB
+            SalesFollowup[[Sales Follow Up]]:::subprocess
+            SalesFollowup -- Closed Won --> Install_Sub[[Install]]:::subprocess
+        end
+        style Sales fill:none,stroke:#333333,stroke-dasharray: 5 5
+        
         %% --- PAYMENT (dotted subgraph) ---
         subgraph Payment["Payment"]
             direction TB
             Dec_PaymentCollected{Payment<br>Collected?}:::logic
             Dec_PaymentCollected -- Yes --> ProcessPayment[Process Payment]:::tetra
-            ProcessPayment --> PayCO[Pay CO]:::tetra
-            PayCO --> Marketing_Reengage2[[Marketing<br>Re-engagement]]:::subprocess
+            ProcessPayment --> PayCO[[Pay CO]]:::subprocess
             Dec_PaymentCollected -- No --> InternalCollections[[Internal Collections]]:::subprocess
             InternalCollections --> Dec_PaymentCollected2{Payment<br>Collected?}:::logic
             Dec_PaymentCollected2 -- Yes --> ProcessPayment
@@ -202,12 +204,19 @@ flowchart TD
             PartsAlert --> OrderParts[Order Parts]:::tetra
             OrderParts --> MonitorShipment[Monitor Shipment]:::tetra
             MonitorShipment --> ConfirmReceived[Confirm CO/HO<br>Received Parts]:::tetra
+            ConfirmReceived --> Dec_Scheduled
+            Dec_Scheduled -- No --> Scheduling_Sub[[Phase 2: Scheduling]]:::subprocess
+            Dec_Scheduled -- Yes --> Monitoring_Sub[[Phase 3: Monitoring]]:::subprocess
         end
         style ReturnVisit fill:none,stroke:#333333,stroke-dasharray: 5 5
+        
+        %% --- CONNECTION FROM PAYMENT TO RETURN VISIT ---
+        ProcessPayment --> Dec_ReturnVisit
+        
+        %% --- CONNECTION FROM SALES TO RETURN VISIT ---
+        SalesFollowup -- Closed Lost --> Dec_ReturnVisit
     end
 
-    %% --- CONNECTIONS FROM PHASE 4 BACK TO PHASE 2 AND 3 ---
-    Dec_Scheduled -- Yes --> Monitor_Confirm
-    Dec_Scheduled -- No --> Dec_Schedule
-    ConfirmReceived --> Dec_Schedule
+    %% --- NOTIFY SALES TO SALES FOLLOW UP CONNECTION ---
+    NotifySales --> SalesFollowup
 ```
