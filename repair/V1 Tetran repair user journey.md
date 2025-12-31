@@ -119,9 +119,22 @@ flowchart TD
         subgraph Visit["Visit"]
             direction TB
             Monitor_VisitStarts[Visit Starts]:::monitor
-            Monitor_VisitStarts --> Monitor_VisitOutcome[Visit Outcome]:::monitor
+            Monitor_VisitStarts --> Dec_HOInterested{HO Interested in<br>Replacement?}:::logic
+            Dec_HOInterested -- Yes --> TransferToSales[Transfer to Sales]:::tetra
+            Dec_HOInterested -- Yes --> Dec_VisitComplete{Visit<br>Complete?}:::logic
+            Dec_HOInterested -- No --> Dec_VisitComplete
         end
         style Visit fill:none,stroke:#333333,stroke-dasharray: 5 5
+        
+        %% --- SALES (dotted subgraph) ---
+        subgraph Sales["Sales"]
+            direction TB
+            SalesFollowup[[Sales Follow Up]]:::subprocess
+        end
+        style Sales fill:none,stroke:#333333,stroke-dasharray: 5 5
+        
+        %% --- TRANSFER TO SALES CONNECTION ---
+        TransferToSales --> SalesFollowup
         
         %% --- CHANGE SCH TIME (dotted subgraph) ---
         subgraph ChangeSchTime["Change Sch Time"]
@@ -155,44 +168,46 @@ flowchart TD
         NotifyWithETA --> Visit
     end
 
-    %% --- CONNECTION TO PHASE 4 ---
-    Visit --> Dec_Parts
+    %% --- CONNECTION FROM VISIT COMPLETE TO PHASE 4 ---
+    Dec_VisitComplete --> Dec_PaymentCollected
 
     %% =============================================
-    %% PHASE 4: PARTS ORDERING
+    %% PHASE 4: FOLLOW UP
     %% =============================================
-    subgraph Phase4[PHASE 4: PARTS]
+    subgraph Phase4[PHASE 4: FOLLOW UP]
         direction TB
         
-        Dec_Parts{Parts<br>Needed?}:::logic
-        Dec_Parts -- No --> Monitor_Repair[Monitor: CO Repairing]:::monitor
+        %% --- PAYMENT (dotted subgraph) ---
+        subgraph Payment["Payment"]
+            direction TB
+            Dec_PaymentCollected{Payment<br>Collected?}:::logic
+            Dec_PaymentCollected -- Yes --> ProcessPayment[Process Payment]:::tetra
+            ProcessPayment --> PayCO[Pay CO]:::tetra
+            PayCO --> Marketing_Reengage2[[Marketing<br>Re-engagement]]:::subprocess
+            Dec_PaymentCollected -- No --> InternalCollections[[Internal Collections]]:::subprocess
+            InternalCollections --> Dec_PaymentCollected2{Payment<br>Collected?}:::logic
+            Dec_PaymentCollected2 -- Yes --> ProcessPayment
+            Dec_PaymentCollected2 -- No --> SendToCollections[[Send to Collections]]:::subprocess
+        end
+        style Payment fill:none,stroke:#333333,stroke-dasharray: 5 5
         
-        Dec_Parts -- Yes --> Parts_Alert[Parts Alert Received]:::tetra
-        Parts_Alert --> Parts_Order[Parts Coordinator<br>Orders Parts]:::tetra
-        Parts_Order --> Parts_Track[Parts Coordinator<br>Tracks Shipment]:::tetra
-        Parts_Track --> Parts_Notify[Notify CO:<br>Parts Ready]:::tetra
-        Parts_Notify --> Monitor_Repair
+        %% --- RETURN VISIT (dotted subgraph) ---
+        subgraph ReturnVisit["Return Visit"]
+            direction TB
+            Dec_ReturnVisit{Return Visit<br>Needed?}:::logic
+            Dec_ReturnVisit -- No --> Marketing_Reengage3[[Marketing<br>Re-engagement]]:::subprocess
+            Dec_ReturnVisit -- Yes --> Dec_PartsNeeded{Parts<br>Needed?}:::logic
+            Dec_PartsNeeded -- No --> Dec_Scheduled{Scheduled?}:::logic
+            Dec_PartsNeeded -- Yes --> PartsAlert[Parts Alert Received]:::tetra
+            PartsAlert --> OrderParts[Order Parts]:::tetra
+            OrderParts --> MonitorShipment[Monitor Shipment]:::tetra
+            MonitorShipment --> ConfirmReceived[Confirm CO/HO<br>Received Parts]:::tetra
+        end
+        style ReturnVisit fill:none,stroke:#333333,stroke-dasharray: 5 5
     end
 
-    %% =============================================
-    %% PHASE 5: PAYMENT COLLECTION
-    %% =============================================
-    subgraph Phase5[PHASE 5: PAYMENT]
-        direction TB
-        
-        Monitor_Repair --> Monitor_Complete[Monitor: Job Complete]:::monitor
-        Monitor_Complete --> Dec_Paid{Payment<br>Collected?}:::logic
-        
-        Dec_Paid -- Yes --> Billing_Process[Billing Processes<br>Payment]:::tetra
-        Billing_Process --> Billing_PayCO[Pay Contractor]:::tetra
-        Billing_PayCO --> End_Complete([Complete]):::terminator
-        
-        Dec_Paid -- No --> Billing_Collection[Billing Reaches Out<br>for Collection]:::tetra
-        Billing_Collection --> Dec_Collected{Payment<br>Collected?}:::logic
-        Dec_Collected -- Yes --> Billing_Process_Late[Process Late Payment]:::tetra
-        Billing_Process_Late --> Billing_PayCO_Late[Pay Contractor]:::tetra
-        Billing_PayCO_Late --> End_Late([Complete - Late Pay]):::terminator
-        Dec_Collected -- No --> Billing_Flag[Flag: Send to<br>Collections]:::tetra
-        Billing_Flag --> End_Unpaid([Unpaid]):::terminator
-    end
+    %% --- CONNECTIONS FROM PHASE 4 BACK TO PHASE 2 AND 3 ---
+    Dec_Scheduled -- Yes --> Monitor_Confirm
+    Dec_Scheduled -- No --> Dec_Schedule
+    ConfirmReceived --> Dec_Schedule
 ```
