@@ -9,7 +9,7 @@ flowchart TD
     classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
     classDef alert fill:#fff0e6,stroke:#d9534f,color:#d9534f,stroke-width:2px
     classDef terminator fill:#333333,stroke:#333333,color:#ffffff
-    classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px
+    classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
     classDef monitor fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
 
     %% =============================================
@@ -20,27 +20,37 @@ flowchart TD
         
         Start([HO Calls In]) --> Dec_Answer{Call<br>Answered?}:::logic
         
-        Dec_Answer -- Yes --> CSR_Answer[CSR Answers Call<br>Opens CSR RepairBot]:::tetra
-        CSR_Answer --> CSR_Collect_Contact[CSR Collects Contact Info:<br>Phone Number<br>Address<br>Store in System]:::tetra
+        %% =============================================
+        %% CALL ANSWERED PATH
+        %% =============================================
+        Dec_Answer -- Yes --> Dec_Existing{Existing<br>Customer?}:::logic
         
-        %% --- CHECK IF ALREADY SCHEDULED ---
-        CSR_Collect_Contact --> Dec_Already_Sched{Already<br>Scheduled?}:::logic
-        Dec_Already_Sched -- Yes --> CSR_Show_Status[CSR Shows Booking Status<br>Offers Reschedule Option]:::tetra
-        CSR_Show_Status --> Dec_Want_Resched{Want to<br>Reschedule?}:::logic
-        Dec_Want_Resched -- Yes --> Tetra_Resched[CSR Processes<br>Reschedule]:::tetra
-        Tetra_Resched --> End_Resched([Rescheduled]):::terminator
-        Dec_Want_Resched -- No --> End_Status([Call Complete]):::terminator
-        
-        Dec_Already_Sched -- No --> CSR_Entry[CSR Enters Address<br>and Issue Description]:::tetra
-        
-        %% --- CALLBACK FLOW ---
-        Dec_Answer -- No --> Tetra_Callback[Tetra Calls<br>Customer Back]:::tetra
-        Tetra_Callback --> Dec_Callback{Customer<br>Answers?}:::logic
-        Dec_Callback -- Yes --> CSR_Answer
-        Dec_Callback -- No --> Tetra_Voicemail[Leave Voicemail<br>Log Callback Attempt]:::tetra
-        Tetra_Voicemail --> End_Callback([Callback Logged]):::terminator
-        
+        %% --- NEW CUSTOMER PATH ---
+        Dec_Existing -- No --> CSR_CreateNew[Create New Customer<br>in Admin]:::tetra
+        CSR_CreateNew --> CSR_OpenRepairBot[Opens RepairBot]:::tetra
+        CSR_OpenRepairBot --> CSR_Entry[CSR Enters Address<br>and Issue Description]:::tetra
         CSR_Entry --> CSR_Triage[CSR Guides Triage<br>via RepairBot]:::tetra
+        
+        %% --- EXISTING CUSTOMER PATH ---
+        Dec_Existing -- Yes --> CSR_LookupAdmin[Look up in Admin]:::tetra
+        CSR_LookupAdmin --> Dec_RequestType{Request<br>Type?}:::logic
+        
+        %% --- INSTALL ISSUE ---
+        Dec_RequestType -- Install Issue --> CSR_CreateCase[Create Case]:::tetra
+        CSR_CreateCase --> CSR_Triage
+        
+        %% --- QUESTION OR ISSUE ---
+        Dec_RequestType -- Question or Issue --> CSR_AttemptHandle[CSR Attempts<br>to Handle]:::tetra
+        CSR_AttemptHandle -- Resolved --> CSR_UpdateCase([Updates Case]):::terminator
+        CSR_AttemptHandle -- Not Resolved --> Escalation_Sub[[Escalation]]:::subprocess
+        
+        %% --- CHANGE SCHEDULE TIME ---
+        Dec_RequestType -- Change Sch Time --> CSR_CancelOriginal[Cancel Original Visit]:::tetra
+        
+        %% =============================================
+        %% CALL NOT ANSWERED PATH
+        %% =============================================
+        Dec_Answer -- No --> Customer_Followup[[Customer Follow Up]]:::subprocess
     end
 
     %% =============================================
@@ -49,15 +59,26 @@ flowchart TD
     subgraph Phase2[PHASE 2: SCHEDULING]
         direction TB
         
+        %% --- CHANGE SCHEDULE TIME (from existing customer) ---
+        CSR_CancelOriginal --> Dec_Schedule
+        
+        %% --- NEW BOOKING PATH ---
         CSR_Triage --> Dec_Schedule{HO Wants to<br>Schedule?}:::logic
         
-        Dec_Schedule -- No --> CSR_OfferReport[CSR Offers Chat Report]:::tetra
-        CSR_OfferReport --> Dec_Report{Wants<br>Report?}:::logic
-        Dec_Report -- Yes --> End_Lead([Lead Captured]):::terminator
-        Dec_Report -- No --> End_NoCapture([No Capture]):::terminator
+        Dec_Schedule -- No --> CSR_UpdateAdmin[Update Admin]:::tetra
+        CSR_UpdateAdmin --> Marketing_Reengage[[Marketing<br>Re-engagement]]:::subprocess
+        
+        %% --- SCHEDULE PATH ---
+        Dec_Schedule -- Yes --> Dec_FindTimeNow{Find New Time<br>on Call?}:::logic
+        
+        %% Schedule NOW on the call - goes to emergency check
+        Dec_FindTimeNow -- Yes --> Dec_Emergency{Emergency<br>Visit?}:::logic
+        
+        %% Schedule LATER (not on the call)
+        Dec_FindTimeNow -- No --> CSR_UpdateAdmin2[Update Admin]:::tetra
+        CSR_UpdateAdmin2 --> Customer_Followup2[[Customer Follow Up]]:::subprocess
         
         %% --- EMERGENCY vs AFTER-HOURS ---
-        Dec_Schedule -- Yes --> Dec_Emergency{Emergency<br>Visit?}:::logic
         Dec_Emergency -- Yes --> CSR_ValidateEmerg[CSR Validates Emergency<br>Confirms Premium Rate]:::tetra
         CSR_ValidateEmerg --> CSR_Schedule
         
@@ -173,22 +194,4 @@ flowchart TD
         Dec_Collected -- No --> Billing_Flag[Flag: Send to<br>Collections]:::tetra
         Billing_Flag --> End_Unpaid([Unpaid]):::terminator
     end
-
-    %% =============================================
-    %% ESCALATION HANDLING
-    %% =============================================
-    subgraph Escalations[ESCALATIONS]
-        direction TB
-        
-        Esc_Trigger([Escalation]):::alert
-        Esc_Trigger --> Ops_Triage[Ops Triages<br>Escalation]:::tetra
-        Ops_Triage --> Dec_Type{Type?}:::logic
-        Dec_Type -- Complaint --> CS_Complaint[CS Handles<br>Complaint]:::tetra
-        Dec_Type -- Dispute --> CS_Dispute[CS Handles<br>Dispute]:::tetra
-        Dec_Type -- CO Issue --> Dispatch_CO[Dispatch Handles<br>CO Issue]:::tetra
-        Dec_Type -- System --> Ops_System[Ops Handles<br>System Error]:::tetra
-        CS_Complaint --> End_Esc([Resolved]):::terminator
-        CS_Dispute --> End_Esc
-        Dispatch_CO --> End_Esc
-        Ops_System --> End_Esc
-    end
+```
