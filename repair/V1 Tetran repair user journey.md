@@ -70,7 +70,7 @@ flowchart TD
         Dec_Schedule -- No --> Dec_ReschedOrCancel{Reschedule/Cancel/<br>Not Interested?}:::logic
         Dec_ReschedOrCancel --> CSR_UpdateAdmin[Update Admin]:::tetra
         CSR_UpdateAdmin -- Reschedule --> HO_Followup2[[HO Follow Up]]:::subprocess
-        CSR_UpdateAdmin -- Cancel/Not Interested --> Marketing_Reengage[[Marketing<br>Re-engagement]]:::subprocess
+        CSR_UpdateAdmin -- Cancel/Not Interested --> Marketing_Reengage([Marketing<br>Re-engagement]):::terminator
         
         %% --- YES - VISIT TYPE PATH ---
         Dec_Schedule -- Yes --> Dec_VisitType{Visit<br>Type?}:::logic
@@ -164,6 +164,7 @@ flowchart TD
     end
 
     %% --- CONNECTION FROM VISIT COMPLETE TO PHASE 4 ---
+    VisitComplete --> SalesCheckIn
     VisitComplete --> Dec_PaymentCollected
 
     %% =============================================
@@ -175,8 +176,21 @@ flowchart TD
         %% --- SALES (dotted subgraph) ---
         subgraph Sales["Sales"]
             direction TB
+            
+            %% --- SALES CHECK-IN FLOW ---
+            SalesCheckIn[[Sales Check-in]]:::subprocess
+            SalesCheckIn --> Dec_SpeakWithHO{Speak<br>with HO?}:::logic
+            Dec_SpeakWithHO -- No --> ContinueJourney([Continue Journey]):::terminator
+            Dec_SpeakWithHO -- Yes --> AskAboutExperience[Ask About Experience]:::tetra
+            AskAboutExperience --> DocumentIssues[Document Issues]:::tetra
+            DocumentIssues --> OpsReview[[Ops Review]]:::subprocess
+            AskAboutExperience --> Dec_InterestOtherServices{Interest in<br>Other Services?}:::logic
+            Dec_InterestOtherServices -- Yes --> SalesFollowup
+            Dec_InterestOtherServices -- No --> Marketing_Reengage_Sales([Marketing<br>Re-engagement]):::terminator
+            
+            %% --- EXISTING SALES FOLLOW UP ---
             SalesFollowup[[Sales Follow Up]]:::subprocess
-            SalesFollowup -- Closed Won --> Install_Sub[[Install]]:::subprocess
+            SalesFollowup -- Closed Won --> Install_Sub([Install]):::terminator
         end
         style Sales fill:none,stroke:#333333,stroke-dasharray: 5 5
         
@@ -197,7 +211,7 @@ flowchart TD
         subgraph ReturnVisit["Return Visit"]
             direction TB
             Dec_ReturnVisit{Return Visit<br>Needed?}:::logic
-            Dec_ReturnVisit -- No --> Marketing_Reengage3[[Marketing<br>Re-engagement]]:::subprocess
+            Dec_ReturnVisit -- No --> Marketing_Reengage3([Marketing<br>Re-engagement]):::terminator
             Dec_ReturnVisit -- Yes --> Dec_PartsNeeded{Parts<br>Needed?}:::logic
             Dec_PartsNeeded -- No --> Dec_Scheduled{Scheduled?}:::logic
             Dec_PartsNeeded -- Yes --> PartsAlert[Parts Alert Received]:::tetra
@@ -219,4 +233,3 @@ flowchart TD
 
     %% --- NOTIFY SALES TO SALES FOLLOW UP CONNECTION ---
     NotifySales --> SalesFollowup
-```
