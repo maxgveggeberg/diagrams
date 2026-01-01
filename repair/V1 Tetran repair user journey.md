@@ -14,9 +14,9 @@ flowchart TD
     classDef monitor fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
 
     %% =============================================
-    %% PHASE 1: INTAKE
+    %% PHASE 1: AI DIAGNOSIS
     %% =============================================
-    subgraph Phase1[PHASE 1: INTAKE]
+    subgraph Phase1[PHASE 1: AI DIAGNOSIS]
         direction TB
         
         Start([HO Calls In]) --> Dec_Answer{Call<br>Answered?}:::logic
@@ -98,11 +98,11 @@ flowchart TD
     CSR_SchVisitStd --> Monitor_Confirm
 
     %% =============================================
-    %% PHASE 3: MONITOR
+    %% PHASE 3: CONFIRMATION
     %% =============================================
-    subgraph Phase3[PHASE 3: MONITOR]
+    subgraph Phase3[PHASE 3: CONFIRMATION]
         direction TB
-        
+
         %% --- CONFIRMATION (dotted subgraph) ---
         subgraph Confirmation["Confirmation"]
             direction TB
@@ -111,10 +111,48 @@ flowchart TD
             Monitor_EnRoute --> Monitor_Arrived[CO Arrives]:::monitor
         end
         style Confirmation fill:none,stroke:#333333,stroke-dasharray: 5 5
-        
+
         %% --- CHANGE SCHEDULE TIME DECISION ---
         Confirmation --> Dec_ChangeSchTime{Change Schedule<br>Time?}:::logic
-        
+
+        %% --- CHANGE SCH TIME (dotted subgraph) ---
+        subgraph ChangeSchTime["Change Sch Time"]
+            direction TB
+            HO_CO_ReqDiffTime[HO/CO Requests<br>Diff Time]:::tetra
+            HO_CO_ReqDiffTime --> CancelVisit_Sch[Cancel Visit]:::tetra
+            CancelVisit_Sch --> Dec_Within2Hrs{Within<br>2 Hrs?}:::logic
+            Dec_Within2Hrs -- Yes --> CallHOCO[Call HO/CO]:::tetra
+            CallHOCO --> HO_Followup3[[HO Follow Up]]:::subprocess
+            Dec_Within2Hrs -- No --> HO_Followup3
+        end
+        style ChangeSchTime fill:none,stroke:#333333,stroke-dasharray: 5 5
+
+        %% --- RUNNING LATE (dotted subgraph) ---
+        subgraph RunningLate["Running Late"]
+            direction TB
+            HO_CO_Late[HO/CO Running Late]:::tetra
+            HO_CO_Late --> CallOtherParty["Call Other Party<br>(HO/CO)"]:::tetra
+            CallOtherParty --> Dec_CancelVisitLate{Cancel<br>Visit?}:::logic
+            Dec_CancelVisitLate -- Yes --> Phase2Scheduling_RL[[Phase 2: Scheduling]]:::subprocess
+            Dec_CancelVisitLate -- No --> NotifyWithETA[Notify HO/CO<br>with ETA]:::tetra
+        end
+        style RunningLate fill:none,stroke:#333333,stroke-dasharray: 5 5
+
+        %% --- CONNECTIONS FROM DECISION NODE ---
+        Dec_ChangeSchTime -- Yes --> ChangeSchTime
+        Dec_ChangeSchTime -- Delayed --> RunningLate
+        Dec_ChangeSchTime -- No --> Monitor_VisitStarts
+    end
+
+    %% --- NOTIFY ETA TO VISIT ---
+    NotifyWithETA --> Monitor_VisitStarts
+
+    %% =============================================
+    %% PHASE 4: REPAIR VISIT
+    %% =============================================
+    subgraph Phase4[PHASE 4: REPAIR VISIT]
+        direction TB
+
         %% --- VISIT (dotted subgraph) ---
         subgraph Visit["Visit"]
             direction TB
@@ -130,47 +168,16 @@ flowchart TD
             CloseVisit24 --> VisitComplete
         end
         style Visit fill:none,stroke:#333333,stroke-dasharray: 5 5
-        
-        %% --- CHANGE SCH TIME (dotted subgraph) ---
-        subgraph ChangeSchTime["Change Sch Time"]
-            direction TB
-            HO_CO_ReqDiffTime[HO/CO Requests<br>Diff Time]:::tetra
-            HO_CO_ReqDiffTime --> CancelVisit_Sch[Cancel Visit]:::tetra
-            CancelVisit_Sch --> Dec_Within2Hrs{Within<br>2 Hrs?}:::logic
-            Dec_Within2Hrs -- Yes --> CallHOCO[Call HO/CO]:::tetra
-            CallHOCO --> HO_Followup3[[HO Follow Up]]:::subprocess
-            Dec_Within2Hrs -- No --> HO_Followup3
-        end
-        style ChangeSchTime fill:none,stroke:#333333,stroke-dasharray: 5 5
-        
-        %% --- RUNNING LATE (dotted subgraph) ---
-        subgraph RunningLate["Running Late"]
-            direction TB
-            HO_CO_Late[HO/CO Running Late]:::tetra
-            HO_CO_Late --> CallOtherParty["Call Other Party<br>(HO/CO)"]:::tetra
-            CallOtherParty --> Dec_CancelVisitLate{Cancel<br>Visit?}:::logic
-            Dec_CancelVisitLate -- Yes --> Phase2Scheduling_RL[[Phase 2: Scheduling]]:::subprocess
-            Dec_CancelVisitLate -- No --> NotifyWithETA[Notify HO/CO<br>with ETA]:::tetra
-        end
-        style RunningLate fill:none,stroke:#333333,stroke-dasharray: 5 5
-        
-        %% --- CONNECTIONS FROM DECISION NODE ---
-        Dec_ChangeSchTime -- Yes --> ChangeSchTime
-        Dec_ChangeSchTime -- Delayed --> RunningLate
-        Dec_ChangeSchTime -- No --> Visit
-        
-        %% --- NOTIFY ETA TO VISIT ---
-        NotifyWithETA --> Visit
     end
 
-    %% --- CONNECTION FROM VISIT COMPLETE TO PHASE 4 ---
+    %% --- CONNECTION FROM VISIT COMPLETE TO PHASE 5 ---
     VisitComplete --> SalesCheckIn
     VisitComplete --> Dec_PaymentCollected
 
     %% =============================================
-    %% PHASE 4: FOLLOW UP
+    %% PHASE 5: FOLLOW UP
     %% =============================================
-    subgraph Phase4[PHASE 4: FOLLOW UP]
+    subgraph Phase5[PHASE 5: FOLLOW UP]
         direction TB
         
         %% --- SALES (dotted subgraph) ---
@@ -220,7 +227,7 @@ flowchart TD
             MonitorShipment --> ConfirmReceived[Confirm CO/HO<br>Received Parts]:::tetra
             ConfirmReceived --> Dec_Scheduled
             Dec_Scheduled -- No --> Scheduling_Sub[[Phase 2: Scheduling]]:::subprocess
-            Dec_Scheduled -- Yes --> Monitoring_Sub[[Phase 3: Monitoring]]:::subprocess
+            Dec_Scheduled -- Yes --> Monitoring_Sub[[Phase 4: Repair Visit]]:::subprocess
         end
         style ReturnVisit fill:none,stroke:#333333,stroke-dasharray: 5 5
         
