@@ -53,7 +53,7 @@ flowchart TD
         HO_Book --> Service_Handoff[Service Handoff]:::user
     end
 
-    Service_Handoff --> Confirm_Loop
+    Service_Handoff --> Confirm_Email_SMS
 
     %% =============================================
     %% PHASE 3: CONFIRMATION
@@ -61,7 +61,10 @@ flowchart TD
     subgraph Phase3[PHASE 3: CONFIRMATION]
         direction TB
 
-        Confirm_Loop[[Confirmation Window]]:::subprocess
+        Confirm_Email_SMS[Confirmation Email/SMS]:::user
+        Confirm_Email_SMS --> Confirm_Loop
+
+        Confirm_Loop[[Confirmation]]:::subprocess
         Confirm_Loop --> Dec_Resched{Need to<br>Reschedule?}:::logic
 
         Dec_Resched -- No --> Visit_Day([Visit Day Arrives]):::terminator
@@ -70,7 +73,7 @@ flowchart TD
         Dec_Resched -- HO Reschedules --> HO_Cancel[Cancel Visit]:::user
         HO_Cancel --> Dec_Resched_Now{Reschedule<br>Now?}:::logic
         Dec_Resched_Now -- Yes --> HO_NewSlot[Select New Time]:::user
-        HO_NewSlot --> Confirm_Loop
+        HO_NewSlot --> Confirm_Email_SMS
         Dec_Resched_Now -- No --> Reengage_Sub[[Re-engagement]]:::subprocess
         Reengage_Sub --> Dec_Returns{Return to<br>Schedule?}:::logic
         Dec_Returns -- Yes --> HO_NewSlot
@@ -79,9 +82,9 @@ flowchart TD
         %% --- CO RESCHEDULE PATH ---
         Dec_Resched -- CO Reschedules --> See_Reschedule_Notice[See Reschedule<br>Notification]:::user
         See_Reschedule_Notice --> Dec_Accept_New{Accept<br>New Time?}:::logic
-        Dec_Accept_New -- Yes --> Confirm_Loop
+        Dec_Accept_New -- Yes --> Confirm_Email_SMS
         Dec_Accept_New -- No --> HO_Pick_Alt[Pick Alternative Time]:::user
-        HO_Pick_Alt --> Confirm_Loop
+        HO_Pick_Alt --> Confirm_Email_SMS
     end
 
     %% =============================================
@@ -118,7 +121,7 @@ flowchart TD
 
         %% --- FOLLOW-UP NEEDED ---
         Dec_SameDay -- No --> HO_FollowSlot[Schedule Follow-Up<br>Visit]:::user
-        HO_FollowSlot --> Confirm_Loop
+        HO_FollowSlot --> Confirm_Email_SMS
     end
 
     %% =============================================

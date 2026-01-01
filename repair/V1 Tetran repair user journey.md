@@ -78,14 +78,7 @@ flowchart TD
         %% --- AFTER HOURS / EMERGENCY ---
         Dec_VisitType -- After Hours/Emergency --> CSR_InformPremium[Inform of Premium]:::tetra
         CSR_InformPremium --> CSR_SchVisit[Sch Visit &<br>Collect Contact Info]:::tetra
-        CSR_SchVisit --> CSR_CallCO[Call CO to Confirm]:::tetra
-        CSR_CallCO --> Dec_Confirmed{Confirmed?}:::logic
-        Dec_Confirmed -- Yes --> CSR_UpdateAdmin3[Update Admin]:::tetra
-        Dec_Confirmed -- Not Available --> CSR_CancelVisit[Cancel Visit]:::tetra
-        CSR_CancelVisit --> HO_Followup2
-        Dec_Confirmed -- Wait --> CO_Followup[[CO Follow Up]]:::subprocess
-        CO_Followup --> Dec_Confirmed
-        
+
         %% --- WITHIN 2 HRS ---
         Dec_VisitType -- Within 2 Hrs --> CSR_SchVisit
         
@@ -94,7 +87,7 @@ flowchart TD
     end
 
     %% --- CONNECTIONS TO PHASE 3 ---
-    CSR_UpdateAdmin3 --> Monitor_Confirm
+    CSR_SchVisit --> CSR_CallCO
     CSR_SchVisitStd --> Monitor_Confirm
 
     %% =============================================
@@ -103,17 +96,25 @@ flowchart TD
     subgraph Phase3[PHASE 3: CONFIRMATION]
         direction TB
 
-        %% --- CONFIRMATION (dotted subgraph) ---
-        subgraph Confirmation["Confirmation"]
-            direction TB
-            Monitor_Confirm[Confirmation]:::monitor
-            Monitor_Confirm --> Monitor_EnRoute[CO En Route]:::monitor
-            Monitor_EnRoute --> Monitor_Arrived[CO Arrives]:::monitor
-        end
-        style Confirmation fill:none,stroke:#333333,stroke-dasharray: 5 5
+        %% --- CALL CO TO CONFIRM ---
+        CSR_CallCO[Call CO to Confirm]:::tetra
+        CSR_CallCO --> Dec_Confirmed{Confirmed?}:::logic
+        Dec_Confirmed -- Yes --> CSR_UpdateAdmin3[Update Admin]:::tetra
+        CSR_UpdateAdmin3 --> Monitor_Confirm[[Confirmation]]:::subprocess
+
+        %% --- NOT AVAILABLE PATH ---
+        Dec_Confirmed -- Not Available --> CSR_CancelVisit[Cancel Visit]:::tetra
+        CSR_CancelVisit --> HO_Followup_Phase3[[HO Follow Up]]:::subprocess
+
+        %% --- UNRESPONSIVE PATH ---
+        Dec_Confirmed -- Unresponsive --> CO_Followup[[CO Follow Up]]:::subprocess
+        CO_Followup --> Dec_Confirmed
+
+        %% --- MONITORING ---
+        Monitor_Confirm --> Monitor_EnRoute[[CO En Route]]:::subprocess
 
         %% --- CHANGE SCHEDULE TIME DECISION ---
-        Confirmation --> Dec_ChangeSchTime{Change Schedule<br>Time?}:::logic
+        Monitor_EnRoute --> Dec_ChangeSchTime{Change Schedule<br>Time?}:::logic
 
         %% --- CHANGE SCH TIME (dotted subgraph) ---
         subgraph ChangeSchTime["Change Sch Time"]
@@ -153,21 +154,16 @@ flowchart TD
     subgraph Phase4[PHASE 4: REPAIR VISIT]
         direction TB
 
-        %% --- VISIT (dotted subgraph) ---
-        subgraph Visit["Visit"]
-            direction TB
-            Monitor_VisitStarts[Visit Starts]:::monitor
-            Monitor_VisitStarts --> Dec_HOInterested{HO Interested in<br>Replacement?}:::logic
-            Dec_HOInterested -- Yes --> NotifySales[Notify Sales Team]:::tetra
-            Dec_HOInterested -- Yes or No --> FourHrsCheck[">4 hrs since<br>visit start"]:::monitor
-            FourHrsCheck --> CallCOCheckIn[[Call CO to check-in]]:::subprocess
-            CallCOCheckIn --> Dec_COForgot{CO forgot to<br>close visit?}:::logic
-            Dec_COForgot -- No --> VisitComplete[Visit Complete]:::monitor
-            Dec_COForgot -- Yes --> RemindCO[Remind CO]:::tetra
-            RemindCO --> CloseVisit24[Close visit<br>after 24 hours]:::tetra
-            CloseVisit24 --> VisitComplete
-        end
-        style Visit fill:none,stroke:#333333,stroke-dasharray: 5 5
+        Monitor_VisitStarts[Visit Starts]:::monitor
+        Monitor_VisitStarts --> Dec_HOInterested{HO Interested in<br>Replacement?}:::logic
+        Dec_HOInterested -- Yes --> NotifySales[Notify Sales Team]:::tetra
+        Dec_HOInterested -- Yes or No --> FourHrsCheck[">4 hrs since<br>visit start"]:::monitor
+        FourHrsCheck --> CallCOCheckIn[[Call CO to check-in]]:::subprocess
+        CallCOCheckIn --> Dec_COForgot{CO forgot to<br>close visit?}:::logic
+        Dec_COForgot -- No --> VisitComplete[Visit Complete]:::monitor
+        Dec_COForgot -- Yes --> RemindCO[Remind CO]:::tetra
+        RemindCO --> CloseVisit24[Close visit<br>after 24 hours]:::tetra
+        CloseVisit24 --> VisitComplete
     end
 
     %% --- CONNECTION FROM VISIT COMPLETE TO PHASE 5 ---
