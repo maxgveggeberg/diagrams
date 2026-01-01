@@ -156,7 +156,7 @@ flowchart TD
 
         Monitor_VisitStarts[Visit Starts]:::monitor
         Monitor_VisitStarts --> Dec_HOInterested{HO Interested in<br>Replacement?}:::logic
-        Dec_HOInterested -- Yes --> NotifySales[Notify Sales Team]:::tetra
+        Dec_HOInterested -- Yes --> SalesCheckIn
         Dec_HOInterested -- Yes or No --> FourHrsCheck[">4 hrs since<br>visit start"]:::monitor
         FourHrsCheck --> CallCOCheckIn[[Call CO to check-in]]:::subprocess
         CallCOCheckIn --> Dec_COForgot{CO forgot to<br>close visit?}:::logic
@@ -188,12 +188,8 @@ flowchart TD
             AskAboutExperience --> DocumentIssues[Document Issues]:::tetra
             DocumentIssues --> OpsReview[[Ops Review]]:::subprocess
             AskAboutExperience --> Dec_InterestOtherServices{Interest in<br>Other Services?}:::logic
-            Dec_InterestOtherServices -- Yes --> SalesFollowup
+            Dec_InterestOtherServices -- Yes --> Install_Sub([Install]):::terminator
             Dec_InterestOtherServices -- No --> Marketing_Reengage_Sales([Marketing<br>Re-engagement]):::terminator
-            
-            %% --- EXISTING SALES FOLLOW UP ---
-            SalesFollowup[[Sales Follow Up]]:::subprocess
-            SalesFollowup -- Closed Won --> Install_Sub([Install]):::terminator
         end
         style Sales fill:none,stroke:#333333,stroke-dasharray: 5 5
         
@@ -230,9 +226,4 @@ flowchart TD
         %% --- CONNECTION FROM PAYMENT TO RETURN VISIT ---
         ProcessPayment --> Dec_ReturnVisit
         
-        %% --- CONNECTION FROM SALES TO RETURN VISIT ---
-        SalesFollowup -- Closed Lost --> Dec_ReturnVisit
     end
-
-    %% --- NOTIFY SALES TO SALES FOLLOW UP CONNECTION ---
-    NotifySales --> SalesFollowup
