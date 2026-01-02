@@ -153,12 +153,11 @@ flowchart TD
         Dec_Repair -- decline/no work --> Dec_Complete_Payment{Complete<br>Payment?}:::logic
 
         %% --- APPROVE REPAIR PATH ---
-        Dec_Repair -- Approve --> HO_Approve[Approve Scope]:::user
-        HO_Approve --> Dec_SameDay{Same-Day<br>Repair?}:::logic
+        Dec_Repair -- Approve Repair --> Dec_SameDay{Same-Day<br>Repair?}:::logic
 
         %% --- SAME DAY ---
         Dec_SameDay -- Yes --> CO_Completes_Repair[[CO Completes Repair]]:::subprocess
-        CO_Completes_Repair --> HO_Sign[Sign Off on Work]:::user
+        CO_Completes_Repair --> HO_Sign[HO Signs Off on Work]:::user
         HO_Sign --> Dec_Complete_Payment
 
         %% --- FOLLOW-UP NEEDED ---

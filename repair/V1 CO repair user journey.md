@@ -1,32 +1,14 @@
 ```mermaid
-%%{init: {'flowchart':{'defaultRenderer':'elk'}}}%%
+%%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
 
 flowchart TD
     %% --- STYLING ---
-    classDef user fill:#e6f3ff,stroke:#08427b,color:#08427b,stroke-width:2px
     classDef co fill:#fff8e1,stroke:#ffa000,color:#5d4037,stroke-width:2px
-    classDef system fill:#f5f5f5,stroke:#333333,color:#333333,stroke-width:1px,stroke-dasharray: 5 5
     classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
-    classDef alert fill:#fff0e6,stroke:#d9534f,color:#d9534f,stroke-width:2px
     classDef terminator fill:#333333,stroke:#333333,color:#ffffff
-    classDef tetra fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
-    classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px
+    classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
+    classDef monitor fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
     classDef chargeback fill:#ffebee,stroke:#c62828,color:#b71c1c,stroke-width:2px
-
-    %% =============================================
-    %% PHASE 1: AI DIAGNOSIS
-    %% =============================================
-    subgraph Phase1[PHASE 1: AI DIAGNOSIS]
-        direction TB
-
-        %% --- JOB ASSIGNMENT ---
-        StartNode([HO Books Visit]) --> Sys_ST[Job Created in ServiceTitan]:::system
-        Sys_ST --> Sys_Flags[Job Includes Customer Flags:<br>Existing Customer Status<br>Warranty Status<br>Emergency/After-Hours Flag]:::system
-        Sys_Flags --> CO_Cal[Appointment Appears<br>on CO Calendar]:::co
-
-        %% --- HANDOFF DOCUMENT REVIEW ---
-        CO_Review_Handoff[CO Reviews<br>Handoff Document]:::co
-    end
 
     %% =============================================
     %% PHASE 2: SCHEDULING
@@ -34,49 +16,20 @@ flowchart TD
     subgraph Phase2[PHASE 2: SCHEDULING]
         direction TB
 
-        %% --- EMERGENCY vs AFTER-HOURS HANDLING ---
-        CO_Cal --> Dec_Emergency{Emergency<br>Flag Set?}:::logic
+        %% --- JOB ASSIGNMENT ---
+        Start([Job Assigned to CO]) --> CO_JobAppears[Job Appears on<br>ServiceTitan Calendar]:::co
 
-        Dec_Emergency -- Yes --> Tetra_Call_CO_Emerg[Tetra Calls CO:<br>Alert Emergency Visit<br>Confirm Availability]:::tetra
-        Tetra_Call_CO_Emerg --> Dec_CO_Avail_Emerg{CO<br>Available?}:::logic
-        Dec_CO_Avail_Emerg -- Yes --> CO_Priority_Emerg[CO Prioritizes Job<br>Emergency Premium Rate]:::co
-        Dec_CO_Avail_Emerg -- No --> Sys_Reassign_Emerg[Reassign to<br>Available CO]:::system
-        Sys_Reassign_Emerg --> CO_Priority_Emerg
-        CO_Priority_Emerg --> CO_Review_Handoff
+        %% --- EMERGENCY / AFTER-HOURS PATH ---
+        CO_JobAppears --> Dec_UrgentFlag{Emergency/<br>After-Hours/<br>Within 2 Hrs?}:::logic
 
-        Dec_Emergency -- No --> Dec_AfterHours{After-Hours<br>Flag Set?}:::logic
-
-        Dec_AfterHours -- Yes --> Tetra_Call_CO_AH[Tetra Calls CO:<br>Alert After-Hours Visit<br>Confirm Availability]:::tetra
-        Tetra_Call_CO_AH --> Dec_CO_Avail_AH{CO<br>Available?}:::logic
-        Dec_CO_Avail_AH -- Yes --> CO_Priority_AH[CO Accepts Job<br>After-Hours Surcharge]:::co
-        Dec_CO_Avail_AH -- No --> Sys_Reassign_AH[Reassign to<br>Available CO]:::system
-        Sys_Reassign_AH --> CO_Priority_AH
-        CO_Priority_AH --> CO_Review_Handoff
-
-        Dec_AfterHours -- No --> CO_Review_Handoff
-
-        %% --- CONTRACTOR SERVICE DECISION ---
-        CO_Review_Handoff --> Dec_WillService{CO Will Service<br>Customer?}:::logic
-
-        %% --- DEFAULT PATH: CO SERVICES THE CUSTOMER ---
-        Dec_WillService -- "Yes - Default" --> Dec_Has_Parts
-
-        %% --- ALTERNATE PATH: CO DECLINES TO SERVICE ---
-        Dec_WillService -- No --> CO_Decline_Reason[CO Logs Reason:<br>Unavailable or Unwilling]:::co
-        CO_Decline_Reason --> Sys_Find_Alt[Find Alternative<br>Servicing Contractor]:::system
-        Sys_Find_Alt --> Tetra_Call_Alt[Tetra Calls<br>Alt Contractor]:::tetra
-        Tetra_Call_Alt --> Dec_Alt_Avail{Alt CO<br>Available?}:::logic
-        Dec_Alt_Avail -- No --> Sys_Find_Alt
-        Dec_Alt_Avail -- Yes --> Alt_CO_Accept[Alt CO Accepts Job]:::co
-        Alt_CO_Accept --> Flag_Chargeback[Flag: Chargeback<br>Original Installer]:::chargeback
-        Flag_Chargeback --> Dec_Has_Parts
-
-        %% --- PARTS CHECK ---
-        Dec_Has_Parts{Has Required<br>Parts/Equipment?}:::logic
-        Dec_Has_Parts -- Yes --> Confirm_Loop
-        Dec_Has_Parts -- No --> CO_Get_Parts[CO Gets Required<br>Parts/Equipment]:::co
-        CO_Get_Parts --> Confirm_Loop
+        Dec_UrgentFlag -- Yes --> CO_ReceiveCall[[CO Follow Up:<br>Confirm Availability]]:::subprocess
+        CO_ReceiveCall --> Dec_COAvailable{Available?}:::logic
+        Dec_COAvailable -- No --> Reassigned([Cancel Visit]):::terminator
     end
+
+    %% --- CROSS-PHASE CONNECTIONS (Phase 2 to Phase 3) ---
+    Dec_COAvailable -- Yes --> Review_ServiceHandoff
+    Dec_UrgentFlag -- No --> Review_ServiceHandoff
 
     %% =============================================
     %% PHASE 3: CONFIRMATION
@@ -84,26 +37,45 @@ flowchart TD
     subgraph Phase3[PHASE 3: CONFIRMATION]
         direction TB
 
-        Confirm_Loop[[Confirmation Loop]]:::subprocess
-        Confirm_Loop --> Dec_Resched{Reschedule?}:::logic
+        %% --- SERVICE HANDOFF ---
+        Review_ServiceHandoff[Review Service<br>Handoff]:::co
+        Review_ServiceHandoff --> Monitor_EnRoute[[CO En Route]]:::subprocess
 
-        Dec_Resched -- No --> CO_Arrive
+        %% --- CHANGE SCHEDULE TIME DECISION ---
+        Monitor_EnRoute --> Dec_ChangeSchTime{Change Schedule<br>Time?}:::logic
 
-        %% --- CO RESCHEDULE PATH ---
-        Dec_Resched -- CO Reschedules --> Sys_Pull_Avail[Pull CO Availability<br>from ServiceTitan]:::system
-        Sys_Pull_Avail --> Sys_Notify_HO[Notify HO: Time Change<br>Offer alternative slots]:::system
-        Sys_Notify_HO --> Dec_HO_Accept{HO Accepts?}:::logic
-        Dec_HO_Accept -- Yes --> Confirm_Loop
-        Dec_HO_Accept -- No --> Proc_Reengage
+        %% --- CHANGE SCH TIME (dotted subgraph) ---
+        subgraph ChangeSchTime["Change Sch Time"]
+            direction TB
+            HO_CO_ReqDiffTime[HO/CO Requests<br>Diff Time]:::co
+            HO_CO_ReqDiffTime --> CancelVisit_Sch[Cancel Visit]:::co
+            CancelVisit_Sch --> Dec_Within2Hrs{Within<br>2 Hrs?}:::logic
+            Dec_Within2Hrs -- Yes --> CallHOCO[Call HO/CO]:::co
+            CallHOCO --> CO_Followup[[CO Follow Up]]:::subprocess
+            Dec_Within2Hrs -- No --> CO_Followup
+        end
+        style ChangeSchTime fill:none,stroke:#333333,stroke-dasharray: 5 5
 
-        %% --- HO CANCELS PATH ---
-        Dec_Resched -- HO Cancels --> Proc_Reengage
-        Proc_Reengage[[HO Re-engagement Loop]]:::subprocess
-        Proc_Reengage --> Dec_Reengage{HO Reschedules?}:::logic
-        Dec_Reengage -- Yes --> Confirm_Loop
-        Dec_Reengage -- No --> Sys_Remove[Remove from CO Calendar]:::system
-        Sys_Remove --> End_Cancelled([Job Cancelled]):::terminator
+        %% --- RUNNING LATE (dotted subgraph) ---
+        subgraph RunningLate["Running Late"]
+            direction TB
+            HO_CO_Late[HO/CO Running Late]:::co
+            HO_CO_Late --> CallOtherParty["Call Other Party<br>(HO/CO)"]:::co
+            CallOtherParty --> Dec_CancelVisitLate{Cancel<br>Visit?}:::logic
+            Dec_CancelVisitLate -- Yes --> Phase2Scheduling_RL[[Phase 2: Scheduling]]:::subprocess
+            Dec_CancelVisitLate -- No --> NotifyWithETA[Notify HO/CO<br>with ETA]:::co
+        end
+        style RunningLate fill:none,stroke:#333333,stroke-dasharray: 5 5
+
+        %% --- CONNECTIONS FROM DECISION NODE ---
+        Dec_ChangeSchTime -- Yes --> ChangeSchTime
+        Dec_ChangeSchTime -- Delayed --> RunningLate
+        Dec_ChangeSchTime -- No --> CO_Arrive
+
     end
+
+    %% --- NOTIFY ETA TO VISIT ---
+    NotifyWithETA --> CO_Arrive
 
     %% =============================================
     %% PHASE 4: REPAIR VISIT
@@ -111,94 +83,42 @@ flowchart TD
     subgraph Phase4[PHASE 4: REPAIR VISIT]
         direction TB
 
-        %% --- ARRIVAL AND NO-SHOW CHECK ---
+        %% --- ARRIVAL ---
         CO_Arrive[Arrive at Home]:::co
-        CO_Arrive --> CO_Checkin[Check-in via App]:::co
-        CO_Checkin --> Dec_HO_Home{HO Home?}:::logic
-
-        %% --- HO NO-SHOW PATH ---
-        Dec_HO_Home -- No --> CO_Wait[Wait and Attempt Contact]:::co
-        CO_Wait --> Dec_NoShow{HO Responds?}:::logic
-        Dec_NoShow -- No --> Sys_Log_NoShow[Log No-Show]:::system
-        Sys_Log_NoShow --> Proc_Reengage
-        Dec_NoShow -- Yes --> CO_Diagnose
-
-        Dec_HO_Home -- Yes --> CO_Diagnose
+        CO_Arrive --> CO_Checkin[Start Visit via App]:::co
+        CO_Checkin --> CO_Diagnose
 
         %% --- DIAGNOSIS ---
-        CO_Diagnose[Diagnose Issue<br>QandA, Photos, Readings]:::co
-        CO_Diagnose --> Sys_Gen[Generate Recommended<br>Fix and Line Items]:::system
+        CO_Diagnose[Review Issue with HO]:::co
+        CO_Diagnose --> CO_DiagnoseIssue[[Diagnose Issue]]:::subprocess
+        CO_DiagnoseIssue --> CO_ViewPricing[View Generated<br>Pricing/Line Items]:::co
+        CO_ViewPricing --> CO_ReviewWithHO[Review Recommended<br>Fix and Pricing]:::co
+        CO_ReviewWithHO --> Dec_HOInterested{HO Interested in<br>Replacement?}:::logic
+        Dec_HOInterested -- "Yes or No" --> Dec_HODecision{HO Decision?}:::logic
 
-        %% --- PAYMENT FLAG CHECK ---
-        Sys_Gen --> Dec_Payment_Flag{Payment<br>Flag Set?}:::logic
+        %% --- DECLINE PATH ---
+        Dec_HODecision -- decline/no work --> Dec_Complete_Payment
 
-        Dec_Payment_Flag -- Fully Covered --> Show_NoPay[Show Pricing:<br>No Payment Required<br>Plan Benefit]:::system
-        Dec_Payment_Flag -- Labor Warranty --> Show_PartsOnly[Show Pricing:<br>Parts Only<br>Labor Covered]:::system
-        Dec_Payment_Flag -- Parts Warranty --> Show_LaborOnly[Show Pricing:<br>Labor Only<br>Parts Covered]:::system
-        Dec_Payment_Flag -- No Flag --> Show_FullPrice[Show Pricing:<br>Full Price]:::system
+        %% --- APPROVE REPAIR PATH ---
+        Dec_HODecision -- Approve Repair --> Dec_SameDay{Same-Day<br>Repair?}:::logic
 
-        Show_NoPay --> CO_Review_Lines
-        Show_PartsOnly --> CO_Review_Lines
-        Show_LaborOnly --> CO_Review_Lines
-        Show_FullPrice --> CO_Review_Lines
-
-        %% --- CO REVIEWS LINE ITEMS WITH HO ---
-        CO_Review_Lines[CO Reviews and Edits<br>Line Items with HO]:::co
-        CO_Review_Lines --> Dec_Repair{HO Decision?}:::logic
-
-        %% --- REPAIR DECISION ---
-
-        %% Path A: No Repair - Diagnostic Fee Only
-        Dec_Repair -- Decline Repair --> CO_Collect_Diag[Collect Diagnostic Fee]:::co
-        CO_Collect_Diag --> Dec_Diag_Paid{HO Pays<br>Diagnostic?}:::logic
-        Dec_Diag_Paid -- Yes --> Sys_Diag_Pay[Process Diagnostic Fee]:::system
-        Sys_Diag_Pay --> Check_Chargeback_Diag{Chargeback<br>Flagged?}:::logic
-        Check_Chargeback_Diag -- Yes --> Process_CB_Diag[Process Chargeback:<br>Original Installer]:::chargeback
-        Process_CB_Diag --> End_DiagOnly([Diagnostic Complete]):::terminator
-        Check_Chargeback_Diag -- No --> End_DiagOnly
-        Dec_Diag_Paid -- No --> Flag_Diag_Unpaid[Flag: Diagnostic Unpaid]:::system
-        Flag_Diag_Unpaid --> End_DiagOnly
-
-        %% Path B: Approve Repair
-        Dec_Repair -- Approve Repair --> HO_Approve[HO Approves Scope<br>and Payment]:::user
-        HO_Approve --> Dec_Parts{Parts Needed?}:::logic
-
-        %% Path C: Replace Only
-        Dec_Repair -- Replace --> CO_Set_Lead[CO Sets Replacement Lead]:::co
-        CO_Set_Lead --> Sys_CO_Commission[Pay CO Lead Commission]:::system
-        Sys_CO_Commission --> End_Ecom([Handoff to Ecom]):::terminator
-
-        %% Path D: Repair AND Replace
-        Dec_Repair -- Repair and Replace --> CO_Set_Lead_Both[CO Sets Replacement Lead]:::co
-        CO_Set_Lead_Both --> Sys_CO_Commission_Both[Pay CO Lead Commission]:::system
-        Sys_CO_Commission_Both --> HO_Approve
-
-        %% --- PARTS CHECK ---
-        Dec_Parts -- No --> Dec_SameDay{Same-Day<br>Repair Possible?}:::logic
-
-        Dec_Parts -- Yes --> Alert_Tetra[Alert Tetra:<br>Parts Needed]:::tetra
-        Alert_Tetra --> Tetra_Order[Tetra Orders Parts]:::tetra
-        Tetra_Order --> Sys_Parts_ETA[Notify HO and CO:<br>Parts ETA]:::system
-        Sys_Parts_ETA --> Parts_Arrive[Parts Arrive<br>at CO Warehouse]:::system
-        Parts_Arrive --> Sched_Loop
-
-        %% --- SAME-DAY REPAIR CHECK ---
-        Dec_SameDay -- Yes --> CO_Execute
-
-        Dec_SameDay -- No --> CO_Explain[Explain to HO:<br>Repair requires additional<br>time or resources]:::co
-        CO_Explain --> Sched_Loop
-
-        %% --- SCHEDULE FOLLOW-UP ---
-        Sched_Loop[[Schedule Follow-Up]]:::subprocess
-        Sched_Loop --> HO_FollowSlot[HO Selects Follow-Up Time]:::user
-        HO_FollowSlot --> Sys_ST_Followup[Create Follow-Up<br>in ServiceTitan]:::system
-        Sys_ST_Followup --> Confirm_Loop
-
-        %% --- EXECUTION ---
-        CO_Execute[Perform Repair Work]:::co
+        %% --- SAME DAY ---
+        Dec_SameDay -- Yes --> CO_Execute[Perform Repair Work]:::co
         CO_Execute --> CO_Photo[Take Verification Photos]:::co
         CO_Photo --> CO_Complete[Mark Complete in App]:::co
+        CO_Complete --> CO_Sign[Sign Off on Work]:::co
+        CO_Sign --> Dec_Complete_Payment{Complete<br>Payment?}:::logic
+
+        %% --- FOLLOW-UP NEEDED ---
+        Dec_SameDay -- No --> Dec_FollowSlot{Schedule Follow-Up<br>Visit?}:::logic
+        Dec_FollowSlot -- yes --> Phase3_Confirmation[[Phase 3: Confirmation]]:::subprocess
+        Dec_FollowSlot -- no --> Phase2_Scheduling[[Phase 2: Scheduling]]:::subprocess
+        Dec_FollowSlot -- "yes or no" --> Dec_Complete_Payment
     end
+
+    %% --- CONNECTIONS FROM PHASE 4 TO PHASE 5 ---
+    Dec_Complete_Payment -- yes --> CO_ReceivePayment
+    Dec_Complete_Payment -- no --> Collections_Sub
 
     %% =============================================
     %% PHASE 5: FOLLOW UP
@@ -206,41 +126,26 @@ flowchart TD
     subgraph Phase5[PHASE 5: FOLLOW UP]
         direction TB
 
-        %% --- COMPLETION AND PAYMENT ---
-        CO_Complete --> HO_Sign[HO Signs Off]:::user
-        HO_Sign --> CO_Collect_Payment[CO Collects Payment]:::co
-        CO_Collect_Payment --> Dec_HO_Pays{HO Pays?}:::logic
-
         %% --- PAYMENT COLLECTED ---
-        Dec_HO_Pays -- Yes --> Sys_Pay[Process Payment]:::system
-        Sys_Pay --> Check_Chargeback{Chargeback<br>Flagged?}:::logic
-        Check_Chargeback -- Yes --> Process_Chargeback[Process Chargeback:<br>Original Installer]:::chargeback
-        Process_Chargeback --> Dec_Still_Active{Original Installer<br>Still Active?}:::logic
-        Dec_Still_Active -- Yes --> Deduct_Invoice[Deduct Service Call +<br>Repair from Next Invoice]:::chargeback
-        Dec_Still_Active -- No --> Flag_Debt[Flag: Outstanding Debt<br>from Former Contractor]:::chargeback
-        Deduct_Invoice --> Sys_Report
-        Flag_Debt --> Sys_Report
-        Check_Chargeback -- No --> Sys_Report
-        Sys_Report[Send Report<br>to HO and CO]:::system
-        Sys_Report --> CO_Paid[CO Receives Payment]:::co
-        CO_Paid --> End_Journey([Journey Complete]):::terminator
+        CO_ReceivePayment[Receive Payment]:::co
+        CO_ReceivePayment --> End_Journey([Journey Complete]):::terminator
 
         %% --- PAYMENT NOT COLLECTED ---
-        Dec_HO_Pays -- No --> CO_Log_NoPay[CO Logs: Payment<br>Not Collected]:::co
-        CO_Log_NoPay --> CO_No_Pay_Yet[CO Does Not<br>Receive Payment Yet]:::co
-        CO_No_Pay_Yet --> Tetra_Collection[Tetra Reaches Out<br>for Payment Collection]:::tetra
-        Tetra_Collection --> Dec_Collection{Payment<br>Collected?}:::logic
-        Dec_Collection -- Yes --> Sys_Pay_Late[Process Late Payment]:::system
-        Sys_Pay_Late --> Check_Chargeback_Late{Chargeback<br>Flagged?}:::logic
-        Check_Chargeback_Late -- Yes --> Process_CB_Late[Process Chargeback:<br>Original Installer]:::chargeback
-        Process_CB_Late --> Dec_Active_Late{Original Installer<br>Still Active?}:::logic
-        Dec_Active_Late -- Yes --> Deduct_Late[Deduct Service Call +<br>Repair from Next Invoice]:::chargeback
-        Dec_Active_Late -- No --> Flag_Debt_Late[Flag: Outstanding Debt]:::chargeback
-        Deduct_Late --> CO_Paid_Late
-        Flag_Debt_Late --> CO_Paid_Late
-        Check_Chargeback_Late -- No --> CO_Paid_Late
-        CO_Paid_Late[CO Receives Payment]:::co
-        CO_Paid_Late --> End_Journey_Late([Journey Complete - Late Pay]):::terminator
-        Dec_Collection -- No --> Flag_Unpaid[Flag: Unpaid<br>Send to Collections]:::system
-        Flag_Unpaid --> End_Unpaid([Unpaid - Collections]):::terminator
+        Collections_Sub[[Collections Process]]:::subprocess
+        Collections_Sub --> Dec_CollectionResult{Payment<br>Collected?}:::logic
+        Dec_CollectionResult -- Yes --> CO_ReceivePaymentLate[Receive Payment]:::co
+        CO_ReceivePaymentLate --> End_JourneyLate([Journey Complete]):::terminator
+        Dec_CollectionResult -- No --> CO_NoPayment[No Payment Received]:::co
+        CO_NoPayment --> End_Unpaid([Unpaid - Collections]):::terminator
+
+        %% --- CHARGEBACK (if flagged from declined service) ---
+        subgraph Chargeback["Chargeback Impact (V2 only)"]
+            direction TB
+            CB_Flagged[Chargeback Flagged<br>from Original Install]:::chargeback
+            CB_Flagged --> Dec_StillActive{Still Active<br>Contractor?}:::logic
+            Dec_StillActive -- Yes --> CB_Deduct[Deduct from<br>Next Invoice]:::chargeback
+            Dec_StillActive -- No --> CB_Debt[Flag: Outstanding Debt]:::chargeback
+        end
+        style Chargeback fill:none,stroke:#c62828,stroke-dasharray: 5 5
     end
+```

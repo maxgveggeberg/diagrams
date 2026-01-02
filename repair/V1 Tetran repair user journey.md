@@ -97,7 +97,7 @@ flowchart TD
         direction TB
 
         %% --- CALL CO TO CONFIRM ---
-        CSR_CallCO[Call CO to Confirm]:::tetra
+        CSR_CallCO[[CO Follow Up:<br>Confirm Availability]]:::subprocess
         CSR_CallCO --> Dec_Confirmed{Confirmed?}:::logic
         Dec_Confirmed -- Yes --> CSR_UpdateAdmin3[Update Admin]:::tetra
         CSR_UpdateAdmin3 --> Monitor_Confirm[[Confirmation]]:::subprocess
@@ -105,10 +105,6 @@ flowchart TD
         %% --- NOT AVAILABLE PATH ---
         Dec_Confirmed -- Not Available --> CSR_CancelVisit[Cancel Visit]:::tetra
         CSR_CancelVisit --> HO_Followup_Phase3[[HO Follow Up]]:::subprocess
-
-        %% --- UNRESPONSIVE PATH ---
-        Dec_Confirmed -- Unresponsive --> CO_Followup[[CO Follow Up]]:::subprocess
-        CO_Followup --> Dec_Confirmed
 
         %% --- MONITORING ---
         Monitor_Confirm --> Monitor_EnRoute[[CO En Route]]:::subprocess
