@@ -51,7 +51,7 @@ flowchart TD
             HO_CO_ReqDiffTime --> CancelVisit_Sch[Cancel Visit]:::co
             CancelVisit_Sch --> Dec_Within2Hrs{Within<br>2 Hrs?}:::logic
             Dec_Within2Hrs -- Yes --> CallHOCO[Call HO/CO]:::co
-            CallHOCO --> CO_Followup[[CO Follow Up]]:::subprocess
+            CallHOCO --> CO_Followup[[HO Follow Up]]:::subprocess
             Dec_Within2Hrs -- No --> CO_Followup
         end
         style ChangeSchTime fill:none,stroke:#333333,stroke-dasharray: 5 5
