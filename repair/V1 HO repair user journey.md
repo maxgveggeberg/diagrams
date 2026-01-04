@@ -25,10 +25,7 @@ flowchart TD
 
         %% --- RETURN VISITOR ---
         HO_Entry --> Dec_Already_Scheduled{Already Have<br>Visit Scheduled?}:::logic
-        Dec_Already_Scheduled -- Yes --> Show_Upcoming_Btn[Show Upcoming<br>Visit Button]:::user
-        Show_Upcoming_Btn --> Dec_Click_Upcoming{Click Upcoming<br>Visit?}:::logic
-        Dec_Click_Upcoming -- Yes --> Service_Handoff_View[Service Handoff]:::user
-        Dec_Click_Upcoming -- No --> HO_Triage
+        Dec_Already_Scheduled -- Yes --> Service_Handoff_View[Service Handoff]:::user
         Service_Handoff_View --> Dec_Click_Resched{Click Resch<br>Button?}:::logic
         Dec_Click_Resched -- No --> Exit_Resched([Exit]):::terminator
 
