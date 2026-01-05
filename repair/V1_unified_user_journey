@@ -157,105 +157,83 @@ flowchart TD
         %% --- DIAGNOSIS ---
         HO_GreetCO --> CO_Checkin[CO Starts Visit via App]:::co
         CO_Checkin --> CO_ReviewIssue[CO Reviews Issue<br>with HO]:::co
-        CO_ReviewIssue --> CO_Diagnose[[Diagnose Issue]]:::subprocess
+        CO_ReviewIssue --> CO_Diagnose[CO + AI diagnose issue]:::co
         CO_Diagnose --> Sys_GenerateScope[System Generates<br>Pricing/Line Items]:::system
-        Sys_GenerateScope --> CO_ViewPricing[CO Views Generated<br>Pricing]:::co
-        CO_ViewPricing --> CO_ReviewWithHO[CO Reviews Recommended<br>Fix and Pricing with HO]:::co
+        Sys_GenerateScope --> CO_ReviewWithHO[CO reviews diagnosis<br>with HO]:::co
         
         %% --- HO DECISION ---
-        CO_ReviewWithHO --> Dec_HOInterested{HO Interested in<br>Replacement?}:::logic
-        Dec_HOInterested -- Yes --> Sales_Flag[Flag for Sales]:::system
-        Sales_Flag --> Dec_HODecision
-        Dec_HOInterested -- No --> Dec_HODecision{HO<br>Decision?}:::logic
-        
+        CO_ReviewWithHO -- "Interest in replacing" --> Click_SendToSales[Click send to sales]:::user
+        Click_SendToSales --> Sales_FollowUp[[Sales follow up]]:::subprocess
+        CO_ReviewWithHO --> Dec_RepairNeeded{Repair<br>needed?}:::logic
+        Dec_RepairNeeded -- Yes --> Dec_HODecision{HO wants<br>repair?}:::logic
+        Dec_RepairNeeded -- No --> CompleteVisit[Complete Visit]:::co
+
         %% --- DECLINE PATH ---
-        Dec_HODecision -- Decline/No Work --> Dec_CompletePayment
+        Dec_HODecision -- No --> CompleteVisit
         
         %% --- APPROVE PATH ---
-        Dec_HODecision -- Approve Repair --> Dec_SameDay{Same-Day<br>Repair?}:::logic
+        Dec_HODecision -- Yes --> Dec_SameDay{Same-Day<br>Repair?}:::logic
         
         %% --- SAME DAY REPAIR ---
         Dec_SameDay -- Yes --> CO_Execute[CO Performs Repair]:::co
         CO_Execute --> CO_Photo[CO Takes Verification<br>Photos]:::co
         CO_Photo --> CO_MarkComplete[CO Marks Complete]:::co
         CO_MarkComplete --> HO_SignOff[HO Signs Off on Work]:::user
-        HO_SignOff --> Dec_CompletePayment{Complete<br>Payment?}:::logic
+        HO_SignOff --> CompleteVisit
         
         %% --- FOLLOW-UP NEEDED ---
-        Dec_SameDay -- No --> Dec_FollowSlot{Schedule<br>Follow-Up?}:::logic
-        Dec_FollowSlot -- Yes --> Phase3_Confirm[[Phase 3: Confirmation]]:::subprocess
-        Dec_FollowSlot -- No --> Phase2_Schedule[[HO sch flow]]:::subprocess
-        Dec_FollowSlot -- "Yes or No" --> Dec_CompletePayment
+        Dec_SameDay -- No --> Dec_ReturnVisit
         
-        %% --- 4-HOUR CHECK ---
-        CO_Arrive --> FourHrsCheck[">4 hrs since<br>visit start"]:::monitor
-        FourHrsCheck --> Tetra_CheckIn[[CO Follow Up:<br>Check-in]]:::subprocess
-        Tetra_CheckIn --> Dec_COForgot{CO forgot to<br>close visit?}:::logic
-        Dec_COForgot -- No --> VisitComplete[Visit Complete]:::monitor
-        Dec_COForgot -- Yes --> Tetra_RemindCO[Remind CO]:::tetra
-        Tetra_RemindCO --> Tetra_CloseVisit24[Close visit<br>after 24 hours]:::tetra
-        Tetra_CloseVisit24 --> VisitComplete
+        Phase4_ScheduleSub[[HO sch flow]]:::subprocess
+
+        CompleteVisit --> HO_FinalReport[HO Receives<br>Final Report via Email/SMS]:::user
+        HO_FinalReport --> Dec_CollectPayment{Collect payment<br>in-house?}:::logic
     end
 
     %% --- CROSS-PHASE CONNECTIONS TO PHASE 5 ---
-    Dec_HOInterested -- Yes --> Sales_CheckIn
-    Dec_CompletePayment -- Yes --> CO_CollectPayment
-    Dec_CompletePayment -- No --> InternalCollections
-    VisitComplete --> Sales_CheckIn
+    Dec_CollectPayment -- Yes --> Tetra_ProcessPayment
+    Dec_CollectPayment -- No --> Tetra_NotifyOps
 
     %% =============================================
     %% PHASE 5: FOLLOW UP
     %% =============================================
     subgraph Phase5[PHASE 5: FOLLOW UP]
         direction TB
-        
-        %% --- SALES (Dashed) ---
-        subgraph Sales["Sales"]
+
+        %% --- REMIND CO (Dashed) ---
+        subgraph RemindCO["Remind CO"]
             direction TB
-            Sales_CheckIn[[Sales Check-in]]:::subprocess
-            Sales_CheckIn --> Dec_SpeakWithHO{Speak<br>with HO?}:::logic
-            Dec_SpeakWithHO -- No --> ContinueJourney([Continue Journey]):::terminator
-            Dec_SpeakWithHO -- Yes --> Tetra_AskExperience[Ask About Experience]:::tetra
-            Tetra_AskExperience --> Tetra_DocumentIssues[Document Issues]:::tetra
-            Tetra_DocumentIssues --> OpsReview[[Ops Review]]:::subprocess
-            Tetra_AskExperience --> Dec_InterestServices{Interest in<br>Other Services?}:::logic
-            Dec_InterestServices -- Yes --> Install_Sub([Install]):::terminator
-            Dec_InterestServices -- No --> Marketing_Reengage2([Marketing<br>Re-engagement]):::terminator
+            FourHrsCheck[">4 hrs since<br>visit start"]:::monitor
+            FourHrsCheck --> Tetra_CheckIn[[CO Follow Up:<br>Check-in]]:::subprocess
+            Tetra_CheckIn --> Dec_COForgot{CO forgot to<br>close visit?}:::logic
+            Dec_COForgot -- No --> Tetra_CloseVisit24
+            Dec_COForgot -- Yes --> Tetra_RemindCO[Remind CO]:::tetra
+            Tetra_RemindCO --> Tetra_CloseVisit24[Close visit<br>after 24 hours]:::tetra
         end
-        style Sales fill:none,stroke:#333333,stroke-dasharray: 5 5
-        
+        style RemindCO fill:none,stroke:#333333,stroke-dasharray: 5 5
+
         %% --- PAYMENT (Dashed) ---
         subgraph Payment["Payment"]
             direction TB
-            CO_CollectPayment[CO Collects Payment]:::co
-            CO_CollectPayment --> Tetra_ProcessPayment[Process Payment]:::tetra
+            Tetra_ProcessPayment[Process Payment]:::tetra
             Tetra_ProcessPayment --> PayCO[[Pay CO]]:::subprocess
-            
-            InternalCollections[[Internal Collections]]:::subprocess
-            InternalCollections --> Dec_Collected{Payment<br>Collected?}:::logic
-            Dec_Collected -- Yes --> Tetra_ProcessPayment
-            Dec_Collected -- No --> SendToCollections[[Send to Collections]]:::subprocess
+
+            Tetra_NotifyOps[Notify Ops]:::tetra
+            Tetra_NotifyOps --> Collections[[Collections]]:::subprocess
         end
         style Payment fill:none,stroke:#333333,stroke-dasharray: 5 5
         
         %% --- RETURN VISIT (Dashed) ---
-        subgraph ReturnVisit["Return Visit"]
+        subgraph ReturnVisit["Parts Ordering"]
             direction TB
-            Dec_ReturnVisit{Return Visit<br>Needed?}:::logic
-            Dec_ReturnVisit -- No --> Marketing_Reengage3([Marketing<br>Re-engagement]):::terminator
-            Dec_ReturnVisit -- Yes --> Dec_PartsNeeded{Parts<br>Needed?}:::logic
-            Dec_PartsNeeded -- No --> Dec_Scheduled{Scheduled?}:::logic
-            Dec_PartsNeeded -- Yes --> Tetra_PartsAlert[Parts Alert Received]:::tetra
+            Dec_ReturnVisit{Order parts?}:::logic
+            Dec_ReturnVisit -- Yes --> Tetra_PartsAlert[Parts Alert Received]:::tetra
+            Dec_ReturnVisit -- No --> Phase4_ScheduleSub
             Tetra_PartsAlert --> Tetra_OrderParts[Order Parts]:::tetra
             Tetra_OrderParts --> Tetra_MonitorShipment[Monitor Shipment]:::tetra
             Tetra_MonitorShipment --> Tetra_ConfirmReceived[Confirm CO/HO<br>Received Parts]:::tetra
-            Tetra_ConfirmReceived --> Dec_Scheduled
-            Dec_Scheduled -- No --> Scheduling_Sub[[HO sch flow]]:::subprocess
-            Dec_Scheduled -- Yes --> Monitoring_Sub[[Phase 4: Repair Visit]]:::subprocess
+            Tetra_ConfirmReceived --> Scheduling_Sub[[HO sch flow]]:::subprocess
         end
         style ReturnVisit fill:none,stroke:#333333,stroke-dasharray: 5 5
         
-        %% --- FINAL REPORT ---
-        PayCO --> HO_FinalReport[HO Receives<br>Final Report via Email/SMS]:::user
-        HO_FinalReport --> Dec_ReturnVisit
     end
