@@ -1,3 +1,5 @@
+```mermaid
+
 %%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
 flowchart TB
     A["LEAD SIGNS UP"] --> B
@@ -75,4 +77,44 @@ flowchart TB
         P1D --> P2D["MONTH 2: Solutions - Updated ROI calculator, new rebate programs, efficiency gains"]
         P1E --> P2E["MONTH 2: Solutions - Financing to offset rebate gap, federal credits, PACE"]
         
-        P2 --> P3["MONTH 3: Re-engage - Limited virtual consultation, try us risk-free
+        P2 --> P3["MONTH 3: Re-engage - Limited virtual consultation, try us risk-free"]
+        P2B --> P3B["MONTH 3: Re-engage - Local team spotlight, community projects, referral program"]
+        P2C --> P3C["MONTH 3: Re-engage - Final offer, locked pricing, installation priority"]
+        P2D --> P3D["MONTH 3: Re-engage - Updated incentives, new projections, limited time offer"]
+        P2E --> P3E["MONTH 3: Re-engage - Creative financing, lease options, no-rebate package"]
+    end
+
+    M3 -->|"Re-engaged"| J
+    M3B -->|"Re-engaged"| J
+    M3C -->|"Re-engaged"| J
+    M3D -->|"Re-engaged"| J
+    M3E -->|"Re-engaged"| J
+
+    P3 -->|"Re-engaged"| J
+    P3B -->|"Re-engaged"| J
+    P3C -->|"Re-engaged"| J
+    P3D -->|"Re-engaged"| J
+    P3E -->|"Re-engaged"| J
+
+    M3 -->|"No response"| L
+    M3B -->|"No response"| L
+    M3C -->|"No response"| L
+    M3D -->|"No response"| L
+    M3E -->|"No response"| L
+
+    P3 -->|"No response"| L
+    P3B -->|"No response"| L
+    P3C -->|"No response"| L
+    P3D -->|"No response"| L
+    P3E -->|"No response"| L
+
+    subgraph LONGTERM["LONG TERM NURTURE - Ongoing"]
+        L["ENTER LONG TERM NURTURE"]
+        L --> LT1["Monthly: Newsletter - Industry news, tips, local updates"]
+        L --> LT2["Quarterly: Check-in - New rebates, updated offers, seasonal content"]
+    end
+
+    LT1 -->|"Re-engaged"| J
+    LT2 -->|"Re-engaged"| J
+
+```
