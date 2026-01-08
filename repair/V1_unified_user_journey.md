@@ -41,7 +41,7 @@ flowchart TD
         Dec_AlreadyScheduled -- Yes --> HO_ViewHandoff[View Service Handoff]:::user
         HO_ViewHandoff --> Click_Resch[Click resch button]:::user
         HO_ViewHandoff -- "Ans Qs" --> Exit_Session([Exit session]):::terminator
-        HO_ViewHandoff --> Click_Cancel[Click cancel]:::user
+        HO_ViewHandoff --> Click_Cancel[cancel visit]:::user
         Click_Cancel --> Marketing_Reengage_Cancel([Marketing<br>Re-engagement]):::terminator
 
         Dec_AlreadyScheduled -- No --> User_DescribesIssue[Describes Issue]:::user
