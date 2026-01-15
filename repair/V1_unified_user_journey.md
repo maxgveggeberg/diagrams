@@ -5,13 +5,23 @@
 flowchart TD
     %% --- STYLING ---
     classDef user fill:#e6f3ff,stroke:#08427b,color:#08427b,stroke-width:2px
-    classDef co fill:#fff8e1,stroke:#ffa000,color:#5d4037,stroke-width:2px
+    classDef hwecx fill:#fff3e0,stroke:#e65100,color:#bf360c,stroke-width:2px
     classDef tetra fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
     classDef system fill:#f5f5f5,stroke:#333333,color:#333333,stroke-width:1px,stroke-dasharray: 5 5
+    classDef tech fill:#e1bee7,stroke:#7b1fa2,color:#4a148c,stroke-width:2px
     classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
     classDef terminator fill:#333333,stroke:#333333,color:#ffffff
     classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
-    classDef monitor fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
+
+    %% --- KEY/LEGEND ---
+    subgraph Key["Key"]
+        direction LR
+        Key_HO[Homeowner HO]:::user
+        Key_HWECX[HWE CX]:::hwecx
+        Key_Tetra[Tetra]:::tetra
+        Key_Tech[Service Tech]:::tech       
+        Key_System[System]:::system
+    end
 
     %% =============================================
     %% PHASE 1: INTAKE & AI DIAGNOSIS
@@ -38,11 +48,8 @@ flowchart TD
         
         %% --- ALREADY SCHEDULED CHECK ---
         User_EntersAddress --> Dec_AlreadyScheduled{Upcoming<br>repair visit?}:::logic
-        Dec_AlreadyScheduled -- Yes --> HO_ViewHandoff[View Service Handoff]:::user
-        HO_ViewHandoff --> Click_Resch[Click resch button]:::user
-        HO_ViewHandoff -- "Ans Qs" --> Exit_Session([Exit session]):::terminator
-        HO_ViewHandoff --> Click_Cancel[cancel visit]:::user
-        Click_Cancel --> Marketing_Reengage_Cancel([Marketing<br>Re-engagement]):::terminator
+        Dec_AlreadyScheduled -- Yes --> HO_Summary[HO Summary]:::user
+        HO_Summary --> Exit_Session([Exit session]):::terminator
 
         Dec_AlreadyScheduled -- No --> User_DescribesIssue[Describes Issue]:::user
 
@@ -58,7 +65,6 @@ flowchart TD
 
     %% --- CROSS-PHASE CONNECTIONS TO PHASE 2 ---
     HO_ClickSchedule --> Dec_WantsSchedule
-    Click_Resch --> Dec_WantsSchedule
 
     %% =============================================
     %% PHASE 2: SCHEDULING
@@ -67,8 +73,7 @@ flowchart TD
         direction TB
         
         Dec_WantsSchedule[View available times]:::user
-        Dec_WantsSchedule --> Tetra_InformPremium[Inform of Premium]:::tetra
-        Tetra_InformPremium --> Dec_SelectVisit{Select visit?}:::logic
+        Dec_WantsSchedule --> Dec_SelectVisit{Select visit?}:::logic
 
         Dec_SelectVisit -- Yes --> Dec_ContactInfo{Contact info?}:::logic
         Dec_ContactInfo -- Yes --> Sys_CreateJob[Create Job in<br>ServiceTitan]:::system
@@ -76,123 +81,46 @@ flowchart TD
         Enter_ContactInfo --> Sys_CreateJob
 
         Dec_SelectVisit -- No --> Exit_Session_Sch([Exit session]):::terminator
-        
-        Sys_CreateJob --> CO_JobAppears[Job Appears on<br>CO Calendar]:::co
-        
-        %% --- URGENT PATH: CO CONFIRMATION ---
-        CO_JobAppears --> Dec_UrgentFlag{Emergency/<br>After-Hours/<br>Within 2 Hrs?}:::logic
-        
-        Dec_UrgentFlag -- Yes --> Tetra_CallCO[[CO Follow Up:<br>Confirm Availability]]:::subprocess
-        Tetra_CallCO --> Dec_COAvailable{CO<br>Available?}:::logic
-        Dec_COAvailable -- Yes --> Tetra_ConfirmVisit[Confirm visit]:::tetra
-        Tetra_ConfirmVisit --> Sys_SendConfirm
-        Dec_COAvailable -- No --> Backref_ServiceHandoff[[Phase 1: Service Handoff]]:::subprocess
-        Backref_ServiceHandoff --> Backref_ClickCancel[[Phase 1: Click cancel]]:::subprocess
-        Backref_ClickCancel --> HO_Followup_CO[[HO sch flow]]:::subprocess
-        
-        %% --- STANDARD PATH: AUTO-CONFIRM ---
-        Dec_UrgentFlag -- No --> Sys_SendConfirm[Send Confirmation<br>Email/SMS]:::system
+
+        Sys_CreateJob --> Tetra_SendConfirm[Tetra Sends<br>Confirmation Email]:::tetra
     end
 
     %% --- CROSS-PHASE CONNECTIONS TO PHASE 3 ---
-    Sys_SendConfirm --> CO_ReviewHandoff
+    Tetra_SendConfirm --> HWECX_ManagesVisit
 
     %% =============================================
     %% PHASE 3: CONFIRMATION
     %% =============================================
     subgraph Phase3[PHASE 3: CONFIRMATION]
         direction TB
-        
-        %% --- CO PREPARES ---
-        CO_ReviewHandoff[CO Reviews<br>Service Handoff]:::co
-        CO_ReviewHandoff --> Monitor_Confirm[[Confirmation]]:::subprocess
-        
-        %% --- MONITORING WINDOW ---
-        Monitor_Confirm --> Monitor_EnRoute[[CO En Route]]:::subprocess
-        Monitor_EnRoute --> Dec_ChangeSchTime{Change Schedule<br>Time?}:::logic
-        
-        %% --- CHANGE SCHEDULE TIME (Dashed) ---
-        subgraph ChangeSchTime["Change Sch Time"]
-            direction TB
-            Actor_ReqDiffTime[HO/CO Requests<br>Diff Time]:::user
-            Actor_ReqDiffTime --> Dec_Within2Hrs{Within<br>2 Hrs?}:::logic
-            Dec_Within2Hrs -- Yes --> Tetra_CallParty[Call other party]:::tetra
-            Tetra_CallParty --> HO_Followup_Change[[HO sch flow]]:::subprocess
-            Dec_Within2Hrs -- No --> HO_Followup_Change
-        end
-        style ChangeSchTime fill:none,stroke:#333333,stroke-dasharray: 5 5
-        
-        %% --- RUNNING LATE (Dashed) ---
-        subgraph RunningLate["Running Late"]
-            direction TB
-            Actor_Late[HO/CO Running Late]:::co
-            Actor_Late --> Tetra_CallOther[Call Other Party]:::tetra
-            Tetra_CallOther --> Dec_CancelLate{Cancel<br>Visit?}:::logic
-            Dec_CancelLate -- Yes --> Phase2_Return[[HO sch flow]]:::subprocess
-        end
-        Dec_CancelLate -- No --> Tetra_NotifyETA
-        style RunningLate fill:none,stroke:#333333,stroke-dasharray: 5 5
 
-        %% --- DECISION ROUTING ---
-        Dec_ChangeSchTime -- Yes --> ChangeSchTime
-        Dec_ChangeSchTime -- Delayed --> RunningLate
-        Dec_ChangeSchTime -- No --> Tetra_NotifyETA
+        HWECX_ManagesVisit[[Confirmation]]:::hwecx
 
-        Tetra_NotifyETA[Notify with ETA]:::tetra
+        HWECX_ManagesVisit --> Dec_ChangeSchedule{Change<br>Schedule Time?}:::logic
+        Dec_ChangeSchedule -- Reschedule --> HWECX_ManagesVisit
+        Dec_ChangeSchedule -- Cancel --> HO_SchFlow[[HO sch flow]]:::subprocess
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 4 ---
-    Tetra_NotifyETA --> CO_Arrive
+    Dec_ChangeSchedule -- No --> RepairVisit
 
     %% =============================================
     %% PHASE 4: REPAIR VISIT
     %% =============================================
     subgraph Phase4[PHASE 4: REPAIR VISIT]
         direction TB
-        
-        %% --- ARRIVAL ---
-        CO_Arrive[CO Arrives at Home]:::co
-        CO_Arrive --> HO_GreetCO[HO Greets CO]:::user
 
-        %% --- DIAGNOSIS ---
-        HO_GreetCO --> CO_Checkin[CO Starts Visit via App]:::co
-        CO_Checkin --> CO_ReviewIssue[CO Reviews Issue<br>with HO]:::co
-        CO_ReviewIssue --> CO_Diagnose[CO + AI diagnose issue]:::co
-        CO_Diagnose --> Sys_GenerateScope[System Generates<br>Pricing/Line Items]:::system
-        Sys_GenerateScope --> CO_ReviewWithHO[CO reviews diagnosis<br>with HO]:::co
-        
-        %% --- HO DECISION ---
-        CO_ReviewWithHO -- "Interest in replacing" --> Click_SendToSales[Click send to sales]:::user
-        Click_SendToSales --> Sales_FollowUp[[Sales follow up]]:::subprocess
-        CO_ReviewWithHO --> Dec_RepairNeeded{Repair<br>needed?}:::logic
-        Dec_RepairNeeded -- Yes --> Dec_HODecision{HO wants<br>repair?}:::logic
-        Dec_RepairNeeded -- No --> CompleteVisit[Complete Visit]:::co
+        RepairVisit[[Repair Visit]]:::tech
+        RepairVisit --> VisitComplete[Visit Complete]:::tech
+        VisitComplete --> Dec_ReturnNeeded{Return visit<br>needed?}:::logic
 
-        %% --- DECLINE PATH ---
-        Dec_HODecision -- No --> CompleteVisit
-        
-        %% --- APPROVE PATH ---
-        Dec_HODecision -- Yes --> Dec_SameDay{Same-Day<br>Repair?}:::logic
-        
-        %% --- SAME DAY REPAIR ---
-        Dec_SameDay -- Yes --> CO_Execute[CO Performs Repair]:::co
-        CO_Execute --> CO_Photo[CO Takes Verification<br>Photos]:::co
-        CO_Photo --> CO_MarkComplete[CO Marks Complete]:::co
-        CO_MarkComplete --> HO_SignOff[HO Signs Off on Work]:::user
-        HO_SignOff --> CompleteVisit
-        
-        %% --- FOLLOW-UP NEEDED ---
-        Dec_SameDay -- No --> Dec_ReturnVisit
-        
-        Phase4_ScheduleSub[[HO sch flow]]:::subprocess
-
-        CompleteVisit --> HO_FinalReport[HO Receives<br>Final Report via Email/SMS]:::user
-        HO_FinalReport --> Dec_CollectPayment{Collect payment<br>in-house?}:::logic
+        Dec_ReturnNeeded -- Yes --> Dec_ReturnSchInHome{Return visit<br>sch in home?}:::logic
     end
 
     %% --- CROSS-PHASE CONNECTIONS TO PHASE 5 ---
-    Dec_CollectPayment -- Yes --> Tetra_ProcessPayment
-    Dec_CollectPayment -- No --> Tetra_NotifyOps
+    Dec_ReturnNeeded -- No --> Tech_CollectPayment
+    Dec_ReturnSchInHome -- Yes --> Confirmation_InHome
+    Dec_ReturnSchInHome -- No --> Dec_PartsNeeded
 
     %% =============================================
     %% PHASE 5: FOLLOW UP
@@ -200,40 +128,23 @@ flowchart TD
     subgraph Phase5[PHASE 5: FOLLOW UP]
         direction TB
 
-        %% --- REMIND CO (Dashed) ---
-        subgraph RemindCO["Remind CO"]
-            direction TB
-            FourHrsCheck[">4 hrs since<br>visit start"]:::monitor
-            FourHrsCheck --> Tetra_CheckIn[[CO Follow Up:<br>Check-in]]:::subprocess
-            Tetra_CheckIn --> Dec_COForgot{CO forgot to<br>close visit?}:::logic
-            Dec_COForgot -- No --> Tetra_CloseVisit24
-            Dec_COForgot -- Yes --> Tetra_RemindCO[Remind CO]:::tetra
-            Tetra_RemindCO --> Tetra_CloseVisit24[Close visit<br>after 24 hours]:::tetra
-        end
-        style RemindCO fill:none,stroke:#333333,stroke-dasharray: 5 5
-
-        %% --- PAYMENT (Dashed) ---
+        %% --- PAYMENT ---
         subgraph Payment["Payment"]
             direction TB
-            Tetra_ProcessPayment[Process Payment]:::tetra
-            Tetra_ProcessPayment --> PayCO[[Pay CO]]:::subprocess
-
-            Tetra_NotifyOps[Notify Ops]:::tetra
-            Tetra_NotifyOps --> Collections[[Collections]]:::subprocess
+            Tech_CollectPayment[Tech Collects Payment<br>from HO]:::tech
+            Tech_CollectPayment --> Tetra_BillHWE[Bill HWE for<br>Revenue Share]:::tetra
+            Tetra_BillHWE --> Exit_Complete([Complete]):::terminator
         end
         style Payment fill:none,stroke:#333333,stroke-dasharray: 5 5
-        
-        %% --- RETURN VISIT (Dashed) ---
-        subgraph ReturnVisit["Parts Ordering"]
-            direction TB
-            Dec_ReturnVisit{Order parts?}:::logic
-            Dec_ReturnVisit -- Yes --> Tetra_PartsAlert[Parts Alert Received]:::tetra
-            Dec_ReturnVisit -- No --> Phase4_ScheduleSub
-            Tetra_PartsAlert --> Tetra_OrderParts[Order Parts]:::tetra
-            Tetra_OrderParts --> Tetra_MonitorShipment[Monitor Shipment]:::tetra
-            Tetra_MonitorShipment --> Tetra_ConfirmReceived[Confirm CO/HO<br>Received Parts]:::tetra
-            Tetra_ConfirmReceived --> Scheduling_Sub[[HO sch flow]]:::subprocess
-        end
-        style ReturnVisit fill:none,stroke:#333333,stroke-dasharray: 5 5
-        
+
+        %% --- RETURN VISIT SCHEDULING ---
+        Confirmation_InHome[[Confirmation]]:::hwecx
+
+        Dec_PartsNeeded{Parts<br>needed?}:::logic
+        Dec_PartsNeeded -- Yes --> Parts_Ordering[[Parts Ordering]]:::hwecx
+        Dec_PartsNeeded -- No --> HWECX_ScheduleReturn[Schedule Return Visit]:::hwecx
+        Parts_Ordering --> HWECX_ScheduleReturn
+        HWECX_ScheduleReturn --> Confirmation_Scheduled[[Confirmation]]:::hwecx
+
     end
+```
