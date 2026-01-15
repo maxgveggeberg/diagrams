@@ -115,10 +115,11 @@ flowchart TD
         VisitComplete --> Dec_ReturnNeeded{Return visit<br>needed?}:::logic
 
         Dec_ReturnNeeded -- Yes --> Dec_ReturnSchInHome{Return visit<br>sch in home?}:::logic
+        Dec_ReturnNeeded -- No --> Tech_CollectPayment[Tech Collects Payment<br>from HO]:::tech
     end
 
     %% --- CROSS-PHASE CONNECTIONS TO PHASE 5 ---
-    Dec_ReturnNeeded -- No --> Tech_CollectPayment
+    Tech_CollectPayment --> Tetra_BillHWE
     Dec_ReturnSchInHome -- Yes --> Confirmation_InHome
     Dec_ReturnSchInHome -- No --> Dec_PartsNeeded
 
@@ -131,8 +132,7 @@ flowchart TD
         %% --- PAYMENT ---
         subgraph Payment["Payment"]
             direction TB
-            Tech_CollectPayment[Tech Collects Payment<br>from HO]:::tech
-            Tech_CollectPayment --> Tetra_BillHWE[Bill HWE for<br>Revenue Share]:::tetra
+            Tetra_BillHWE[Bill HWE for<br>Revenue Share]:::tetra
             Tetra_BillHWE --> Exit_Complete([Complete]):::terminator
         end
         style Payment fill:none,stroke:#333333,stroke-dasharray: 5 5
