@@ -1,0 +1,299 @@
+flowchart TD
+    classDef sales fill:#ffcdd2,stroke:#c62828,color:#b71c1c,stroke-width:2px
+    classDef sdr fill:#f8bbd9,stroke:#c2185b,color:#880e4f,stroke-width:2px
+    classDef cx fill:#fff9c4,stroke:#f9a825,color:#f57f17,stroke-width:2px
+    classDef ops fill:#bbdefb,stroke:#1565c0,color:#0d47a1,stroke-width:2px
+    classDef co fill:#ffe0b2,stroke:#e65100,color:#e65100,stroke-width:2px
+    classDef customer fill:#c8e6c9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
+    classDef automated fill:#e0e0e0,stroke:#757575,color:#424242,stroke-width:2px
+    classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
+    classDef terminator fill:#333333,stroke:#333333,color:#ffffff
+    classDef comms fill:#e1bee7,stroke:#7b1fa2,color:#4a148c,stroke-width:1px,stroke-dasharray: 3 3
+    classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
+
+    %% ============================================
+    %% COLOR KEY
+    %% ============================================
+    subgraph Key[COLOR KEY]
+        Key_Sales[Sales/AE]:::sales
+        Key_SDR[SDR]:::sdr
+        Key_CX[Customer Support - CX]:::cx
+        Key_Ops[Ops]:::ops
+        Key_CO[Contractor]:::co
+        Key_Customer[Customer]:::customer
+        Key_Automated[Automated]:::automated
+        Key_Comms[📧📱 Communications]:::comms
+        Key_Logic{Decision}:::logic
+        Key_Term([Terminator]):::terminator
+        Key_Sub[[Subprocess]]:::subprocess
+    end
+
+    %% ============================================
+    %% PHASE 1: MARKETING
+    %% ============================================
+    subgraph Phase1[MARKETING]
+        %% Canvasser path
+        Canvasser([Canvasser goes to customer home]) --> Canvasser_Onboard[Fills out onboarding for customer]:::sdr
+        Canvasser_Onboard --> Lead_Created
+
+        %% Google Ad paths
+        HO_ClickAd([Customer clicks on Google Ad]) --> Landing_Google[Landing page]:::customer
+        Landing_Google --> HO_Form
+        HO_ClickAd --> HO_Form
+
+        %% Facebook Ad path
+        HO_ClickFB([Customer clicks on Facebook Ad]) --> Landing_FB[Landing page]:::customer
+        Landing_FB --> HO_Form
+
+        %% Organic search path
+        HO_Search([Google search and click on homepage]) --> HO_Form
+
+        %% Direct mail paths
+        HO_DM([Customer receives DM piece]) --> Landing_DM[Landing page]:::customer
+        Landing_DM --> HO_Form
+        HO_DM --> HO_CallIn[HO calls in]:::customer
+        HO_CallIn --> SDR_Call
+
+        %% HomeWorks path
+        HO_HWE([HomeWorks]) --> HWE_Form[HWE Rep fills out form]:::sdr
+        HWE_Form --> Lead_Created
+
+        %% Central form and lead creation
+        HO_Form[HO fills out form]:::customer
+        HO_Form --> Lead_Created[Lead is created in Salesforce and assigned to SDR]:::automated
+        
+        %% Onboarding
+        Lead_Created --> Onboarding[HO goes through onboarding]:::customer
+        Onboarding --> Dec_Onboarding{Completes onboarding?}:::logic
+        Dec_Onboarding -- Customer drops off --> Comms_Onboarding[📧 Onboarding re-engagement emails]:::comms
+        Comms_Onboarding --> Comms_SDR_LeadFU[📧📱 SDR lead follow up emails and SMS]:::comms
+        Comms_SDR_LeadFU --> SDR_LeadFU[SDR lead follow up 1, 2, 3]:::sdr
+        SDR_LeadFU --> Dec_SDR_Response{Response?}:::logic
+        Dec_SDR_Response -- No --> Unqualified_SDR_Unresponsive([Unqualified - reason: unresponsive]):::terminator
+        Dec_SDR_Response -- Yes --> SDR_Call[SDR call with customer]:::sdr
+        SDR_Call --> Dec_SDR{Qualified?}:::logic
+        Dec_SDR -- No --> Unqualified_SDR([Unqualified]):::terminator
+        Dec_SDR -- Yes --> Lead_Assigned_AE[Lead assigned to AE]:::automated
+        Lead_Assigned_AE --> Comms_LeadFU
+        Dec_Onboarding -- Customer checks out --> Lead_Assigned_AE
+    end
+
+    %% ============================================
+    %% PHASE 2: SALE
+    %% ============================================
+    subgraph Phase2[SALE]
+        Comms_LeadFU[📧📱 AE lead follow up emails and SMS]:::comms
+        Comms_LeadFU --> Dec_Response{Response?}:::logic
+        Dec_Response -- No --> Unqualified_Unresponsive([Unqualified - reason: unresponsive]):::terminator
+        Dec_Response -- Yes --> Qualify_Customer[Qualify customer]:::sales
+
+        Qualify_Customer --> Dec_Qualified{Qualified?}:::logic
+        Dec_Qualified -- No --> Unqualified([Unqualified]):::terminator
+        Dec_Qualified -- Yes --> Convert_Opp[Convert lead to opportunity in Salesforce]:::sales
+        
+        Convert_Opp --> Generate_Proposal[Generate proposal in QT]:::sales
+        Generate_Proposal --> Email_Proposal[Email/text customer the proposal]:::sales
+        Email_Proposal --> Comms_SalesFU[📧📱 Sales follow up 1, 2]:::comms
+        Comms_SalesFU --> Dec_Decision{Decision?}:::logic
+
+        Dec_Decision -- Not ready --> Comms_SalesFU
+        Dec_Decision -- Does not want to move forward --> Note_Loss[Note loss reason and mark Closed Lost]:::sales
+        Note_Loss --> Comms_ClosedLost[📧 Closed lost email sent]:::comms
+        Comms_ClosedLost --> Closed_Lost([Closed Lost]):::terminator
+        Dec_Decision -- Customer wants to move forward --> Customer_Signs[Customer signs proposal]:::customer
+        Customer_Signs --> Collect_Docs[Collect all docs from customer]:::sales
+        Collect_Docs --> Upload_Docs[Upload docs to doc upload]:::sales
+        Upload_Docs --> AE_Marks_Won[AE marks customer Closed Won]:::sales
+        AE_Marks_Won --> Comms_ClosedWon[📧 Closed won email survey sent]:::comms
+        Comms_ClosedWon --> Comms_AMHandoff[📧 Hand off to AM email]:::comms
+    end
+
+    %% ============================================
+    %% PHASE 3: OPS
+    %% ============================================
+    subgraph Phase3[OPS]
+        Job_Created[Job created in monday and AM and CX assigned]:::automated
+        Job_Created --> Review_Images[Review images]:::ops
+        Review_Images --> Comms_AMCall[📞 AM handoff call]:::comms
+        Comms_AMCall --> WT_Scheduling[[WT Scheduling]]:::subprocess
+
+        %% WT Scheduling Subprocess
+        WT_Scheduling --> Request_3Dates_WT[Request 3 dates from HO]:::ops
+        Request_3Dates_WT --> Send_Dates_CO_WT[Send dates to COs]:::ops
+        Send_Dates_CO_WT --> CO_Accepts_WT[CO accepts]:::co
+        CO_Accepts_WT --> Confirm_Date_HO_WT[Confirm date with HO]:::ops
+        Confirm_Date_HO_WT --> Dec_WT_Confirmed{WT Confirmed?}:::logic
+        Dec_WT_Confirmed -- No, Reschedule --> Request_3Dates_WT
+        Dec_WT_Confirmed -- Yes --> Dec_WT_Reschedule{Reschedule needed?}:::logic
+        Dec_WT_Reschedule -- Yes --> Request_3Dates_WT
+        Dec_WT_Reschedule -- No --> In_Person_WT[In person WT]:::co
+
+        In_Person_WT --> CO_Sends_Notes[CO sends notes to Ops]:::co
+        CO_Sends_Notes --> Review_WT_Notes[Review WT notes]:::ops
+
+        Review_WT_Notes --> Dec_Change{Change order?}:::logic
+
+        %% Major Change Order - Back to Sales
+        Dec_Change -- Major change order --> Pass_To_Sales[Pass HO back to Sales]:::ops
+        Pass_To_Sales --> Requote[Requote customer]:::sales
+        Requote --> Dec_Accept_Major{Customer accepts new quote?}:::logic
+        Dec_Accept_Major -- Yes --> Pass_Back_Ops[Pass back to Ops]:::ops
+        Pass_Back_Ops --> Dec_Financing
+        Dec_Accept_Major -- No --> Job_Cancelled_Major([Job Cancelled]):::terminator
+
+        %% Medium Change Order
+        Dec_Change -- Medium change order, price increase --> Update_Proposal[Update proposal]:::ops
+        Update_Proposal --> Communicate_Changes[Communicate changes to customer]:::ops
+        Communicate_Changes --> Dec_Accept_CO{Customer accepts?}:::logic
+        Dec_Accept_CO -- Yes --> Dec_Financing
+        Dec_Accept_CO -- No --> Job_Cancelled_Medium([Job Cancelled]):::terminator
+
+        %% Minor Change Order
+        Dec_Change -- Minor change order, no price increase --> Update_Proposal_Minor[Update proposal]:::ops
+        Update_Proposal_Minor --> Update_Customer_Minor[Update customer with change]:::ops
+        Update_Customer_Minor --> Dec_Financing
+
+        Dec_Change -- No change order --> Dec_Financing
+
+        %% Financing Flow
+        Dec_Financing{Financing project?}:::logic
+        Dec_Financing -- Yes --> Submit_Financing[Submit financing]:::cx
+        Submit_Financing --> Comms_AppSubmit[📧 Application submitted]:::comms
+        Comms_AppSubmit --> Dec_Approved{Approved?}:::logic
+        Dec_Approved -- Rejected --> Contact_Update[Contact customer / update financing type]:::cx
+        Contact_Update --> Submit_Financing
+        Dec_Approved -- Approved --> Confirm_Approval[Confirm approval]:::cx
+        Confirm_Approval --> Customer_Get_Checks[Customer goes to bank and gets checks]:::customer
+        Customer_Get_Checks --> Collect_Check_Upload[Collect check images and upload to doc upload]:::cx
+        Collect_Check_Upload --> Install_Scheduling
+
+        Dec_Financing -- No --> Customer_Submit_Financing[Customer submits financing details in HO dashboard]:::customer
+        Customer_Submit_Financing --> Validate_Self_Financing[Validate customers self financing method]:::cx
+        Validate_Self_Financing --> Install_Scheduling
+
+        %% Install Scheduling Subprocess
+        Install_Scheduling[[Install Scheduling]]:::subprocess
+        Install_Scheduling --> Request_3Dates_Install[Request 3 dates from HO]:::ops
+        Request_3Dates_Install --> Send_Dates_CO_Install[Send dates to COs]:::ops
+        Send_Dates_CO_Install --> CO_Accepts_Install[CO accepts]:::co
+        CO_Accepts_Install --> Confirm_Date_HO_Install[Confirm date with HO]:::ops
+        Confirm_Date_HO_Install --> Dec_Install_Confirmed{Install Confirmed?}:::logic
+        Dec_Install_Confirmed -- No, Reschedule --> Request_3Dates_Install
+        Dec_Install_Confirmed -- Yes --> Dec_Install_Reschedule{Reschedule needed?}:::logic
+        Dec_Install_Reschedule -- Yes --> Request_3Dates_Install
+        Dec_Install_Reschedule -- No --> Comms_SchedConf[📧📱 Scheduling confirmation]:::comms
+        Comms_SchedConf --> Dec_Confirmed{Confirmed?}:::logic
+        Dec_Confirmed -- No --> Request_3Dates_Install
+        Dec_Confirmed -- Yes --> Order_Material[Order material]:::ops
+        Order_Material --> Schedule_Subcontractors[Schedule subcontractors]:::ops
+        Schedule_Subcontractors --> Dec_Self_Financing{Self financing?}:::logic
+        Dec_Self_Financing -- Yes --> Hold_On_Card[Hold placed on card 1 day before install]:::automated
+        Hold_On_Card --> Coordinate_Day
+        Dec_Self_Financing -- No --> Coordinate_Day[Coordinate day of - if needed]:::ops
+        Coordinate_Day --> Install[Install]:::co
+    end
+
+    %% ============================================
+    %% PHASE 4: POST INSTALL
+    %% ============================================
+    subgraph Phase4[POST INSTALL]
+        Touch_Base_Customer[Touch base with customer post install]:::ops
+        Touch_Base_Customer --> Review_Contract_Complete{Job is contract complete?}:::logic
+        Review_Contract_Complete -- No --> Handle_Follow_Ups[Handle follow ups]:::ops
+        Handle_Follow_Ups --> Review_Contract_Complete
+        Review_Contract_Complete -- Yes --> Mark_Contract_Complete[Mark job contract complete]:::ops
+        Mark_Contract_Complete --> Comms_ContractComplete[📧 Contract complete]:::comms
+        
+        Comms_ContractComplete --> Collect_Payment[Collect full payment]:::automated
+        Collect_Payment --> Dec_Paid{Customer pays in full?}:::logic
+        Dec_Paid -- Yes --> Payment_Complete([Payment Complete]):::terminator
+        Dec_Paid -- No --> Contact_Customer_Payment[Contact customer]:::ops
+        Contact_Customer_Payment --> Dec_Paid
+        Contact_Customer_Payment -- Still not paying --> Send_Collections[Send to collections]:::ops
+        
+        Comms_ContractComplete --> Dec_Material_Return{Material return needed?}:::logic
+        Dec_Material_Return -- Yes --> Return_Material[Return material]:::ops
+        Dec_Material_Return -- No --> Material_Done([Done]):::terminator
+        Return_Material --> Material_Returned([Material Returned]):::terminator
+        
+        Comms_ContractComplete --> Submit_Rebate[Submit rebate]:::cx
+        Comms_ContractComplete --> Register_Warranty[Register for warranty]:::cx
+        
+        Comms_ContractComplete --> Comms_GoogleReview[📧 Request for Google review]:::comms
+        
+        Comms_ContractComplete --> Comms_LoyaltyLoop[📧 Loyaltyloop survey email]:::comms
+        Comms_LoyaltyLoop --> Dec_Survey{Survey completed?}:::logic
+        Dec_Survey -- No --> Comms_SurveyReminder[📧 LoyaltyLoop survey reminder - 7 days after]:::comms
+        Comms_SurveyReminder --> Dec_Survey
+        Dec_Survey -- Yes --> Dec_Promoter{Customer was a promoter?}:::logic
+        Dec_Promoter -- Yes --> Comms_ReviewReminder[📧 LoyaltyLoop review reminder - 2 days after survey]:::comms
+        Dec_Promoter -- No --> No_Review_Reminder([Done]):::terminator
+    end
+
+    %% ============================================
+    %% PHASE 5: MAINTENANCE
+    %% ============================================
+    subgraph Phase5[MAINTENANCE]
+        Dec_Full_Coverage{Customer has fully covered?}:::logic
+        Dec_Full_Coverage -- No --> No_Maintenance([No Maintenance]):::terminator
+        Dec_Full_Coverage -- Yes --> Two_Year_Delay[2 year delay]:::automated
+        Two_Year_Delay --> Maintenance_Scheduling[[Maintenance Scheduling]]:::subprocess
+        
+        %% Maintenance Scheduling Subprocess
+        Maintenance_Scheduling --> Request_3Dates_Maint[Request 3 dates from HO]:::ops
+        Request_3Dates_Maint --> Send_Dates_CO_Maint[Send dates to COs]:::ops
+        Send_Dates_CO_Maint --> CO_Accepts_Maint[CO accepts]:::co
+        CO_Accepts_Maint --> Confirm_Date_HO_Maint[Confirm date with HO]:::ops
+        Confirm_Date_HO_Maint --> Dec_Maint_Confirmed{Maintenance Confirmed?}:::logic
+        Dec_Maint_Confirmed -- No, Reschedule --> Request_3Dates_Maint
+        Dec_Maint_Confirmed -- Yes --> Dec_Maint_Reschedule{Reschedule needed?}:::logic
+        Dec_Maint_Reschedule -- Yes --> Request_3Dates_Maint
+        Dec_Maint_Reschedule -- No --> Maintenance_Visit[Maintenance visit]:::co
+        Maintenance_Visit --> CO_Sends_Notes_Maint[Send notes to Tetra]:::co
+        CO_Sends_Notes_Maint --> Ops_Review_Notes_Maint[Ops review notes]:::ops
+        Ops_Review_Notes_Maint --> Two_Year_Delay
+    end
+
+    %% ============================================
+    %% PHASE 6: CUSTOMER CASE
+    %% ============================================
+    subgraph Phase6[CUSTOMER CASE]
+        direction TB
+        Case_CallIn([Customer calls in]):::customer
+        Case_Form([Customer submits case form]):::customer
+        Case_CallIn --> Case_Created[Case created]:::automated
+        Case_Form --> Case_Created
+        Case_Created --> Ops_Reach_Out[Ops team member reaches out]:::ops
+        Ops_Reach_Out --> Diagnose_Issue[Diagnose issue]:::ops
+        Diagnose_Issue --> Dec_Resolved_Initial{Resolved?}:::logic
+        Dec_Resolved_Initial -- Yes --> Case_Resolved([Case Resolved]):::terminator
+        Dec_Resolved_Initial -- No --> Dec_Material_Needed{Material needs to be ordered?}:::logic
+        Dec_Material_Needed -- Yes --> Order_Case_Material[Order material]:::ops
+        Order_Case_Material --> Case_Visit_Scheduling
+        Dec_Material_Needed -- No --> Case_Visit_Scheduling[[Case Visit Scheduling]]:::subprocess
+        Case_Visit_Scheduling --> Request_3Dates_Case[Request 3 dates from HO]:::ops
+        Request_3Dates_Case --> Send_Dates_CO_Case[Send dates to COs]:::ops
+        Send_Dates_CO_Case --> CO_Accepts_Case[CO accepts]:::co
+        CO_Accepts_Case --> Confirm_Date_HO_Case[Confirm date with HO]:::ops
+        Confirm_Date_HO_Case --> Dec_Case_Confirmed{Visit Confirmed?}:::logic
+        Dec_Case_Confirmed -- No, Reschedule --> Request_3Dates_Case
+        Dec_Case_Confirmed -- Yes --> Dec_Case_Reschedule{Reschedule needed?}:::logic
+        Dec_Case_Reschedule -- Yes --> Request_3Dates_Case
+        Dec_Case_Reschedule -- No --> Visit_Completed[Visit completed]:::co
+        Visit_Completed --> CO_Sends_Info_Case[CO sends info to Ops]:::co
+        CO_Sends_Info_Case --> Ops_Review_Case[Ops review info]:::ops
+        Ops_Review_Case --> Dec_Warranty_Case{Open case with brand for warranty?}:::logic
+        Dec_Warranty_Case -- Yes --> Open_Warranty_Case[Open case with brand]:::ops
+        Open_Warranty_Case --> Dec_Case_Resolved
+        Dec_Warranty_Case -- No --> Dec_Case_Resolved{Case resolved?}:::logic
+        Dec_Case_Resolved -- Yes --> Case_Closed([Case Closed]):::terminator
+        Dec_Case_Resolved -- No --> Case_Visit_Scheduling
+    end
+
+    %% ============================================
+    %% CROSS-PHASE CONNECTIONS
+    %% ============================================
+    Comms_AMHandoff --> Job_Created
+    Install --> Touch_Base_Customer
+    Comms_ContractComplete --> Dec_Full_Coverage
+    Comms_ContractComplete -.-> Case_CallIn
