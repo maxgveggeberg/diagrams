@@ -1,0 +1,158 @@
+```mermaid
+
+%%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
+
+flowchart TD
+    %% --- STYLING ---
+    classDef solar fill:#e6f3ff,stroke:#08427b,color:#08427b,stroke-width:2px
+    classDef tetra fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
+    classDef palmetto fill:#e1bee7,stroke:#7b1fa2,color:#4a148c,stroke-width:2px
+    classDef sibi fill:#fff8e1,stroke:#ffa000,color:#5d4037,stroke-width:2px
+    classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
+    classDef terminator fill:#333333,stroke:#333333,color:#ffffff
+    classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
+    classDef monitor fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
+
+    %% --- KEY/LEGEND ---
+    subgraph Key["Key"]
+        direction LR
+        Key_Solar[Solar Sales]:::solar
+        Key_Tetra[Tetra]:::tetra
+        Key_Palmetto[Palmetto]:::palmetto
+        Key_Sibi[Sibi]:::sibi
+    end
+
+    %% =============================================
+    %% PHASE 1: SALES
+    %% =============================================
+    subgraph Phase1_Sales[PHASE 1: SALES]
+        direction TB
+
+        %% --- ENTRY ---
+        Start([Solar Rep Identifies<br>HVAC Opportunity]):::solar
+        Start --> Solar_EnterAddress[Enter HO Address<br>in Tetra Quoting Tool]:::solar
+
+        %% --- QUOTING ---
+        Solar_EnterAddress --> Tetra_GenerateDigitalTwin[Generate Digital Twin]:::tetra
+        Tetra_GenerateDigitalTwin --> Solar_ConfirmHousing[Confirm Housing Details]:::solar
+        Solar_ConfirmHousing --> Solar_RebateEligibility[Rebate Eligibility]:::solar
+        Solar_RebateEligibility --> Solar_ReviewQuote[Review Quote<br>with HO]:::solar
+        Solar_ReviewQuote --> Dec_CustomerInterest{Customer<br>Interested?}:::logic
+
+        %% --- NOT INTERESTED ---
+        Dec_CustomerInterest -- No --> Solar_FollowUp[[Sales Follow Up]]:::subprocess
+
+        %% --- INTERESTED - FINANCING OPTION ---
+        Dec_CustomerInterest -- Yes --> Dec_FinancingOption{Financing<br>Option?}:::logic
+
+        %% --- CASH PATH ---
+        Dec_FinancingOption -- Cash --> Solar_CollectDeposit[Collect Deposit]:::solar
+
+        %% --- LEASE/LOAN PATH ---
+        Dec_FinancingOption -- Lease/Loan --> Solar_FinanceCheck[Submit Financing<br>Application]:::solar
+        Solar_FinanceCheck --> Palmetto_Approved{Financing<br>Approved?}:::palmetto
+        Palmetto_Approved -- Yes --> Solar_CollectDeposit
+
+        %% --- FINANCING NOT APPROVED - ALTERNATE OPTIONS ---
+        Palmetto_Approved -- No --> Solar_AlternateFinancing[Explore Alternate<br>Financing Options]:::solar
+        Solar_AlternateFinancing --> Dec_AltApproved{Alternate<br>Financing<br>Approved?}:::logic
+        Dec_AltApproved -- Yes --> Solar_CollectDeposit
+        Dec_AltApproved -- No --> Dec_InterestedCash{Interested<br>in Cash?}:::logic
+        Dec_InterestedCash -- Yes --> Solar_CollectDeposit
+        Dec_InterestedCash -- No --> Exit_Lost([Closed Lost]):::terminator
+
+        %% --- DEPOSIT TO INSTALL SCHEDULING ---
+        Solar_CollectDeposit --> Solar_SelectInstallTime[Select Preferred<br>Install Time]:::solar
+        Solar_SelectInstallTime --> Tetra_CreateJob[Create Job Record]:::tetra
+    end
+
+    %% --- CROSS-PHASE CONNECTION TO PHASE 2 ---
+    Tetra_CreateJob --> Sibi_ReceiveJob
+
+    %% =============================================
+    %% PHASE 2: INSTALL PREP
+    %% =============================================
+    subgraph Phase2_InstallPrep[PHASE 2: INSTALL PREP]
+        direction TB
+
+        Sibi_ReceiveJob[Receive Job &<br>Review Scope]:::sibi
+        Sibi_ReceiveJob --> Sibi_OrderMaterials[Order Materials]:::sibi
+        Sibi_OrderMaterials --> Sibi_ScheduleInstall[Schedule Install<br>with Customer]:::sibi
+        Sibi_ScheduleInstall --> Dec_Confirmed{Install Date<br>Confirmed?}:::logic
+        Dec_Confirmed -- No --> Sibi_ScheduleInstall
+        Dec_Confirmed -- Yes --> Tetra_UpdateStatus[Update Job Status]:::tetra
+        Tetra_UpdateStatus --> Monitor_InstallReady[Install Ready]:::monitor
+    end
+
+    %% --- CROSS-PHASE CONNECTION TO PHASE 3 ---
+    Monitor_InstallReady --> Dec_ChangeOrder
+
+    %% =============================================
+    %% PHASE 3: CHANGE ORDERS
+    %% =============================================
+    subgraph Phase3_ChangeOrders[PHASE 3: CHANGE ORDERS]
+        direction TB
+
+        Dec_ChangeOrder{Price Change<br>Required?}:::logic
+
+        %% --- NO CHANGE ---
+        Dec_ChangeOrder -- No --> Proceed_Install([Proceed to Install]):::terminator
+
+        %% --- CHANGE ORDER FLOW ---
+        Dec_ChangeOrder -- Yes --> Sibi_IdentifyChange[Identify Scope/Price<br>Change]:::sibi
+        Sibi_IdentifyChange --> Tetra_UpdateQuote[Generate Updated<br>Quote]:::tetra
+        Tetra_UpdateQuote --> Solar_PresentChange[Present Change<br>to Customer]:::solar
+        Solar_PresentChange --> Dec_CustomerAccepts{Customer<br>Accepts?}:::logic
+        Dec_CustomerAccepts -- No --> Dec_Negotiate{Negotiate?}:::logic
+        Dec_Negotiate -- Yes --> Tetra_UpdateQuote
+        Dec_Negotiate -- No --> Exit_Cancelled([Job Cancelled]):::terminator
+        Dec_CustomerAccepts -- Yes --> Dec_FinanceAdjust{Finance<br>Adjustment<br>Needed?}:::logic
+        Dec_FinanceAdjust -- Yes --> Palmetto_AdjustFinance[Adjust Financing<br>Amount]:::palmetto
+        Palmetto_AdjustFinance --> Tetra_UpdateJob[Update Job Record]:::tetra
+        Dec_FinanceAdjust -- No --> Tetra_UpdateJob
+        Tetra_UpdateJob --> Proceed_Install2([Proceed to Install]):::terminator
+    end
+
+    %% --- CROSS-PHASE CONNECTION TO PHASE 4 ---
+    Proceed_Install --> Sibi_DayOf
+    Proceed_Install2 --> Sibi_DayOf
+
+    %% =============================================
+    %% PHASE 4: INSTALL
+    %% =============================================
+    subgraph Phase4_Install[PHASE 4: INSTALL]
+        direction TB
+
+        Sibi_DayOf[Install Day:<br>Sibi Tech Arrives]:::sibi
+        Sibi_DayOf --> Sibi_PerformInstall[Perform HVAC<br>Installation]:::sibi
+        Sibi_PerformInstall --> Dec_InstallIssue{Install<br>Issue?}:::logic
+        Dec_InstallIssue -- Yes --> Backref_ChangeOrder(["↩ Phase 3: Change Order"]):::subprocess
+        Dec_InstallIssue -- No --> Sibi_CompleteWork[Complete Work &<br>Document Photos]:::sibi
+        Sibi_CompleteWork --> Sibi_CustomerSignOff[Customer Sign-Off]:::sibi
+        Sibi_CustomerSignOff --> Tetra_MarkComplete[Mark Job Complete]:::tetra
+    end
+
+    %% --- CROSS-PHASE CONNECTION TO PHASE 5 ---
+    Tetra_MarkComplete --> Dec_IssuesReported
+
+    %% =============================================
+    %% PHASE 5: FOLLOW UP
+    %% =============================================
+    subgraph Phase5_FollowUp[PHASE 5: FOLLOW UP]
+        direction TB
+
+        %% --- ISSUES/CASES ---
+        Dec_IssuesReported{Issues<br>Reported?}:::logic
+        Dec_IssuesReported -- Yes --> Tetra_CreateCase[Create Support Case]:::tetra
+        Tetra_CreateCase --> Sibi_ResolvesIssue[Sibi Resolves Issue]:::sibi
+        Sibi_ResolvesIssue --> Dec_IssueResolved{Resolved?}:::logic
+        Dec_IssueResolved -- No --> Tetra_CreateCase
+        Dec_IssueResolved -- Yes --> Dec_IssuesReported
+
+        %% --- PAYMENT ---
+        Dec_IssuesReported -- No --> Tetra_TriggerPayment[Trigger Payment<br>Processing]:::tetra
+        Tetra_TriggerPayment --> Palmetto_FundInstall[Fund Installation]:::palmetto
+        Palmetto_FundInstall --> Tetra_RecordPayment[Record Payment<br>in System]:::tetra
+        Tetra_RecordPayment --> Sibi_ReceivePayment[Sibi Receives<br>Labor Payment]:::sibi
+        Sibi_ReceivePayment --> Exit_Complete([Job Complete]):::terminator
+    end
