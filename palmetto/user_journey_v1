@@ -4,14 +4,18 @@
 
 flowchart TD
     %% --- STYLING ---
-    classDef solar fill:#e6f3ff,stroke:#08427b,color:#08427b,stroke-width:2px
+    classDef solar fill:#f5f5f5,stroke:#616161,color:#424242,stroke-width:2px
     classDef tetra fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
-    classDef palmetto fill:#e1bee7,stroke:#7b1fa2,color:#4a148c,stroke-width:2px
-    classDef sibi fill:#fff8e1,stroke:#ffa000,color:#5d4037,stroke-width:2px
+    classDef palmetto fill:#fff3e0,stroke:#ef6c00,color:#e65100,stroke-width:2px
+    classDef sibi fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
     classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
     classDef terminator fill:#333333,stroke:#333333,color:#ffffff
     classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
     classDef monitor fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
+    classDef solar_question fill:#f5f5f5,stroke:#c62828,color:#424242,stroke-width:2px
+    classDef tetra_question fill:#e8f5e9,stroke:#c62828,color:#1b5e20,stroke-width:2px
+    classDef sibi_question fill:#e3f2fd,stroke:#c62828,color:#0d47a1,stroke-width:2px
+    classDef palmetto_question fill:#fff3e0,stroke:#c62828,color:#e65100,stroke-width:2px
 
     %% --- KEY/LEGEND ---
     subgraph Key["Key"]
@@ -20,6 +24,7 @@ flowchart TD
         Key_Tetra[Tetra]:::tetra
         Key_Palmetto[Palmetto]:::palmetto
         Key_Sibi[Sibi]:::sibi
+        Key_Question[Open Question]:::solar_question
     end
 
     %% =============================================
@@ -30,27 +35,28 @@ flowchart TD
 
         %% --- ENTRY ---
         Start([Solar Rep Identifies<br>HVAC Opportunity]):::solar
-        Start --> Solar_EnterAddress[Enter HO Address<br>in Tetra Quoting Tool]:::solar
+        Start --> Solar_EnterAddress[Enter HO Address<br>in Tetra Quoting Tool]:::solar_question
 
         %% --- QUOTING ---
         Solar_EnterAddress --> Tetra_GenerateDigitalTwin[Generate Digital Twin]:::tetra
         Tetra_GenerateDigitalTwin --> Solar_ConfirmHousing[Confirm Housing Details]:::solar
-        Solar_ConfirmHousing --> Solar_ReviewEnergy[Review/Update<br>Energy Usage]:::solar
-        Solar_ReviewEnergy --> Solar_RebateEligibility[Rebate Eligibility]:::solar
-        Solar_RebateEligibility --> Tetra_CreateQualifiedList[Create Qualified<br>Equipment List]:::tetra
-        Tetra_CreateQualifiedList --> Sibi_CheckAvailability[Check Equipment<br>Availability]:::sibi
+        Solar_ConfirmHousing --> Solar_ReviewEnergy[Review/Update<br>Energy Usage]:::solar_question
+        Solar_ReviewEnergy --> Solar_RebateEligibility[Rebate Eligibility]:::solar_question
+        Solar_RebateEligibility --> Tetra_CreateQualifiedList[Create Qualified<br>Equipment List]:::tetra_question
+        Tetra_CreateQualifiedList --> Sibi_CheckAvailability[Check Equipment<br>Availability]:::sibi_question
         Sibi_CheckAvailability --> Tetra_ShowAvailable[Only Show Available<br>Equipment]:::tetra
-        Tetra_ShowAvailable --> Solar_ReviewQuote[Review Options<br>with HO]:::solar
+        Tetra_ShowAvailable --> Solar_AdjustCommission[Adjust Commission]:::solar_question
+        Solar_AdjustCommission --> Solar_ReviewQuote[Review Options<br>with HO]:::solar
         Solar_ReviewQuote --> Dec_CustomerInterest{Customer<br>Interested?}:::logic
 
         %% --- NOT INTERESTED ---
-        Dec_CustomerInterest -- No --> Solar_FollowUp[[Sales Follow Up]]:::subprocess
+        Dec_CustomerInterest -- No --> Solar_FollowUp[[Sales Follow Up]]:::solar
 
         %% --- INTERESTED - FINANCING OPTION ---
         Dec_CustomerInterest -- Yes --> Dec_FinancingOption{Financing<br>Option?}:::logic
 
         %% --- CASH PATH ---
-        Dec_FinancingOption -- Cash --> Solar_CollectDeposit[Collect Deposit]:::solar
+        Dec_FinancingOption -- Cash --> Solar_CollectDeposit[Collect Deposit]:::solar_question
 
         %% --- LEASE/LOAN PATH ---
         Dec_FinancingOption -- Lease/Loan --> Solar_FinanceCheck
@@ -62,7 +68,7 @@ flowchart TD
             direction TB
 
             Solar_FinanceCheck[Submit Financing<br>Application]:::solar
-            Solar_FinanceCheck --> Palmetto_Approved{Financing<br>Approved?}:::palmetto
+            Solar_FinanceCheck --> Palmetto_Approved{Financing<br>Approved?}:::logic
 
             %% --- FINANCING NOT APPROVED - ALTERNATE OPTIONS ---
             Palmetto_Approved -- No --> Solar_AlternateFinancing[Explore Alternate<br>Financing Options]:::solar
@@ -79,11 +85,11 @@ flowchart TD
         %% --- DEPOSIT TO INSTALL SCHEDULING ---
         Solar_CollectDeposit --> Solar_SelectInstallTime[Select Preferred<br>Install Time]:::solar
         Solar_SelectInstallTime --> Tetra_CreateJob[Send Job Info<br>to Sibi via API]:::tetra
-        Solar_SelectInstallTime -->|if applicable| Palmetto_SendJobInfo[Send Job Info<br>to Palmetto]:::palmetto
+        Solar_SelectInstallTime -->|if applicable| Palmetto_SendJobInfo[Send Job Info<br>to Palmetto]:::tetra
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 2 ---
-    Tetra_CreateJob --> Sibi_ReceiveJob
+    Tetra_CreateJob --> Sibi_COHandoff
 
     %% =============================================
     %% PHASE 2: INSTALL
@@ -92,10 +98,9 @@ flowchart TD
         direction TB
 
         %% --- MAIN INSTALL FLOW ---
-        Sibi_ReceiveJob[Send Job Info<br>to Sibi via API]:::sibi
-        Sibi_ReceiveJob --> Sibi_COHandoff[[CO Handoff]]:::subprocess
+        Sibi_COHandoff[[CO Handoff]]:::subprocess
         Sibi_COHandoff --> Sibi_MaterialOrder[[Material Ordering]]:::subprocess
-        Sibi_MaterialOrder --> Sibi_UpdateJobStatus[Update Job Status]:::sibi
+        Sibi_MaterialOrder --> Sibi_UpdateJobStatus[Update Job Status]:::sibi_question
         Sibi_UpdateJobStatus --> Dec_ChangeOrder{Change<br>Order?}:::logic
 
         %% --- NO CHANGE ORDER - COMPLETE INSTALL ---
@@ -109,10 +114,10 @@ flowchart TD
             direction TB
 
             %% --- CHANGE ORDER FLOW ---
-            CO_UpdateQuote[Send Message with<br>Change Order Details]:::sibi
+            CO_UpdateQuote[Send Message with<br>Change Order Details]:::sibi_question
             CO_UpdateQuote --> CO_UpdateJob[Update the Job]:::tetra
-            CO_UpdateJob --> CO_NotifySalesRep[Notify the Sales Rep]:::tetra
-            CO_NotifySalesRep --> CO_SalesFollowUp[[Sales Follow Up]]:::subprocess
+            CO_UpdateJob --> CO_NotifySalesRep[Notify the Sales Rep]:::tetra_question
+            CO_NotifySalesRep --> CO_SalesFollowUp[[Sales Follow Up]]:::solar_question
             CO_SalesFollowUp --> Dec_HOApproved{HO<br>Approved?}:::logic
 
             %% --- HO NOT APPROVED ---
@@ -149,17 +154,17 @@ flowchart TD
 
         %% --- CASH PAYMENT ---
         Dec_PaymentMethod -- Cash --> Tetra_TriggerPayment[Trigger Payment<br>Processing]:::tetra
-        Tetra_TriggerPayment --> Pay_SibiSalesPalmetto[Pay Sibi/Sales Org/<br>Palmetto]:::tetra
+        Tetra_TriggerPayment --> Pay_SibiSalesPalmetto[Pay Sibi/Sales Org/<br>Palmetto]:::tetra_question
         Pay_SibiSalesPalmetto --> Exit_Complete([Job Complete]):::terminator
 
         %% --- LEASE PAYMENT ---
         Dec_PaymentMethod -- Lease --> Notify_Palmetto[Notify Palmetto]:::tetra
-        Notify_Palmetto --> Pay_SibiSalesTetra[Pay Sibi/Sales Org/<br>Tetra]:::palmetto
+        Notify_Palmetto --> Pay_SibiSalesTetra[Pay Sibi/Sales Org/<br>Tetra]:::palmetto_question
         Pay_SibiSalesTetra --> Exit_Complete2([Job Complete]):::terminator
 
         %% --- LOAN PAYMENT ---
         Dec_PaymentMethod -- Loan --> Tetra_HOSignOff[HO Signs Off<br>on Work]:::tetra
         Tetra_HOSignOff --> Tetra_FundsReceived[Funds Received]:::tetra
-        Tetra_FundsReceived --> Pay_SibiSalesPalmetto2[Pay Sibi/Sales Org/<br>Palmetto]:::tetra
+        Tetra_FundsReceived --> Pay_SibiSalesPalmetto2[Pay Sibi/Sales Org/<br>Palmetto]:::tetra_question
         Pay_SibiSalesPalmetto2 --> Exit_Complete3([Job Complete]):::terminator
     end
