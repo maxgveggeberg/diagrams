@@ -58,7 +58,7 @@ flowchart TB
         end
 
         subgraph Scheduling["Scheduling"]
-            SC5["Schedule Installation"]
+            SC5["Select Preferred Install Time"]
         end
 
         subgraph Deposit["Deposit"]
@@ -74,8 +74,22 @@ flowchart TB
         Scheduling --> Deposit
     end
 
-    subgraph Phase5["Phase 5: Project Management"]
-        SuccessHandoff["Job Info to Sibi/Palmetto"]
+    subgraph Phase5["Phase 5: Project Status"]
+        PM1["Payment Method"]
+        PM2["View Payment Terms"]
+        PM3["Scheduled Date"]
+        PM4["Job Status"]
+        PM5["Sales Contact Info"]
+        PM6["CX Contact Info"]
+    end
+
+    subgraph Phase6["Phase 6: Change Order"]
+        CO1["Reason"]
+        CO2["Cost"]
+        CO3["Payment Method"]
+        CO4["Approve/Deny"]
+        CO5[["Financing Application"]]
+        CO3 -->|"Lease/Loan"| CO5
     end
 
     %% Phase Navigation Flow
@@ -83,6 +97,4 @@ flowchart TB
     Phase2 --> Phase3
     Phase3 --> Phase4
     DP6 --> Phase5
-
-    %% Exit Points
-    FF3 -->|"No Options"| ClosedLost([Closed Lost])
+    Phase5 <--> Phase6
