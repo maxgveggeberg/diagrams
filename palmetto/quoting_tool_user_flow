@@ -1,0 +1,88 @@
+```mermaid
+%%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
+
+flowchart TB
+    %% Palmetto Sales Tool - User Flow
+    %% Source: palmetto_screens, palmetto_design_requirements, palmetto/user_journey_v1
+    %% Excludes: Login, User Management (open questions)
+
+    subgraph Phase1["Phase 1: Address Entry"]
+        AE1["Address Input"]
+        AE2["Digital Twin Animation"]
+        AE1 --> AE2
+    end
+
+    subgraph Phase2["Phase 2: Housing Details"]
+        HD1["Property Overview"]
+        HD2["Edit Housing Data"]
+    end
+
+    subgraph Phase3["Phase 3: Select Product"]
+        subgraph ProductListing["Product Listing"]
+            PL1["Equipment Cards"]
+            PL2["Filter by Tier"]
+            PL3["Adjust Size"]
+            PL4["Add System Type"]
+            PL5["Add to Quote"]
+            PL6["View Details"]
+            PL7["Equipment Override"]
+        end
+
+        subgraph ProductDetails["Product Details"]
+            PD1["Full Specifications"]
+            PD2["Payback Analysis"]
+            PD3["Rebate Breakdown"]
+            PD4["Lifetime Cost Comparison"]
+            PD5["Back to Listing"]
+            PD6["Add to Quote"]
+        end
+
+        ProductListing <--> ProductDetails
+    end
+
+    subgraph Phase4["Phase 4: Checkout"]
+        subgraph SummaryCheckout["Select Payment Method"]
+            SC1["Quote Summary"]
+            SC3["Select Payment Method"]
+            SC4["View Payment Terms"]
+            SC6["Share Quote"]
+            SC10["Adjust Price"]
+        end
+
+        subgraph FinancingFlow["Financing Application"]
+            FF1["Submit Application"]
+            FF2["Status: Approved"]
+            FF3["Status: Declined"]
+            FF1 --> FF2
+            FF1 --> FF3
+        end
+
+        subgraph Scheduling["Scheduling"]
+            SC5["Schedule Installation"]
+        end
+
+        subgraph Deposit["Deposit"]
+            SC7["Accept Terms"]
+            DP1["Deposit Amount Display"]
+            DP2["Payment Method Entry"]
+            DP3["Saved Payment Methods"]
+            DP6["Payment Confirmation"]
+        end
+
+        SummaryCheckout --> FinancingFlow
+        FinancingFlow --> Scheduling
+        Scheduling --> Deposit
+    end
+
+    subgraph Phase5["Phase 5: Project Management"]
+        SuccessHandoff["Job Info to Sibi/Palmetto"]
+    end
+
+    %% Phase Navigation Flow
+    Phase1 --> Phase2
+    Phase2 --> Phase3
+    Phase3 --> Phase4
+    DP6 --> Phase5
+
+    %% Exit Points
+    FF3 -->|"No Options"| ClosedLost([Closed Lost])

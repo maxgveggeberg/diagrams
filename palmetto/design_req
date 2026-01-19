@@ -1,0 +1,1247 @@
+# Palmetto Partnership Quoting Tool
+
+*Design Requirements Document*
+
+**Version 1.3 | January 2026**
+
+---
+
+## Summary
+
+### Goal
+
+Enable solar sales representatives from Palmetto partner organizations to generate HVAC quotes for homeowners in real-time during in-home consultations, facilitating a seamless cross-sell opportunity that drives value for both the solar installation and HVAC upgrade sale.
+
+### Scope
+
+This design covers Phase 1 (Sales) of the Palmetto partnership user journey, specifically:
+
+- User authentication and team management
+- Address entry and digital twin generation
+- Housing details confirmation
+- Energy usage visualization and editing
+- Quote customization (commission, equipment, notes)
+- Product selection and comparison
+- Checkout flow (payment method, scheduling, quote sharing)
+- Deposit collection with social proof
+- Homeowner-facing project status view
+- Change order management
+
+### Out of Scope
+
+- Phase 2: Install operations (handled by Sibi)
+- Phase 3: Payment processing and reconciliation (handled by Tetra backend)
+- Material ordering workflow (handled by Sibi)
+- Palmetto financing application integration (external system)
+
+---
+
+## Personas
+
+### Primary: Solar Sales Representative
+
+*"Alex"* - Field sales professional working for a Palmetto partner solar installation company.
+
+**Key characteristics:**
+
+- In-home with homeowners during solar consultations
+- Identifies HVAC cross-sell opportunities through conversation
+- Needs to generate quotes quickly to maintain sales momentum
+- Motivated by commission on HVAC sales
+- May not have deep HVAC technical knowledge
+- Works primarily on tablet or laptop in the field
+
+**Pain points:**
+
+- Complex quoting tools lose homeowner engagement
+- Uncertain about equipment sizing and pricing
+- Needs real-time availability and pricing information
+- Wants to close deals in one visit
+
+### Secondary: Sales Manager
+
+*"Jordan"* - Team lead responsible for managing solar sales reps and commission structures.
+
+**Key characteristics:**
+
+- Manages team of 5-20 sales representatives
+- Sets default commission rates for the team
+- Needs visibility into team activity and pipeline
+- Onboards new sales reps to the platform
+
+### Tertiary: Homeowner
+
+*"Pat"* - Homeowner considering both solar and HVAC upgrades.
+
+**Key characteristics:**
+
+- Originally interested in solar installation
+- Open to learning about complementary home upgrades
+- Wants to understand total cost and financing options
+- May need to review proposal after the sales visit
+- Expects visibility into project status after purchase
+
+---
+
+## Jobs to be Done
+
+| Job Category | Job Statement |
+|--------------|---------------|
+| Quote Generation | When I identify an HVAC opportunity, I want to quickly generate an accurate quote so I can close the deal while the homeowner is engaged. |
+| Equipment Selection | When I need to recommend HVAC equipment, I want to see only available options with real-time pricing so I can confidently present options to the homeowner. |
+| Commission Management | When I need to adjust pricing for a deal, I want to easily modify my commission so I can maintain competitiveness while protecting my earnings. |
+| Customer Communication | When a homeowner wants to review later, I want to send them the quote via email or text so they can make an informed decision at their convenience. |
+| Deal Closing | When the homeowner is ready to proceed, I want to collect payment method, deposit, and schedule installation so I can complete the sale in one visit. |
+| Team Management | When I onboard new sales reps, I want to easily add them to the system with appropriate permissions so they can start selling immediately. |
+| Change Orders | When install requirements change, I want to communicate the price impact to the homeowner and get approval so the project can continue without delays. |
+
+---
+
+## Primary Apps
+
+### Existing Apps Used
+
+| App | Role in This Design |
+|-----|---------------------|
+| Quoting Tool | Core application adapted for solar sales rep use. Provides address entry, digital twin, equipment selection, and quote generation. |
+| Homeowner Dashboard | Extended to serve as the post-sale Success Page, showing project status and timeline to homeowners. |
+
+### New Functionality Required
+
+| Feature | Justification | Primary Purpose |
+|---------|---------------|-----------------|
+| User Management Module | Existing quoting tool lacks team management. Solar orgs need to manage their own sales reps. | Add/remove users, set commission defaults, manage permissions |
+| Customizations Screen | Existing tool lacks in-flow customization. Sales reps need to adjust quotes without leaving the flow. | Commission adjustment, equipment sizing, condenser addition, installer notes |
+| Scheduling Integration | Current quoting tool does not include install scheduling. Required to close deals in one visit. | Display available install windows, capture preferred time |
+| Change Order Screen | No existing mechanism for post-sale modifications. Critical for handling install-day discoveries. | Display change details, get approval, capture additional payment method |
+
+---
+
+## Primary Screens
+
+The following screens comprise the Palmetto Quoting Tool experience:
+
+1. **Login** â€” Authentication for sales representatives
+2. **User Management** â€” Team member and commission administration
+3. **Address Entry** â€” Property identification and digital twin generation
+4. **Housing Details** â€” Confirmation and editing of property characteristics
+5. **Energy Usage** â€” Visualization and adjustment of energy consumption data
+6. **Customizations** â€” Quote adjustments for commission, equipment, and installer notes
+7. **Product Listing** â€” Equipment options comparison and selection
+8. **Product Details** â€” Detailed equipment specifications and payback analysis
+9. **Summary & Checkout** â€” Final review, payment method, scheduling, and quote sharing
+10. **Deposit** â€” Payment collection with social proof
+11. **Success** â€” Homeowner-facing project status after sale
+12. **Change Order** â€” Post-sale modification approval
+
+---
+
+## 1. Login
+
+### Goal
+
+Authenticate sales representatives quickly so they can begin generating quotes without friction.
+
+### Journey
+
+**Entry:**
+- Direct navigation to quoting tool URL
+- Session timeout redirect from any authenticated screen
+
+**Steps:**
+1. Sales rep arrives at login screen
+2. Select authentication method (SSO, email/password, or magic link)
+3. Complete authentication flow
+4. System validates credentials and establishes session
+
+**Exit:**
+- Successful authentication â†’ Address Entry
+- Manager role detected â†’ Option to access User Management
+- Failed authentication â†’ Error display with retry option
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| SSO authentication | Authenticate via partner organization's identity provider (Google, Microsoft) |
+| Email/password authentication | Traditional credential entry with password visibility toggle |
+| Magic link authentication | Passwordless login via emailed link [ASSUMPTION: preferred for field use] |
+| Password reset | Initiate password recovery via email |
+| Session persistence | Remember device option for faster subsequent logins |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Credential entry | Input (idle, filled, error states) |
+| Authentication actions | Button (primary for submit, secondary for SSO options) |
+| Loading state | Input (loading state) or full-screen loading indicator |
+| Success confirmation | Checkmark, then redirect |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| User not provisioned in system | Display message to contact their manager for access |
+| User account deactivated | Display message indicating account is no longer active |
+| SSO provider unavailable | Offer alternative authentication methods |
+| Offline/poor connectivity | Display offline message with retry option |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Invalid credentials | The email or password you entered doesn't match our records. Please try again. | Clear password field, focus for re-entry |
+| Too many attempts | Too many login attempts. Please try again in 15 minutes or use the magic link option. | Show magic link alternative |
+| Magic link expired | This link has expired. Request a new one below. | Show request new link action |
+
+---
+
+## 2. User Management
+
+### Goal
+
+Enable managers to administer their sales team, including adding new users and setting commission rates.
+
+### Journey
+
+**Entry:**
+- Navigation from main menu (manager role only)
+- Direct deep link from admin notification
+
+**Steps:** (non-linear â€” manager can perform any action)
+- View list of team members with status and commission rates
+- Add new team member (name, email, role, default commission)
+- Edit existing team member settings
+- Deactivate team member
+- Set organization-level default commission rate
+
+**Exit:**
+- Navigate away â†’ Any other screen
+- Logout â†’ Login screen
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| Display team roster | List all team members with name, email, role, commission rate, and status |
+| Add team member | Create new user with email invitation sent automatically |
+| Edit team member | Modify name, role, and default commission rate |
+| Deactivate team member | Remove access while preserving historical data for reporting |
+| Set organization default commission | Define baseline commission rate applied to new team members [TBD: commission range limits] |
+| Search/filter team members | Find specific users by name or email |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Team roster display | Table or list view with sortable columns |
+| Add/edit forms | Input fields with validation, displayed in overlay or dedicated section |
+| Commission entry | Input with percentage formatting and bounds validation |
+| Action triggers | Button (primary for save, destructive for deactivate) |
+| Search | Input (search variant) |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| Deactivating user with active quotes | Allow deactivation, quotes remain accessible, reassign pending deals if needed [CLARIFICATION NEEDED: reassignment rules] |
+| Adding user with existing account | Associate existing user with this organization rather than creating duplicate |
+| Last manager deactivating themselves | Prevent action, display message that another manager must be designated first |
+| Empty team roster | Display helpful empty state with prominent add user action |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Invalid email format | Please enter a valid email address. | Highlight field, focus for correction |
+| Commission out of range | Commission must be between 0% and [max]%. | Highlight field, show valid range |
+| Email already in use | This email is already associated with another account. Contact support if this is unexpected. | Offer to link existing account |
+
+---
+
+## 3. Address Entry
+
+### Goal
+
+Capture the homeowner's property address to initiate digital twin generation and begin the quoting process.
+
+### Journey
+
+**Entry:**
+- Successful login â†’ Address Entry (default landing)
+- New quote action from any screen
+
+**Steps:**
+1. Sales rep begins entering property address
+2. System provides autocomplete suggestions from address database
+3. Sales rep selects correct address from suggestions
+4. System validates address is within service territory
+5. System initiates digital twin generation
+
+**Exit:**
+- Valid address submitted â†’ Housing Details (with loading animation)
+- Address outside territory â†’ Out of Territory message
+- Cancel action â†’ Previous screen or dashboard
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| Address autocomplete | Real-time suggestions as user types, sourced from Google Places or similar |
+| Address validation | Confirm address exists and is complete (street, city, state, zip) |
+| Territory check | Verify address falls within Sibi service coverage area |
+| Digital twin initiation | Trigger background process to generate property characteristics |
+| Manual address entry | Allow full address input if autocomplete fails to find property |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Address input | Input with autocomplete dropdown, elevated shadow for prominent placement |
+| Autocomplete suggestions | List overlay below input field |
+| Submit action | Input with arrow icon (transitions to loading state on submit) |
+| Loading indicator | Input (loading state) with status text: "Finding your home..." |
+| Success state | Input (success state) with Checkmark before transition |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| New construction not in database | Allow manual entry, proceed with reduced confidence in digital twin |
+| Multi-unit property | Request unit number, validate property type is supported |
+| PO Box entered | Display message: "Please enter the physical property address" |
+| Address at territory boundary | [CLARIFICATION NEEDED: how to handle edge-of-territory addresses] |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Outside service territory | We don't currently serve this area. We're expanding soon! | Offer to capture lead for future outreach |
+| Address not found | We couldn't verify this address. Please check and try again, or enter the full address manually. | Show manual entry option |
+| Autocomplete service unavailable | Address suggestions are temporarily unavailable. You can still enter the full address. | Switch to manual entry mode |
+
+---
+
+## 4. Housing Details
+
+### Goal
+
+Confirm or correct property characteristics that influence equipment sizing and pricing, particularly for attributes with low confidence from automated data sources.
+
+### Journey
+
+**Entry:**
+- Address Entry â†’ Housing Details (after digital twin generation completes)
+
+**Steps:**
+1. System displays pre-populated property data with confidence indicators
+2. Sales rep reviews each attribute with homeowner
+3. Sales rep corrects any inaccurate values
+4. Sales rep provides values for low-confidence or missing fields
+5. Sales rep confirms details to proceed
+
+**Exit:**
+- Confirm details â†’ Energy Usage
+- Back action â†’ Address Entry
+- Property type ineligible â†’ Ineligible property message [ASSUMPTION: some property types not supported]
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| Display property characteristics | Show square footage, year built, heating type, fuel type, AC presence, number of floors, system location |
+| Confidence indicators | Visual distinction between high-confidence (auto-populated) and low-confidence (needs verification) fields |
+| Edit property values | Modify any field regardless of confidence level |
+| Validation rules | Enforce reasonable ranges (e.g., square footage 200-20,000) |
+| Property visualization | [FUTURE] Display satellite/street view imagery of property |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Property attribute display | InfoRow or form fields with labels |
+| Editable fields | Input with clear current value display |
+| Selection fields (heating type, fuel) | Selectable options display (segmented control, radio group, or dropdown) |
+| Confidence indicators | StatusTag (neutral for low confidence) |
+| Confirmation action | Button (primary), StickyFooter for mobile |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| All fields low confidence | Require sales rep to confirm each value before proceeding |
+| Unusual property (very large, very old) | Allow values outside typical ranges with confirmation prompt |
+| Mixed fuel systems | Allow selection of multiple fuel types if applicable |
+| No existing HVAC system | Support "no system" option, treat as new installation |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Required field empty | Please provide [field name] to continue. | Highlight field, scroll to first error |
+| Value out of range | Please enter a value between [min] and [max]. | Show valid range hint |
+| Unsupported property type | We currently support single-family homes and townhouses. Contact us for other property types. | Offer contact option |
+
+---
+
+## 5. Energy Usage
+
+### Goal
+
+Visualize the homeowner's estimated energy consumption and allow refinement with actual utility data to improve equipment recommendations and savings projections.
+
+### Journey
+
+**Entry:**
+- Housing Details â†’ Energy Usage
+
+**Steps:**
+1. System displays estimated monthly energy usage chart based on property characteristics
+2. Sales rep reviews estimate with homeowner
+3. Sales rep optionally updates values with actual utility bill data
+4. Sales rep proceeds to customization or accepts default
+
+**Exit:**
+- Continue â†’ Customizations
+- Skip to products â†’ Product Listing (using estimates)
+- Back â†’ Housing Details
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| Display energy chart | Show 12-month energy usage visualization (bar chart or line graph) |
+| Edit monthly values | Allow modification of individual months if homeowner has utility bills |
+| Reset to estimate | Revert to system-generated estimate if manual entries need to be cleared |
+| Highlight heating/cooling months | Visual distinction for peak usage months (summer/winter) relevant to HVAC |
+| Display annual total | Show aggregated annual energy consumption |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Energy chart | Chart component (Recharts for React artifacts, or custom implementation) |
+| Editable values | Input fields below or integrated with chart interaction |
+| Annual total display | Emphasized text or InfoRow |
+| Actions | Button (primary for continue, secondary for reset) |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| New homeowner (no historical data) | Use estimates only, note that savings projections are approximate |
+| Partial year data available | Allow entry of available months, estimate remaining |
+| Unusually high/low usage entered | Display confirmation prompt to verify accuracy |
+| All-electric vs. gas heating home | Adjust chart labels and estimates based on fuel type from Housing Details |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Invalid value entered | Please enter a positive number. | Clear invalid input, focus field |
+| Estimate generation failed | We couldn't generate an estimate. You can enter values manually or continue with defaults. | Enable manual entry, offer continue with defaults |
+
+---
+
+## 6. Customizations
+
+### Goal
+
+Allow sales representatives to adjust quote parameters including commission, equipment configuration, and installer instructions before viewing product options.
+
+### Journey
+
+**Entry:**
+- Energy Usage â†’ Customizations
+- Edit action from Product Listing or Product Details
+
+**Steps:** (non-linear â€” sales rep can modify any parameter)
+- Adjust commission rate (add or subtract from default)
+- Modify equipment size (tonnage)
+- Add or remove condenser unit
+- Add notes for the installer
+
+**Exit:**
+- Save and continue â†’ Product Listing
+- Back â†’ Energy Usage (or previous screen if editing)
+- Cancel â†’ Discard changes, return to previous screen
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| Commission adjustment | Slider or input to adjust commission by +/- percentage from default. Shows resulting commission amount in dollars. |
+| Equipment size selection | Option to override recommended tonnage (e.g., 2, 2.5, 3, 3.5, 4, 5 ton) |
+| Condenser configuration | Toggle to add condenser unit to quotes that don't include one by default |
+| Installer notes | Free-text field for special instructions or site conditions (e.g., "difficult attic access") |
+| Price impact preview | Real-time display of how adjustments affect final price [TBD: show before or after apply] |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Commission adjustment | Slider with +/- controls, or Input with increment buttons |
+| Equipment size selection | Segmented control or selectable card options |
+| Condenser toggle | Switch/toggle or Checkbox |
+| Installer notes | Multi-line Input (textarea) |
+| Price preview | InfoRow or prominent text display |
+| Actions | Button (primary save, secondary cancel), StickyFooter |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| Commission reduced to zero | Allow with confirmation ("You won't earn commission on this sale") |
+| Commission exceeds maximum | Cap at maximum allowed, display message |
+| Equipment size undersized for home | Display warning but allow override ("Recommended minimum: X ton") |
+| Equipment size oversized for home | Display advisory but allow selection |
+| Condenser not available with selection | Disable condenser option, explain incompatibility |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Invalid commission value | Commission must be between -[max]% and +[max]%. | Reset to valid range |
+| Notes exceed length limit | Notes are limited to [X] characters. Current: [Y] | Show character counter, prevent further input |
+| Configuration unavailable | This equipment configuration is not currently available. Please adjust your selections. | Highlight conflicting options |
+
+---
+
+## 7. Product Listing
+
+### Goal
+
+Present available HVAC equipment options with real-time pricing and availability so the homeowner can compare and select their preferred system.
+
+### Journey
+
+**Entry:**
+- Customizations â†’ Product Listing
+- Back action from Product Details
+
+**Steps:** (non-linear â€” homeowner and sales rep browse options)
+- View list of available equipment options
+- Compare pricing, efficiency ratings, and features
+- Filter or sort options
+- Select equipment to view details or proceed to checkout
+
+**Exit:**
+- Select product â†’ Product Details
+- Edit customizations â†’ Customizations
+- Back â†’ Energy Usage or Customizations
+- Quick select (if enabled) â†’ Summary & Checkout
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| Display equipment options | Show available systems with brand, model, efficiency rating, price, and estimated savings |
+| Real-time availability | Only show equipment confirmed available from Sibi inventory |
+| Pricing display | Show total price after rebates and commission adjustments |
+| Comparison features | [FUTURE] Side-by-side comparison of 2-3 options |
+| Sort options | Sort by price, efficiency, brand, or recommended |
+| Filter options | Filter by brand, efficiency tier, price range |
+| Equipment size adjustment | [TBD] Quick toggle to change tonnage without returning to Customizations |
+| Add condenser quick action | [TBD] Option to add condenser from this screen |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Equipment options display | Card list or grid layout (reference existing onboarding product listing) |
+| Sort/filter controls | Dropdown or segmented controls |
+| Price display | Prominent text with original/discounted price if applicable |
+| Quick actions | Button (secondary) for edit customizations |
+| Recommended badge | StatusTag (info variant) for recommended option |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| No products available | Display message explaining unavailability, suggest adjusting customizations or contacting support |
+| Limited options (1-2 products) | Display available options without empty state messaging |
+| Price changes during session | Refresh prices on return to this screen, notify if significant change |
+| Product becomes unavailable | Remove from list, if previously selected show message |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Inventory API unavailable | We're having trouble loading equipment options. Please try again. | Retry action, contact support link |
+| Pricing API unavailable | Pricing information is temporarily unavailable. Prices shown may not be current. | Show cached prices with disclaimer |
+
+---
+
+## 8. Product Details
+
+### Goal
+
+Provide comprehensive information about a selected HVAC system including equipment configuration, specifications, installation inclusions, and financing options to support the homeowner's purchase decision and facilitate same-visit closing.
+
+### Journey
+
+**Entry:**
+- Product Listing â†’ Product Details (on product selection)
+- "Other compatible systems" carousel â†’ Product Details (alternative selection)
+
+**Steps:**
+1. System displays configuration summary bar with selected equipment components
+2. Sales rep presents hero section with key value proposition and benefits
+3. Sales rep reviews "What's Included" service and equipment lists with homeowner
+4. Homeowner can explore detailed tech specs for each equipment type
+5. Sales rep addresses common questions using expandable FAQ section
+6. Homeowner optionally views alternative compatible systems
+7. Homeowner decides to proceed via sticky footer or return to listing
+
+**Exit:**
+- "Choose System" CTA â†’ Summary & Checkout
+- "Price Breakdown" link â†’ Pricing detail modal or inline expansion
+- "View" configuration â†’ Configuration detail modal
+- Select alternative system â†’ Product Details (for selected system)
+- Back navigation â†’ Product Listing
+
+### Page Sections
+
+The Product Details page consists of the following sections in order:
+
+| Section | Purpose |
+|---------|---------|
+| Configuration Bar | Summary of selected equipment components with edit access |
+| Hero Section | Primary product presentation with brand, title, benefits, and key selling points |
+| Safety/Requirements Alert | Warnings about additional requirements (e.g., water heater upgrade) |
+| What's Included | Complete breakdown of service inclusions and equipment list |
+| Tech Specs | Detailed technical specifications for all equipment types |
+| FAQ | Expandable frequently asked questions |
+| Other Compatible Systems | Horizontal carousel of alternative product options |
+| Sticky Footer | Persistent pricing summary and primary CTA |
+
+### Functionality
+
+#### Configuration Bar
+
+| Functionality | Description |
+|---------------|-------------|
+| Display selected configuration | Show summary of equipment components (e.g., "5x Wall units Â· 1x Ceiling unit Â· 2x Condensers") |
+| Configuration label | "Your configuration" header text |
+| View action | Button to expand full configuration details in modal or inline |
+| Scroll persistence | Bar remains visible or accessible as user scrolls |
+
+#### Hero Section
+
+| Functionality | Description |
+|---------------|-------------|
+| Brand logo display | Show manufacturer logo (e.g., Mitsubishi) prominently |
+| Product title | Clear, benefit-oriented headline (e.g., "An affordable heating and cooling solution") |
+| Product description | Brief paragraph explaining the system and its benefits |
+| Hero image | Large product photography showing the primary equipment |
+| Key selling points | Checkmark-prefixed benefit statements highlighting: |
+| | - Installation speed ("Can be installed within days") |
+| | - Price positioning ("This is the most affordable system") |
+| | - Rebate savings ("Save $X,XXX â€” hassle free!") |
+| Feature icons | Visual indicators for system capabilities (Heat & AC, Ductless, Electricity powered) |
+
+#### Safety/Requirements Alert
+
+| Functionality | Description |
+|---------------|-------------|
+| Display requirement warning | Yellow alert banner for additional requirements |
+| Warning content | Explain requirement clearly (e.g., "For your safety, installing this system requires a new water heater as well.") |
+| Learn more link | Link to additional information about the requirement |
+| Conditional display | Only show when applicable to selected system |
+
+#### What's Included Section
+
+| Functionality | Description |
+|---------------|-------------|
+| Section header | "What's included?" with subheadline "Tetra offers an end-to-end installation" |
+| Service column | List of included services with icons: |
+| | - Installation |
+| | - All equipment needed |
+| | - All materials |
+| | - Rebate & loan paperwork |
+| | - 0% Interest financing |
+| | - Equipment removal |
+| | - Electrical work |
+| Equipment column | List of included equipment with quantities: |
+| | - [X]x Heat Pump Condensers |
+| | - [X]x Wall Units |
+| | - [X]x Ceiling Cassette |
+| | - [X]x Branch Box |
+| | - Foundation/Coring |
+| | - Electrical work |
+| | - Equipment removal |
+| Trust indicators | Google rating display (e.g., "4.7 stars on Google") with review count |
+| Service image | Photo of installation team or work in progress |
+| Info icons | Tooltip icons on select items for additional explanation |
+
+#### Tech Specs Section
+
+| Functionality | Description |
+|---------------|-------------|
+| Section header | "Tech specs" with subheadline "Nerd out on all the details." |
+| Equipment type tabs/columns | Separate specification tables for each equipment type: |
+| | - Condensers |
+| | - Wall Units |
+| | - Ceiling Cassettes |
+| Equipment imagery | Thumbnail images for each equipment type with selection indicator |
+| Specification table | Rows for each spec with label and value: |
+| | - Make (brand) |
+| | - Model No. |
+| | - Dimensions |
+| | - Noise level |
+| | - BTUs |
+| | - Wtt (wattage) |
+| | - SEER |
+| | - HSPF |
+| Multiple unit display | Show specs for each unit when configuration includes multiple (e.g., 5x condensers shown individually) |
+
+#### FAQ Section
+
+| Functionality | Description |
+|---------------|-------------|
+| Section header | "Frequently asked questions" |
+| Expandable questions | Accordion-style FAQ items that expand on click: |
+| | - "What if I made a mistake in my configuration and this price is off?" |
+| | - "Who will be main contact person?" |
+| | - "What if something breaks?" |
+| | - "What if I want a different system?" |
+| | - "Can you provide a water heater as well?" |
+| | - "Can you remove my old system?" |
+| Expand/collapse behavior | Only one question expanded at a time (accordion) OR allow multiple open [TBD] |
+| Answer content | Clear, concise answers addressing common concerns |
+
+#### Other Compatible Systems Section
+
+| Functionality | Description |
+|---------------|-------------|
+| Section header | "Other compatible systems" with subheadline "Tetra offers hundreds of systems. Not sure about this one? Check out your options." |
+| System count indicator | Display number of alternatives (e.g., "5 Systems") |
+| Horizontal carousel | Scrollable row of alternative system cards |
+| Navigation arrows | Left/right arrows for carousel navigation |
+| Alternative system cards | For each alternative, display: |
+| | - System type label (e.g., "Heat pump") |
+| | - System name (e.g., "LG Ductless Heat Pump") |
+| | - Brand logo |
+| | - Feature icons (Heat & AC, Ductless, Electricity) |
+| | - Monthly price |
+| | - Payback period |
+| | - 1st year savings |
+| | - Lifetime savings |
+| | - "Select" action button |
+
+#### Sticky Footer
+
+| Functionality | Description |
+|---------------|-------------|
+| Product identifier | System name and brand (e.g., "Carrier Ductless Heat Pump") |
+| Monthly price | Prominent monthly payment amount with period (e.g., "$148/mo") |
+| Payment terms | Loan terms in smaller text (e.g., "for 120 month loan") |
+| Total price | Full price after rebates (e.g., "$12,480" with "after IRA rebate if applicable" note) |
+| Price breakdown link | "Price Breakdown" link to detailed cost breakdown |
+| Primary CTA | "Choose System" button to proceed to checkout |
+| Incentive program icons | Visual indicators for applicable rebate programs |
+| Footer persistence | Sticky positioning at bottom of viewport |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Section | Recommended Components |
+|---------|------------------------|
+| Configuration Bar | Custom bar with Button (secondary) for "View" action |
+| Hero Section | Image display, brand logo, heading styles, Checkmark icons for benefits |
+| Safety Alert | SystemAlertBanner (warning variant) |
+| What's Included | Two-column layout, icon list, InfoRow or checklist items |
+| Tech Specs | Tab navigation or column layout, specification table, image thumbnails |
+| FAQ | Accordion/CollapsibleSectionHeader components |
+| Other Systems Carousel | Horizontal scroll container, product cards with Button (secondary) |
+| Sticky Footer | StickyFooter with custom content, Button (primary) for CTA |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| System with no alternatives | Hide "Other Compatible Systems" section entirely |
+| Configuration requires additional equipment | Show Safety/Requirements Alert with clear explanation |
+| Multiple equipment variants available | Show separate spec columns for each variant |
+| Long FAQ answers | Ensure expandable area handles variable content length |
+| Product image unavailable | Display placeholder image with brand logo |
+| Rebate eligibility uncertain | Show price with "if applicable" qualifier |
+| Mobile viewport | Stack columns vertically, adjust carousel to single-card view |
+| Tech specs missing for equipment type | Show available specs with "N/A" for missing values |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Product data load failed | We couldn't load this product's details. Please try again. | Retry action, return to listing |
+| Pricing calculation failed | Pricing information is temporarily unavailable. Please try again. | Retry action, show cached price if available |
+| Alternative systems unavailable | We couldn't load alternative options. | Hide carousel section, allow continuation |
+| Configuration details unavailable | Configuration details unavailable. | Show basic summary, allow continuation |
+
+### Design Notes
+
+**Visual Hierarchy:**
+- Configuration bar establishes context immediately
+- Hero section drives emotional engagement with benefit-focused messaging
+- Tech specs serve as reference material for detail-oriented buyers
+- Sticky footer ensures CTA is always accessible
+
+**Content Strategy:**
+- Lead with benefits (hero), follow with proof (what's included, trust indicators)
+- Technical details available but not primary focus
+- FAQ addresses objections proactively
+- Alternative options reduce fear of wrong choice
+
+**Mobile Considerations:**
+- Sticky footer critical for mobile conversion
+- Tech specs should be horizontally scrollable or use tabs
+- Alternative systems carousel should show one card at a time
+- FAQ accordion essential for managing content length
+
+---
+
+## 9. Summary & Checkout
+
+### Goal
+
+Present a comprehensive review of all selections and enable homeowners to finalize payment method, scheduling, and quote sharing before proceeding to deposit collection.
+
+### Journey
+
+**Entry:**
+- Product Details â†’ Summary & Checkout
+- Direct link from saved quote (returning user)
+
+**Steps:**
+1. System displays complete quote summary (equipment, rebates, total)
+2. Homeowner reviews all selections for accuracy
+3. Homeowner selects payment method (cash, loan, lease)
+4. If financing selected, system initiates credit check with Palmetto
+5. System displays available installation windows
+6. Homeowner selects preferred installation time
+7. Sales rep optionally sends quote via email or text for homeowner review
+8. Homeowner confirms to proceed to deposit
+
+**Exit:**
+- Confirm and proceed â†’ Deposit
+- Financing denied â†’ Display alternatives (cash, different financing option)
+- Send quote (without deposit) â†’ Session ends, quote saved for later
+- Back â†’ Product Details
+- Edit selections â†’ Product Details or Customizations
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| Display equipment summary | Show selected equipment with image, name, specifications summary |
+| Display pricing breakdown | Equipment cost, installation, rebates applied, taxes (if applicable), final total |
+| Dual pricing format | Show both monthly payment amount and total price throughout |
+| Payment method selection | Options: Cash, Loan, Lease with monthly payment preview for financing options |
+| Credit check initiation | For loan/lease, submit application to Palmetto financing [CLARIFICATION NEEDED: credit check flow details] |
+| Installation scheduling | Display available installation windows from Sibi, allow selection of preferred date/time |
+| Edit capability | Allow returning to previous screens to modify selections |
+| Send quote via email | Generate formatted quote summary and send to homeowner's email address |
+| Send quote via text | Send SMS with link to quote summary for homeowner |
+| Proceed to deposit | Confirm selections and advance to payment collection |
+| Incentive programs display | Show supported rebate/incentive program logos (NYSERDA, PSEG, etc.) |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Equipment summary | VisitSummaryCard or product card with image |
+| Pricing breakdown | PaymentBreakdown with dual pricing display |
+| Payment method options | Selectable cards with radio selection |
+| Financing preview | Inline calculation showing monthly payment for each option |
+| Installation windows | TimeSlotCard options |
+| Contact info fields | Input (email), Input (phone) |
+| Send quote actions | Button (secondary) |
+| Edit links | Text links or Button (secondary) |
+| Proceed action | Button (primary), StickyFooter |
+| Incentive logos | Image row in footer area |
+
+### Changes from v1.1
+
+| Previous Behavior | New Behavior | Rationale |
+|-------------------|--------------|-----------|
+| Deposit collection on this screen | Move deposit collection to dedicated Deposit screen | Proven conversion pattern from existing ecommerce; reduces cognitive load at decision point |
+| Single price display | Add dual pricing (monthly + total) throughout | Matches existing ecommerce pattern; helps homeowners understand financing impact |
+| Generic checkout flow | Add "Edit" capability to return to previous screens | Allows corrections without starting over |
+| No incentive program visibility | Add supported incentive programs display | Builds trust and reminds homeowners of savings |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| Financing denied | Display denial message with clear alternatives: try different financing or proceed with cash |
+| No installation slots available | Allow order without scheduled date, indicate callback will be made to schedule |
+| Homeowner wants to think about it | Enable "Send quote" without completing order; save session for continuation |
+| Credit check timeout | Offer to retry or provide cash option as alternative |
+| Multiple financing options available | Display all options with clear comparison of terms and monthly payments |
+| Price changed since session started | Display notification of change, require acknowledgment before proceeding |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Credit check denied | The financing application was not approved at this time. You can proceed with a cash payment or try a different financing option. | Show cash option prominently, offer alternative financing if available |
+| Credit check system unavailable | We're having trouble connecting to the financing system. Please try again or proceed with a cash payment for now. | Retry action, cash fallback |
+| Email send failed | We couldn't send the quote to that email address. Please verify and try again. | Highlight email field, allow retry |
+| SMS send failed | We couldn't send the quote to that phone number. Please verify and try again. | Highlight phone field, allow retry |
+| Scheduling system unavailable | Installation scheduling is temporarily unavailable. You can complete your order and we'll contact you to schedule. | Allow continuation without schedule |
+
+---
+
+## 10. Deposit
+
+### Goal
+
+Collect the refundable deposit payment while reinforcing purchase confidence through social proof and clear refund terms.
+
+### Journey
+
+**Entry:**
+- Summary & Checkout â†’ Deposit (after selections confirmed)
+
+**Steps:**
+1. System displays customer testimonials as social proof
+2. System displays deposit amount with refund terms
+3. Homeowner enters payment card information
+4. Homeowner reviews terms and conditions acknowledgment
+5. Homeowner submits deposit payment
+6. System processes payment and confirms success
+
+**Exit:**
+- Payment successful â†’ Success
+- Payment failed â†’ Display error with retry option
+- Back â†’ Summary & Checkout
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| Display social proof | Show 2-4 customer testimonials with ratings, quotes, names, and verification badges |
+| Display deposit amount | Prominently show "$100 - Fully refundable" |
+| Payment card entry | Secure form for card number, expiry, CVC, billing country, postal code |
+| Display accepted payment methods | Show card brand logos (Visa, Mastercard, Amex, Discover) |
+| Terms acknowledgment | Display terms link with acceptance language tied to submit action |
+| Process payment | Submit payment to processor, handle success/failure |
+| Payment confirmation | Display success state before redirecting to Success screen |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Testimonials display | Stacked/cascading card layout with star ratings, quote text, customer name/avatar, verification badge |
+| Deposit amount | Emphasized heading with "Fully refundable" subtext |
+| Payment form | PaymentForm component with card number, expiry, CVC fields |
+| Card brand icons | Inline image display in card number field |
+| Country selector | Dropdown/select input |
+| Postal code | Input field |
+| Terms text | Link text with acknowledgment copy |
+| Submit action | Button (primary) with specific CTA: "Pay $100 refundable deposit" |
+| Loading state | Button loading state during payment processing |
+| Success confirmation | Checkmark animation before redirect |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| Testimonials not available | Hide testimonials section, proceed with payment form only |
+| International card | Accept valid international cards; adjust postal code validation by country |
+| Card requires 3D Secure | Redirect to bank verification, handle return to complete flow |
+| User navigates away during processing | Maintain payment state; check status on return |
+| Deposit amount different from standard | Display actual amount (if promotional or adjusted) |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Card declined | Your card was declined. Please check your card details or try a different card. | Clear sensitive fields, focus on card number |
+| Invalid card number | Please enter a valid card number. | Highlight field, show validation hint |
+| Expired card | This card has expired. Please use a different card. | Clear expiry field, focus for re-entry |
+| Invalid CVC | Please enter a valid security code (3-4 digits on your card). | Highlight CVC field |
+| Payment processing error | Something went wrong processing your payment. Your card has not been charged. Please try again. | Retry action |
+| Network timeout | The payment is taking longer than expected. Please wait or try again. | Show loading state, offer retry after timeout |
+
+---
+
+## 11. Success
+
+### Goal
+
+Provide homeowners with a view of their project status and next steps after the sale is complete, serving as an ongoing reference point through installation.
+
+### Journey
+
+**Entry:**
+- Deposit â†’ Success (after payment confirmation)
+- Direct link from confirmation email/text
+- Homeowner dashboard navigation (if integrated)
+
+**Steps:** (non-linear â€” homeowner reviews at any time)
+- View order confirmation details
+- See scheduled installation date
+- Track project status (scheduled, in progress, complete)
+- Access support contact if needed
+
+**Exit:**
+- Close/navigate away â†’ Session ends
+- Contact support â†’ External support channel
+- Change order notification â†’ Change Order screen
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| Display order confirmation | Confirmation number, equipment summary, total paid/owed |
+| Show installation schedule | Confirmed date and time window for installation |
+| Track project status | Visual timeline: Ordered â†’ Scheduled â†’ In Progress â†’ Complete |
+| Display what to expect | Brief description of installation process and preparation steps |
+| Support contact | Phone number, email, or chat option for questions |
+| Change order notification | Alert when change order requires approval (links to Change Order screen) |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Confirmation header | Checkmark (success) with confirmation message |
+| Order summary | VisitSummaryCard or InfoRow list |
+| Status timeline | Step indicator or timeline visualization |
+| Change order alert | SystemAlertBanner (warning variant) |
+| Support contact | ContactInfoItem or action links |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| Installation not yet scheduled | Show pending status with expected callback timeframe |
+| Installation rescheduled | Update displayed date, show notification of change |
+| Job cancelled | Show cancelled status with refund information |
+| Multiple change orders | Show most recent pending change order prominently |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Status data unavailable | We're having trouble loading your project status. Please try again or contact support. | Retry action, support contact |
+| Order not found | We couldn't find this order. Please check your confirmation email or contact support. | Support contact |
+
+---
+
+## 12. Change Order
+
+### Goal
+
+Enable homeowners to review and approve change orders that arise during installation, presenting change items in a familiar visual format consistent with the add-on selection experience while clearly communicating the cost impact.
+
+### Journey
+
+**Entry:**
+- Success page notification/alert when change order requires approval
+- Direct link from change order email/SMS notification
+- Sales rep sharing screen with homeowner during follow-up call
+
+**Steps:**
+1. System displays change order header with reason from installer
+2. Homeowner reviews list of change items grouped by category (Additions, Modifications, Removals)
+3. Homeowner reviews price summary showing original total, change amount, and new total
+4. If additional payment required, homeowner selects payment method for the change amount
+5. Homeowner approves or declines the change order
+6. If approved with payment required, system processes payment for difference
+
+**Exit:**
+- Approved â†’ Success page (updated project status)
+- Declined â†’ Job cancelled or escalation to support (based on installer action)
+- Contact support action â†’ External support channel
+- Share action â†’ Email/SMS sent with change order link
+
+### Functionality
+
+| Functionality | Description |
+|---------------|-------------|
+| Display change order header | Show change order title with reason provided by Sibi/installer (e.g., "Electrical panel upgrade needed based on site inspection") |
+| Display change items by category | Group items into categories: Additions (new items), Modifications (changed specifications), Removals (items no longer needed/credits) |
+| Display item details | For each change item: icon/image (contextual to item type), title, price impact (+$X or -$X), description explaining the change |
+| Display price summary | Show Original Total, Change Order Amount (+/-), and New Total with monthly payment format where applicable |
+| Payment method selection | For change orders with price increase: display payment method options (Cash, Loan, Lease) for the change amount only |
+| Route to financing | If Loan or Lease selected for change amount, initiate Palmetto financing check for the difference amount |
+| Approve change order | Confirm acceptance, process payment if required, update job record, notify Sibi |
+| Decline change order | Reject changes, trigger notification to sales rep and Sibi for next steps (may result in job cancellation) |
+| Contact support | Provide support contact options for questions about the change order |
+| Share change order | Send change order details via email or SMS for review by other decision-makers |
+
+### Components
+
+*Reference: engineering/design-system.md*
+
+| Functionality | Recommended Components |
+|---------------|------------------------|
+| Change order header | SectionHeader with StatusTag (warning variant) indicating pending approval status |
+| Change item display | Item cards following add-on pattern: icon/image (left), title + description (center), price (right). Use contextual icons: plus for additions, swap/exchange for modifications, minus for removals/credits |
+| Category grouping | Bold section headers as in add-ons screen (e.g., "Additions", "Modifications", "Credits") |
+| Price summary | LineItemList component showing Original Total, Change Amount, New Total. Display monthly payment format (+$X /mo) consistent with add-ons pattern |
+| Payment method selection | Selectable cards (following same pattern as Summary & Checkout screen) |
+| Payment processing | PaymentForm component for collecting payment on price increases |
+| Approve action | Button (primary) in StickyFooter - "Approve Changes" |
+| Decline action | Button (destructive variant) - "Decline Changes" |
+| Support contact | ContactInfoItem or action link |
+| Share action | Secondary action for email/SMS sharing |
+
+### Design Pattern Reference
+
+The Change Order screen adapts the add-on selection pattern with the following key differences:
+
+| Add-on Pattern Element | Change Order Adaptation |
+|------------------------|-------------------------|
+| Selectable checkboxes on each item | No checkboxes - change order items are presented as a package to approve or decline together |
+| Individual item selection | All items displayed as informational - homeowner reviews but does not select individual items |
+| Single primary CTA ("Continue") | Two CTAs: Approve (primary) and Decline (destructive) |
+| Optional add-on pricing | Mandatory change order pricing - homeowner must address before installation continues |
+| Product images | Contextual icons indicating change type (plus, swap, minus) with optional product image where relevant |
+| Helper text below CTA | Helper text with support contact option: "Questions? Contact support" or "Not sure? Talk to your sales rep" |
+
+### User Flow Alignment
+
+This screen supports the Change Order flow from Phase 2 (Install) of the Palmetto user journey:
+
+| Journey Node | Screen Functionality |
+|--------------|---------------------|
+| CO_UpdateQuote (Send Message with Change Order Details) | Triggers creation of this screen content with items and pricing |
+| CO_UpdateJob (Update the Job) | System creates change order record in Tetra |
+| CO_NotifySalesRep (Notify the Sales Rep) | Sales rep receives notification, may share screen with HO |
+| CO_SalesFollowUp (Sales Follow Up) | Entry point - sales rep guides HO to review change order |
+| Dec_HOApproved (HO Approved?) | Approve/Decline actions determine exit path |
+| Dec_COPaymentMethod (Change Order Payment Method?) | Payment method selection functionality |
+| CO_UpdateJobRecord (Update Job Record) | Triggered on approval, updates Tetra and Sibi |
+
+### Edge Cases
+
+| Scenario | Expected Behavior |
+|----------|-------------------|
+| Change order reduces total price | Display credit amount with minus icon, no payment required. Price summary shows negative change amount. Inform homeowner of credit applied to final invoice. |
+| Change order has no price impact | Display scope changes without price column. Hide payment method selection. Show "No additional payment required" message. |
+| Multiple items in change order | Group items by category (Additions, Modifications, Credits). Display scrollable list if items exceed viewport. |
+| Single item change order | Display single item card without category header if only one category represented. |
+| Mix of additions and removals | Show net price impact in summary. Display items in logical category order: Additions first, then Modifications, then Removals/Credits. |
+| Financing selected but denied | Display denial message, offer alternative payment options (cash, different financing product). |
+| Financing application times out | Show timeout message with retry option and cash payment alternative. |
+| Change order exceeds original financing limit | Route to Palmetto for full re-qualification if loan/lease cannot cover increase. [CLARIFICATION NEEDED: Palmetto financing limit rules] |
+| Homeowner wants to discuss before deciding | Provide contact support action prominently. Allow sharing change order via email/SMS for review with family or other decision-makers. |
+| Change order expires | [CLARIFICATION NEEDED: Is there a time limit on change order approval? Define behavior if expired.] |
+| Partial approval requested | V1: Not supported - change order is all-or-nothing. Display message explaining homeowner must accept or decline entire change order. Contact support for custom arrangements. |
+| Original payment was cash, change order uses financing | Allow different payment method for change order amount. Clearly indicate this applies only to the additional amount. |
+
+### Error States
+
+| Error Condition | User Message | Recovery Action |
+|-----------------|--------------|-----------------|
+| Change order already processed | This change order has already been processed. See your project status for the latest details. | Link to Success page with updated status |
+| Change order cancelled by installer | This change order is no longer valid. The installer has cancelled the request. Please contact support if you have questions. | Display support contact, link to Success page |
+| Payment for change order failed | Payment could not be processed. Please check your card details or try a different payment method. | Clear payment form, allow retry with same or different card |
+| Financing denied for change order | The financing application for the additional amount was not approved. You can still proceed with a cash payment for the difference. | Show cash payment option, offer contact support |
+| Financing application timeout | We're having trouble processing your financing application. Please try again or choose a different payment option. | Show retry button, show cash alternative |
+| Network error during approval | We couldn't process your approval. Your payment has not been charged. Please check your connection and try again. | Show retry action |
+| Change order data failed to load | We couldn't load the change order details. Please try again or contact support. | Retry action, support contact link |
+| Job not found | We couldn't find this project. Please check your confirmation email or contact support for assistance. | Support contact only |
+| Session expired during review | Your session has expired. Please log in again to continue reviewing this change order. | Link to login, preserve change order reference for return |
+
+---
+
+## Checklist
+
+### Document Completeness
+
+- [x] Summary includes clear goal statement
+- [x] Personas defined for all user types
+- [x] Jobs to be Done documented
+- [x] Primary apps identified (existing and new functionality)
+- [x] All screens have numbered list
+
+### Per-Screen Completeness
+
+For each screen, verify:
+
+- [x] Goal is one sentence, outcome-focused
+- [x] Journey includes Entry, Steps (numbered or bulleted), Exit
+- [x] All entry points documented
+- [x] All exit points documented with destinations
+- [x] Functionality table covers all capabilities
+- [x] Components reference design-system.md
+- [x] Edge cases identified
+- [x] Error states documented with messages and recovery
+
+### v1.2 Updates
+
+- [x] Summary & Checkout has dual pricing format
+- [x] Deposit screen includes social proof elements
+
+### v1.3 Updates
+
+- [x] Product Details restructured with page sections
+- [x] Configuration Bar, Hero Section, What's Included, Tech Specs, FAQ, Other Systems sections added
+- [x] Safety/Requirements Alert section added for conditional warnings
+- [x] Sticky Footer with dual pricing documented
+- [x] Design Notes added for visual hierarchy, content strategy, mobile considerations
+
+---
+
+## Open Items
+
+The following items require clarification or decision:
+
+| Type | Item | Screen |
+|------|------|--------|
+| [TBD] | Commission range limits | User Management |
+| [CLARIFICATION] | User reassignment rules when deactivating | User Management |
+| [CLARIFICATION] | Edge-of-territory address handling | Address Entry |
+| [ASSUMPTION] | Magic link is preferred for field use | Login |
+| [ASSUMPTION] | Some property types not supported | Housing Details |
+| [TBD] | Price impact preview timing (before/after apply) | Customizations |
+| [TBD] | Equipment size adjustment on Product Listing | Product Listing |
+| [TBD] | Add condenser quick action on Product Listing | Product Listing |
+| [TBD] | FAQ accordion behavior (single vs. multiple open) | Product Details |
+| [TBD] | Alternative systems carousel pagination | Product Details |
+| [CLARIFICATION] | Water heater requirement conditions | Product Details |
+| [CLARIFICATION] | Credit check flow details with Palmetto | Summary & Checkout |
+| [CLARIFICATION] | Time limit on change order approval | Change Order |
+| [CLARIFICATION] | Palmetto financing limit rules for change orders | Change Order |
+| [TBD] | Testimonials content source for Deposit screen | Deposit |
+| [CLARIFICATION] | Maximum number of testimonials to display | Deposit |
+| [TBD] | Supported incentive programs for display | Summary & Checkout |
+| [ASSUMPTION] | $100 refundable deposit amount matches existing flow | Deposit |
+| [FUTURE] | Property visualization (satellite/street view) | Housing Details |
+| [FUTURE] | Side-by-side product comparison | Product Listing |
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | January 2026 | Initial document |
+| 1.1 | January 2026 | Added Change Order screen with detailed specifications |
+| 1.2 | January 2026 | Split Summary & Checkout into two screens; added dedicated Deposit screen with social proof; added dual pricing format; added edit capability and incentive programs display |
+| 1.3 | January 2026 | Major restructure of Product Details screen: added page sections overview (Configuration Bar, Hero Section, Safety/Requirements Alert, What's Included, Tech Specs, FAQ, Other Compatible Systems, Sticky Footer); added detailed functionality for each section; added Design Notes for visual hierarchy, content strategy, and mobile considerations; updated components mapping; removed equipment size adjustment TBD (handled in Customizations); added new open items for FAQ accordion behavior, carousel pagination, and water heater requirements |
