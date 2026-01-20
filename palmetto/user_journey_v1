@@ -69,16 +69,13 @@ flowchart TD
             Solar_FinanceCheck[Submit Financing<br>Application]:::solar
             Solar_FinanceCheck --> Palmetto_Approved{Financing<br>Approved?}:::logic
 
-            %% --- FINANCING NOT APPROVED - ALTERNATE OPTIONS ---
-            Palmetto_Approved -- No --> Solar_AlternateFinancing[Explore Alternate<br>Financing Options]:::solar
-            Solar_AlternateFinancing --> Dec_AltApproved{Alternate<br>Financing<br>Approved?}:::logic
-            Dec_AltApproved -- No --> Dec_InterestedCash{Interested<br>in Cash?}:::logic
+            %% --- FINANCING NOT APPROVED ---
+            Palmetto_Approved -- No --> Dec_InterestedCash{Interested<br>in Cash?}:::logic
             Dec_InterestedCash -- No --> Exit_Lost([Closed Lost]):::terminator
         end
 
         %% --- FINANCING TO DEPOSIT CONNECTIONS ---
         Palmetto_Approved -- Yes --> Solar_CollectDeposit
-        Dec_AltApproved -- Yes --> Solar_CollectDeposit
         Dec_InterestedCash -- Yes --> Solar_CollectDeposit
 
         %% --- DEPOSIT TO INSTALL SCHEDULING ---
@@ -88,7 +85,7 @@ flowchart TD
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 2 ---
-    Tetra_CreateJob --> Sibi_COHandoff
+    Tetra_CreateJob --> Sibi_SiteInspection
 
     %% =============================================
     %% PHASE 2: INSTALL
@@ -97,13 +94,13 @@ flowchart TD
         direction TB
 
         %% --- MAIN INSTALL FLOW ---
-        Sibi_COHandoff[[CO Handoff]]:::subprocess
-        Sibi_COHandoff --> Sibi_MaterialOrder[[Material Ordering]]:::subprocess
-        Sibi_MaterialOrder --> Sibi_UpdateJobStatus[Update Job Status]:::sibi_question
+        Sibi_SiteInspection[Site Inspection]:::sibi
+        Sibi_SiteInspection --> Sibi_UpdateJobStatus[Update Job Status]:::sibi_question
         Sibi_UpdateJobStatus --> Dec_ChangeOrder{Change<br>Order?}:::logic
 
-        %% --- NO CHANGE ORDER - COMPLETE INSTALL ---
-        Dec_ChangeOrder -- No --> Sibi_InstallComplete[Install Complete]:::sibi
+        %% --- NO CHANGE ORDER - MATERIAL ORDERING ---
+        Dec_ChangeOrder -- No --> Sibi_MaterialOrder[[Material Ordering]]:::sibi
+        Sibi_MaterialOrder --> Sibi_InstallComplete[Install Complete]:::sibi
         Sibi_InstallComplete --> Sibi_NotifyTetra[Notify Tetra]:::sibi
 
         %% =============================================
@@ -113,7 +110,7 @@ flowchart TD
             direction TB
 
             %% --- CHANGE ORDER FLOW ---
-            CO_UpdateQuote[Send Message with<br>Change Order Details]:::sibi_question
+            CO_UpdateQuote[Fill out Change<br>Order Tool]:::sibi
             CO_UpdateQuote --> CO_UpdateJob[Update the Job]:::tetra
             CO_UpdateJob --> CO_NotifySalesRep[Notify the Sales Rep]:::tetra_question
             CO_NotifySalesRep --> CO_SalesFollowUp[[Sales Follow Up]]:::solar_question
@@ -128,6 +125,7 @@ flowchart TD
 
             %% --- CO CASH ---
             Dec_COPaymentMethod -- Cash --> CO_UpdateJobRecord[Update Job Record]:::tetra
+            CO_UpdateJobRecord --> CO_UpdateSibi[Update Sibi]:::tetra
 
             %% --- CO LEASE/LOAN ---
             Dec_COPaymentMethod -- Lease/Loan --> CO_Phase1Financing[[↩ Phase 1: Financing]]:::subprocess
@@ -137,7 +135,7 @@ flowchart TD
 
         %% --- CHANGE ORDER CONNECTIONS ---
         Dec_ChangeOrder -- Yes --> CO_UpdateQuote
-        CO_UpdateJobRecord --> Sibi_InstallComplete
+        CO_UpdateSibi --> Sibi_MaterialOrder
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 3 ---
