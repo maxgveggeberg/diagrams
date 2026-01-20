@@ -110,7 +110,7 @@ flowchart TD
             direction TB
 
             %% --- CHANGE ORDER FLOW ---
-            CO_UpdateQuote[Fill out Change<br>Order Tool]:::sibi
+            CO_UpdateQuote[Fill out Change<br>Order Tool]:::sibi_question
             CO_UpdateQuote --> CO_UpdateJob[Update the Job]:::tetra
             CO_UpdateJob --> CO_NotifySalesRep[Notify the Sales Rep]:::tetra_question
             CO_NotifySalesRep --> CO_SalesFollowUp[[Sales Follow Up]]:::solar_question
