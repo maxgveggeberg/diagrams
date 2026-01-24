@@ -81,72 +81,180 @@ flowchart TD
         Dec_AltApproved -- Yes --> Solar_CollectDeposit
         Dec_InterestedCash -- Yes --> Solar_CollectDeposit
 
-        %% --- DEPOSIT TO INSTALL SCHEDULING ---
-        Solar_CollectDeposit --> Solar_SelectInstallTime[Select Preferred<br>Install Time]:::solar
-        Solar_SelectInstallTime --> Tetra_CreateJob[Send Job Info<br>to Sibi via API]:::tetra
-        Solar_SelectInstallTime -->|if applicable| Palmetto_SendJobInfo[Send Job Info<br>to Palmetto]:::tetra
+        %% --- DEPOSIT TO SITE VISIT SCHEDULING ---
+        Solar_CollectDeposit --> Solar_SelectSiteVisitTime[Select Preferred<br>Site Visit Time]:::solar
+        Solar_SelectSiteVisitTime --> Tetra_CreateJob[Send Job Info<br>to Sibi via API]:::tetra
+        Solar_SelectSiteVisitTime -->|if applicable| Palmetto_SendJobInfo[Send Job Info<br>to Palmetto]:::tetra
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 2 ---
-    Tetra_CreateJob --> Sibi_COHandoff
+    Tetra_CreateJob --> SV_ViewAvailableTimes
 
     %% =============================================
-    %% PHASE 2: INSTALL
+    %% PHASE 2: SITE VISIT
     %% =============================================
-    subgraph Phase2_Install[PHASE 2: INSTALL]
+    subgraph Phase2_SiteVisit[PHASE 2: SITE VISIT]
         direction TB
 
-        %% --- MAIN INSTALL FLOW ---
-        Sibi_COHandoff[[CO Handoff]]:::subprocess
-        Sibi_COHandoff --> Sibi_MaterialOrder[[Material Ordering]]:::subprocess
-        Sibi_MaterialOrder --> Sibi_UpdateJobStatus[Update Job Status]:::sibi_question
-        Sibi_UpdateJobStatus --> Dec_ChangeOrder{Change<br>Order?}:::logic
+        %% --- SCHEDULING SUBFLOW ---
+        SV_ViewAvailableTimes[View Available Times]:::sibi
+        SV_ViewAvailableTimes --> Dec_SV_SelectVisit{Select<br>Visit?}:::logic
 
-        %% --- NO CHANGE ORDER - COMPLETE INSTALL ---
-        Dec_ChangeOrder -- No --> Sibi_InstallComplete[Install Complete]:::sibi
-        Sibi_InstallComplete --> Sibi_NotifyTetra[Notify Tetra]:::sibi
+        Dec_SV_SelectVisit -- Yes --> Dec_SV_VisitType{Visit<br>Type?}:::logic
 
-        %% =============================================
-        %% CHANGE ORDER SUBGRAPH
-        %% =============================================
-        subgraph ChangeOrder_Subgraph[Change Order]
+        %% --- VISIT TYPE PATHS ---
+        Dec_SV_VisitType -- Standard --> SV_CollectContactInfo[Confirm Contact Info]:::sibi
+        Dec_SV_VisitType -- "Within 2 Hrs" --> SV_CollectContactInfo
+        Dec_SV_VisitType -- "After Hours/Emergency" --> SV_SeePremiumPricing[See Premium Pricing]:::sibi
+        SV_SeePremiumPricing --> SV_CollectContactInfo
+
+        Dec_SV_SelectVisit -- No --> Exit_SV_Session([Exit Session]):::terminator
+
+        SV_CollectContactInfo --> SV_CreateJobST[Create Job in<br>ServiceTitan]:::sibi
+        SV_CreateJobST --> SV_SendConfirmation[Send Confirmation<br>Email/SMS]:::tetra
+
+        %% --- CONFIRMATION SUBFLOW ---
+        SV_SendConfirmation --> SV_Confirmation[[Confirmation]]:::subprocess
+        SV_Confirmation --> Dec_SV_ChangeSchedule{Change<br>Schedule Time?}:::logic
+
+        Dec_SV_ChangeSchedule -- Reschedule --> SV_Confirmation
+        Dec_SV_ChangeSchedule -- Cancel --> SV_FollowUp[[Site Visit Follow Up]]:::subprocess
+        Dec_SV_ChangeSchedule -- No --> SV_EnRoute[[En Route Monitoring]]:::subprocess
+
+        %% --- EN ROUTE MONITORING ---
+        SV_EnRoute --> Dec_SV_EnRouteChange{Change Schedule<br>Time?}:::logic
+
+        %% --- CHANGE SCH TIME (dotted subgraph) ---
+        subgraph SV_ChangeSchTime["Change Sch Time"]
             direction TB
-
-            %% --- CHANGE ORDER FLOW ---
-            CO_UpdateQuote[Send Message with<br>Change Order Details]:::sibi_question
-            CO_UpdateQuote --> CO_UpdateJob[Update the Job]:::tetra
-            CO_UpdateJob --> CO_NotifySalesRep[Notify the Sales Rep]:::tetra_question
-            CO_NotifySalesRep --> CO_SalesFollowUp[[Sales Follow Up]]:::solar_question
-            CO_SalesFollowUp --> Dec_HOApproved{HO<br>Approved?}:::logic
-
-            %% --- HO NOT APPROVED ---
-            Dec_HOApproved -- No --> CO_JobCancelled([Job Cancelled]):::terminator
-            CO_JobCancelled --> CO_UpdateSibiPalmetto([Update Sibi<br>and Palmetto]):::terminator
-
-            %% --- HO APPROVED ---
-            Dec_HOApproved -- Yes --> Dec_COPaymentMethod{Change Order<br>Payment Method?}:::logic
-
-            %% --- CO CASH ---
-            Dec_COPaymentMethod -- Cash --> CO_UpdateJobRecord[Update Job Record]:::tetra
-
-            %% --- CO LEASE/LOAN ---
-            Dec_COPaymentMethod -- Lease/Loan --> CO_Phase1Financing[[↩ Phase 1: Financing]]:::subprocess
-            CO_Phase1Financing --> CO_JobCancelled
-            CO_Phase1Financing --> CO_UpdateJobRecord
+            SV_ReqDiffTime[HO/Surveyor Requests<br>Diff Time]:::sibi
+            SV_ReqDiffTime --> SV_CancelVisit[Cancel Visit]:::sibi
+            SV_CancelVisit --> Dec_SV_Within2Hrs{Within<br>2 Hrs?}:::logic
+            Dec_SV_Within2Hrs -- Yes --> SV_CallParty[Call HO/Surveyor]:::sibi
+            SV_CallParty --> SV_FollowUpSch[[Site Visit Follow Up]]:::subprocess
+            Dec_SV_Within2Hrs -- No --> SV_FollowUpSch
         end
+        style SV_ChangeSchTime fill:none,stroke:#333333,stroke-dasharray: 5 5
 
-        %% --- CHANGE ORDER CONNECTIONS ---
-        Dec_ChangeOrder -- Yes --> CO_UpdateQuote
-        CO_UpdateJobRecord --> Sibi_InstallComplete
+        %% --- RUNNING LATE (dotted subgraph) ---
+        subgraph SV_RunningLate["Running Late"]
+            direction TB
+            SV_Late[HO/Surveyor Running Late]:::sibi
+            SV_Late --> SV_CallOther["Call Other Party<br>(HO/Surveyor)"]:::sibi
+            SV_CallOther --> Dec_SV_CancelLate{Cancel<br>Visit?}:::logic
+            Dec_SV_CancelLate -- Yes --> SV_Reschedule[[Phase 2: Scheduling]]:::subprocess
+            Dec_SV_CancelLate -- No --> SV_NotifyETA[Notify with ETA]:::sibi
+        end
+        style SV_RunningLate fill:none,stroke:#333333,stroke-dasharray: 5 5
+
+        %% --- CONNECTIONS FROM EN ROUTE DECISION ---
+        Dec_SV_EnRouteChange -- Yes --> SV_ChangeSchTime
+        Dec_SV_EnRouteChange -- Delayed --> SV_RunningLate
+        Dec_SV_EnRouteChange -- No --> SV_VisitStarts
+
+        SV_NotifyETA --> SV_VisitStarts
+
+        %% --- SITE VISIT EXECUTION ---
+        SV_VisitStarts[Site Visit Starts]:::monitor
+        SV_VisitStarts --> SV_SurveyorArrives[Surveyor Arrives]:::sibi
+        SV_SurveyorArrives --> SV_AssessProperty[Assess Property]:::sibi
+        SV_AssessProperty --> SV_DocumentFindings[Document Findings]:::sibi
+        SV_DocumentFindings --> SV_UpdateJobNotes[Update Job Notes]:::sibi
+        SV_UpdateJobNotes --> SV_VisitComplete[Site Visit Complete]:::sibi
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 3 ---
-    Sibi_NotifyTetra --> Dec_PaymentMethod
+    SV_VisitComplete --> Dec_ChangeOrder
 
     %% =============================================
-    %% PHASE 3: FOLLOW UP
+    %% PHASE 3: CHANGE ORDER
     %% =============================================
-    subgraph Phase3_FollowUp[PHASE 3: FOLLOW UP]
+    subgraph Phase3_ChangeOrder[PHASE 3: CHANGE ORDER]
+        direction TB
+
+        %% --- ENTRY DECISION ---
+        Dec_ChangeOrder{Change Order<br>Needed?}:::logic
+
+        %% --- CHANGE ORDER FLOW ---
+        CO_UpdateQuote[Send Message with<br>Change Order Details]:::sibi_question
+        CO_UpdateQuote --> CO_UpdateJob[Update the Job]:::tetra
+        CO_UpdateJob --> CO_NotifySalesRep[Notify the Sales Rep]:::tetra_question
+        CO_NotifySalesRep --> CO_SalesFollowUp[[Sales Follow Up]]:::solar_question
+        CO_SalesFollowUp --> Dec_HOApproved{HO<br>Approved?}:::logic
+
+        %% --- HO NOT APPROVED ---
+        Dec_HOApproved -- No --> CO_JobCancelled([Job Cancelled]):::terminator
+        CO_JobCancelled --> CO_UpdateSibiPalmetto([Update Sibi<br>and Palmetto]):::terminator
+
+        %% --- HO APPROVED ---
+        Dec_HOApproved -- Yes --> Dec_COPaymentMethod{Change Order<br>Payment Method?}:::logic
+
+        %% --- CO CASH ---
+        Dec_COPaymentMethod -- Cash --> CO_UpdateJobRecord[Update Job Record]:::tetra
+
+        %% --- CO LEASE/LOAN ---
+        Dec_COPaymentMethod -- Lease/Loan --> CO_Phase1Financing[[Phase 1: Financing]]:::subprocess
+        CO_Phase1Financing --> CO_JobCancelled
+        CO_Phase1Financing --> CO_UpdateJobRecord
+    end
+
+    %% --- CHANGE ORDER CONNECTIONS ---
+    Dec_ChangeOrder -- Yes --> CO_UpdateQuote
+    Dec_ChangeOrder -- No --> MO_Entry
+    CO_UpdateJobRecord --> MO_Entry
+
+    %% =============================================
+    %% PHASE 4: MATERIAL ORDERING
+    %% =============================================
+    subgraph Phase4_MaterialOrdering[PHASE 4: MATERIAL ORDERING]
+        direction TB
+
+        MO_Entry[Material Order Entry]:::sibi
+        MO_Entry --> MO_CheckInventory[Check Equipment<br>Inventory]:::sibi
+        MO_CheckInventory --> Dec_MO_InStock{Equipment<br>In Stock?}:::logic
+
+        Dec_MO_InStock -- Yes --> MO_ReserveEquipment[Reserve Equipment]:::sibi
+        Dec_MO_InStock -- No --> MO_OrderEquipment[Order Equipment]:::sibi
+
+        MO_OrderEquipment --> MO_TrackShipment[Track Shipment]:::sibi
+        MO_TrackShipment --> Dec_MO_Arrived{Equipment<br>Arrived?}:::logic
+        Dec_MO_Arrived -- No --> MO_TrackShipment
+        Dec_MO_Arrived -- Yes --> MO_EquipmentReady[Equipment Ready]:::sibi
+
+        MO_ReserveEquipment --> MO_EquipmentReady
+
+        MO_EquipmentReady --> MO_UpdateJobStatus[Update Job Status]:::sibi
+        MO_UpdateJobStatus --> MO_NotifyInstaller[Notify Installer]:::sibi
+    end
+
+    %% --- CROSS-PHASE CONNECTION TO PHASE 5 ---
+    MO_NotifyInstaller --> Install_Start
+
+    %% =============================================
+    %% PHASE 5: INSTALL
+    %% =============================================
+    subgraph Phase5_Install[PHASE 5: INSTALL]
+        direction TB
+
+        Install_Start[Installation Begins]:::sibi
+        Install_Start --> Install_InProgress[Installation<br>In Progress]:::sibi
+        Install_InProgress --> Dec_Install_Issues{Issues<br>During Install?}:::logic
+
+        Dec_Install_Issues -- Yes --> Install_ChangeOrder[[Phase 3: Change Order]]:::subprocess
+        Dec_Install_Issues -- No --> Install_Complete[Install Complete]:::sibi
+
+        Install_Complete --> Install_Verification[Verify Installation]:::sibi
+        Install_Verification --> Install_HOSignOff[HO Signs Off]:::sibi
+        Install_HOSignOff --> Install_NotifyTetra[Notify Tetra]:::sibi
+    end
+
+    %% --- CROSS-PHASE CONNECTION TO PHASE 6 ---
+    Install_NotifyTetra --> Dec_PaymentMethod
+
+    %% =============================================
+    %% PHASE 6: FOLLOW UP
+    %% =============================================
+    subgraph Phase6_FollowUp[PHASE 6: FOLLOW UP]
         direction TB
 
         Dec_PaymentMethod{Payment<br>Method?}:::logic
@@ -167,3 +275,4 @@ flowchart TD
         Tetra_FundsReceived --> Pay_SibiSalesPalmetto2[Pay Sibi/Sales Org/<br>Palmetto]:::tetra_question
         Pay_SibiSalesPalmetto2 --> Exit_Complete3([Job Complete]):::terminator
     end
+```
