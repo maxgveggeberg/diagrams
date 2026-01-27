@@ -40,7 +40,8 @@ flowchart TD
         %% --- QUOTING ---
         Solar_EnterAddress --> Tetra_GenerateDigitalTwin[Generate Digital Twin]:::tetra
         Tetra_GenerateDigitalTwin --> Solar_ConfirmHousing[Confirm Housing Details]:::solar
-        Solar_ConfirmHousing --> Solar_RebateEligibility[Rebate Eligibility]:::solar
+        Solar_ConfirmHousing --> Solar_TakePic[Take Pic of Heating<br>& Cooling Equip]:::solar
+        Solar_TakePic --> Solar_RebateEligibility[Rebate Availability]:::solar
         Solar_RebateEligibility --> Tetra_CreateQualifiedList[Create Qualified<br>Equipment List]:::tetra
         Tetra_CreateQualifiedList --> Sibi_CheckAvailability[Check Equipment<br>Availability]:::sibi
         Sibi_CheckAvailability --> Tetra_ShowAvailable[Only Show Available<br>Equipment]:::tetra
