@@ -50,7 +50,16 @@ flowchart TD
         Solar_ReviewQuote --> Dec_CustomerInterest{Customer<br>Interested?}:::logic
 
         %% --- NOT INTERESTED ---
-        Dec_CustomerInterest -- No --> Solar_FollowUp[[Sales Follow Up]]:::solar
+        Dec_CustomerInterest -- No --> Solar_FollowUp
+
+        %% =============================================
+        %% SALES FOLLOW UP SUBGRAPH
+        %% =============================================
+        subgraph SalesFollowUp_Subgraph[Sales Follow Up]
+            direction TB
+
+            Solar_FollowUp[[Sales Follow Up]]:::solar
+        end
 
         %% --- INTERESTED - FINANCING OPTION ---
         Dec_CustomerInterest -- Yes --> Dec_FinancingOption{Financing<br>Option?}:::logic
