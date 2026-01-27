@@ -28,6 +28,24 @@ flowchart TD
     end
 
     %% =============================================
+    %% PHASE 0: SALES DASHBOARD
+    %% =============================================
+    subgraph Phase0_SalesDashboard[PHASE 0: SALES DASHBOARD]
+        direction TB
+
+        P0_LoginPage[Login Page]:::solar
+        P0_LoginPage --> P0_ForgetLogin{Forget Login?}:::logic
+        P0_ForgetLogin -- No --> P0_HomePage[Home Page]:::solar
+        P0_ForgetLogin -- Yes --> P0_ResetPassword[Reset Password]:::solar
+        P0_ResetPassword --> P0_EmailText[Email/Text]:::solar
+        P0_EmailText --> P0_SelectNewPassword[Select New Password]:::solar
+        P0_SelectNewPassword --> P0_LoginPage
+    end
+
+    %% --- CROSS-PHASE CONNECTION TO PHASE 1 ---
+    P0_HomePage --> Start
+
+    %% =============================================
     %% PHASE 1: SALES
     %% =============================================
     subgraph Phase1_Sales[PHASE 1: SALES]
