@@ -40,10 +40,11 @@ flowchart TD
         P0_ResetPassword --> P0_EmailText[Email/Text]:::solar
         P0_EmailText --> P0_SelectNewPassword[Select New Password]:::solar
         P0_SelectNewPassword --> P0_LoginPage
+        P0_HomePage --> P0_CreateNew[Create New]:::solar
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 1 ---
-    P0_HomePage --> Start
+    P0_CreateNew --> Solar_EnterAddress
 
     %% =============================================
     %% PHASE 1: SALES
@@ -52,8 +53,7 @@ flowchart TD
         direction TB
 
         %% --- ENTRY ---
-        Start([Solar Rep Identifies<br>HVAC Opportunity]):::solar
-        Start --> Solar_EnterAddress[Enter HO Address<br>in Tetra Quoting Tool]:::solar
+        Solar_EnterAddress[Enter HO Address<br>in Tetra Quoting Tool]:::solar
 
         %% --- QUOTING ---
         Solar_EnterAddress --> Tetra_GenerateDigitalTwin[Generate Digital Twin]:::tetra
