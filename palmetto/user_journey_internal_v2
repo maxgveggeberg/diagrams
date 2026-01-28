@@ -71,7 +71,7 @@ flowchart TD
         Solar_RebateEligibility --> Tetra_CreateQualifiedList[Create Qualified<br>Equipment List]:::tetra
         Tetra_CreateQualifiedList --> Sibi_CheckAvailability[Check Equipment<br>Availability]:::sibi
         Sibi_CheckAvailability --> Tetra_ShowAvailable[Only Show Available<br>Equipment]:::tetra
-        Tetra_ShowAvailable --> Solar_AdjustCommission[Adjust Commission]:::solar
+        Tetra_ShowAvailable --> Solar_AddDiscount[Add Discount]:::solar
         Solar_AdjustCommission --> Solar_ReviewQuote[Review Options<br>with HO]:::solar
         Solar_ReviewQuote --> Dec_CustomerInterest{Customer<br>Interested?}:::logic
 
