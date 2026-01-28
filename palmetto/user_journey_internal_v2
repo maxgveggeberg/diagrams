@@ -201,7 +201,8 @@ flowchart TD
         %% --- LEASE PAYMENT ---
         Dec_PaymentMethod -- Lease --> Sibi_SendQCPics[Sibi send QC pics]:::sibi
         Sibi_SendQCPics --> Tetra_SendToPalmetto[Tetra sends to Palmetto]:::tetra
-        Tetra_SendToPalmetto --> Pay_SibiSalesOrg
+        Tetra_SendToPalmetto --> Palmetto_ReleaseFunds[Palmetto Releases<br>the Funds]:::palmetto
+        Palmetto_ReleaseFunds --> Pay_SibiSalesOrg
 
         %% --- LOAN PAYMENT ---
         Dec_PaymentMethod -- Loan --> Tetra_HOSignOff[HO Signs Off<br>on Work]:::tetra
