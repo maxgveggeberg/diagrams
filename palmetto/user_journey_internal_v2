@@ -108,7 +108,7 @@ flowchart TD
 
         %% --- INSTALL SCHEDULING ---
         Solar_SelectInstallTime[Select Up to 3 Times<br>for Site Visit]:::solar
-        Solar_SelectInstallTime --> Tetra_CreateJob[Send Job Info<br>to Sibi via API]:::tetra
+        Solar_SelectInstallTime --> Tetra_CreateJob[Text Contractor<br>Site Visit Times]:::tetra
         Solar_SelectInstallTime -->|if applicable| Palmetto_SendJobInfo[Send Job Info<br>to Palmetto]:::tetra
     end
 
