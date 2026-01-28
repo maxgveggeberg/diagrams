@@ -162,17 +162,17 @@ flowchart TD
 
             %% --- CO CASH ---
             Dec_COPaymentMethod -- Cash --> CO_HOEntersCard[HO enters credit card<br>if not on file]:::solar
-            CO_HOEntersCard --> CO_UpdateJobRecord[Update Job Record]:::tetra
-            CO_UpdateJobRecord --> CO_UpdateSibi[Update Sibi]:::tetra
 
             %% --- CO LEASE/LOAN ---
             Dec_COPaymentMethod -- Lease/Loan --> CO_Phase1Financing[[↩ Phase 1: Financing]]:::subprocess
             CO_Phase1Financing --> CO_JobCancelled
-            CO_Phase1Financing --> CO_UpdateJobRecord
         end
 
         %% --- CHANGE ORDER CONNECTIONS ---
         Dec_ChangeOrder -- Yes --> CO_UpdateQuote
+        CO_HOEntersCard --> CO_UpdateJobRecord[Update Job Record]:::tetra
+        CO_Phase1Financing --> CO_UpdateJobRecord
+        CO_UpdateJobRecord --> CO_UpdateSibi[Update Sibi]:::tetra
         CO_UpdateSibi --> Sibi_MaterialOrder
     end
 
