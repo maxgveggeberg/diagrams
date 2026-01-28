@@ -107,8 +107,10 @@ flowchart TD
         Dec_InterestedCash -- Yes --> Solar_SelectInstallTime
 
         %% --- INSTALL SCHEDULING ---
-        Solar_SelectInstallTime[Select Up to 3 Times<br>for Site Visit]:::solar
-        Solar_SelectInstallTime --> Tetra_CreateJob[Text Contractor<br>Site Visit Times]:::tetra
+        subgraph Highlight_SiteVisitScheduling[" "]
+            Solar_SelectInstallTime[Select Up to 3 Times<br>for Site Visit]:::solar
+            Solar_SelectInstallTime --> Tetra_CreateJob[Text CO<br>Site Visit Times]:::tetra
+        end
         Solar_SelectInstallTime -->|if applicable| Palmetto_SendJobInfo[Send Job Info<br>to Palmetto]:::tetra
     end
 
@@ -122,14 +124,16 @@ flowchart TD
         direction TB
 
         %% --- SITE VISIT SCHEDULING ---
-        Dec_COConfirmsTime{CO Confirms<br>Time?}:::logic
-        Dec_COConfirmsTime -- Yes --> Sibi_TextHO[Text HO to<br>Re-confirm]:::sibi
-        Sibi_TextHO --> Dec_HOReconfirms{HO<br>Re-confirms?}:::logic
+        subgraph Highlight_COConfirmSchedule[" "]
+            Dec_COConfirmsTime{CO Confirms<br>Time?}:::logic
+            Dec_COConfirmsTime -- Yes --> Sibi_TextHO[Text HO to<br>Re-confirm]:::sibi
+            Sibi_TextHO --> Dec_HOReconfirms{HO<br>Re-confirms?}:::logic
+            Dec_HOReconfirms -- No --> Sibi_NotifyCO[Notify CO]:::sibi
+            Sibi_NotifyCO --> Sibi_COSchedules
+            Dec_COConfirmsTime -- No --> Sibi_NotifyHO[Notify HO]:::sibi
+            Sibi_NotifyHO --> Sibi_COSchedules[CO Schedules<br>Site Visit]:::sibi
+        end
         Dec_HOReconfirms -- Yes --> Sibi_SiteInspection
-        Dec_HOReconfirms -- No --> Sibi_NotifyCO[Notify CO]:::sibi
-        Sibi_NotifyCO --> Sibi_COSchedules
-        Dec_COConfirmsTime -- No --> Sibi_NotifyHO[Notify HO]:::sibi
-        Sibi_NotifyHO --> Sibi_COSchedules[CO Schedules<br>Site Visit]:::sibi
         Sibi_COSchedules --> Sibi_SiteInspection
 
         %% --- MAIN INSTALL FLOW ---
@@ -207,3 +211,7 @@ flowchart TD
         %% --- JOB COMPLETE ---
         Pay_SibiSalesOrg --> Exit_Complete([Job Complete]):::terminator
     end
+
+    %% --- HIGHLIGHT STYLING ---
+    style Highlight_SiteVisitScheduling fill:none,stroke:#c62828,stroke-width:3px,stroke-dasharray:0
+    style Highlight_COConfirmSchedule fill:none,stroke:#c62828,stroke-width:3px,stroke-dasharray:0
