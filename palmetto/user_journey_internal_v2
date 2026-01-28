@@ -161,7 +161,8 @@ flowchart TD
             Dec_HOApproved -- Yes --> Dec_COPaymentMethod{Change Order<br>Payment Method?}:::logic
 
             %% --- CO CASH ---
-            Dec_COPaymentMethod -- Cash --> CO_UpdateJobRecord[Update Job Record]:::tetra
+            Dec_COPaymentMethod -- Cash --> CO_HOEntersCard[HO enters credit card<br>(if not on file)]:::solar
+            CO_HOEntersCard --> CO_UpdateJobRecord[Update Job Record]:::tetra
             CO_UpdateJobRecord --> CO_UpdateSibi[Update Sibi]:::tetra
 
             %% --- CO LEASE/LOAN ---
