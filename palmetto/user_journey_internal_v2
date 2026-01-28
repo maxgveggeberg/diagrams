@@ -48,6 +48,7 @@ flowchart TD
             P0_Filter[Filter]:::solar
             P0_Search[Search]:::solar
             P0_ChangeTabs[Change Views]:::solar
+            P0_Notes[Notes]:::solar
         end
     end
 
