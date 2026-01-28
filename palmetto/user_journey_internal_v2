@@ -213,6 +213,17 @@ flowchart TD
         Pay_SibiSalesOrg --> Exit_Complete([Job Complete]):::terminator
     end
 
+    %% --- CROSS-PHASE CONNECTION TO PHASE 4 ---
+    Exit_Complete --> Phase4_Callbacks
+
+    %% =============================================
+    %% PHASE 4: CALL BACKS
+    %% =============================================
+    subgraph Phase4_Callbacks[PHASE 4: CALL BACKS]
+        direction TB
+
+    end
+
     %% --- HIGHLIGHT STYLING ---
     style Highlight_SiteVisitScheduling fill:none,stroke:#c62828,stroke-width:3px,stroke-dasharray:0
     style Highlight_COConfirmSchedule fill:none,stroke:#c62828,stroke-width:3px,stroke-dasharray:0
