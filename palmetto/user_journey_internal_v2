@@ -113,13 +113,24 @@ flowchart TD
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 2 ---
-    Tetra_CreateJob --> Sibi_SiteInspection
+    Tetra_CreateJob --> Dec_COConfirmsTime
 
     %% =============================================
     %% PHASE 2: INSTALL
     %% =============================================
     subgraph Phase2_Install[PHASE 2: INSTALL]
         direction TB
+
+        %% --- SITE VISIT SCHEDULING ---
+        Dec_COConfirmsTime{CO Confirms<br>Time?}:::logic
+        Dec_COConfirmsTime -- Yes --> Sibi_TextHO[Text HO to<br>Re-confirm]:::sibi
+        Sibi_TextHO --> Dec_HOReconfirms{HO<br>Re-confirms?}:::logic
+        Dec_HOReconfirms -- Yes --> Sibi_SiteInspection
+        Dec_HOReconfirms -- No --> Sibi_NotifyCO[Notify CO]:::sibi
+        Sibi_NotifyCO --> Sibi_COSchedules
+        Dec_COConfirmsTime -- No --> Sibi_NotifyHO[Notify HO]:::sibi
+        Sibi_NotifyHO --> Sibi_COSchedules[CO Schedules<br>Site Visit]:::sibi
+        Sibi_COSchedules --> Sibi_SiteInspection
 
         %% --- MAIN INSTALL FLOW ---
         Sibi_SiteInspection[Site Inspection]:::sibi
