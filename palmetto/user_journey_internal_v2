@@ -82,7 +82,8 @@ flowchart TD
         Dec_CustomerInterest -- Yes --> Dec_FinancingOption{Financing<br>Option?}:::logic
 
         %% --- CASH PATH ---
-        Dec_FinancingOption -- Cash --> Solar_SelectInstallTime
+        Dec_FinancingOption -- Cash --> Solar_EnterCreditCard[Enter Credit Card]:::solar
+        Solar_EnterCreditCard --> Solar_SelectInstallTime
 
         %% --- LEASE/LOAN PATH ---
         Dec_FinancingOption -- Lease/Loan --> Solar_FinanceCheck
@@ -106,7 +107,7 @@ flowchart TD
         Dec_InterestedCash -- Yes --> Solar_SelectInstallTime
 
         %% --- INSTALL SCHEDULING ---
-        Solar_SelectInstallTime[Select Preferred<br>Site Visit]:::solar
+        Solar_SelectInstallTime[Select Preferred<br>Site Visit Time]:::solar
         Solar_SelectInstallTime --> Tetra_CreateJob[Send Job Info<br>to Sibi via API]:::tetra
         Solar_SelectInstallTime -->|if applicable| Palmetto_SendJobInfo[Send Job Info<br>to Palmetto]:::tetra
     end
