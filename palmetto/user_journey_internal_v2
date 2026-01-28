@@ -142,7 +142,7 @@ flowchart TD
         Dec_SchInstall -- No --> TextEmailHO[Text/Email HO]:::sibi
         TextEmailHO --> CO_UpdateJobRecord
         Sibi_MaterialOrder --> Sibi_InstallComplete[Install Complete]:::sibi
-        Sibi_InstallComplete --> Sibi_NotifyTetra[Notify Tetra]:::sibi
+        Sibi_InstallComplete --> CO_CollectsQC[CO collects QC pics]:::sibi
 
         %% =============================================
         %% CHANGE ORDER SUBGRAPH
@@ -180,7 +180,7 @@ flowchart TD
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 3 ---
-    Sibi_NotifyTetra --> Dec_PaymentMethod
+    CO_CollectsQC --> Dec_PaymentMethod
 
     %% =============================================
     %% PHASE 3: FOLLOW UP
