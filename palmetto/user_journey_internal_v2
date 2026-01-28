@@ -41,6 +41,18 @@ flowchart TD
         P0_EmailText --> P0_SelectNewPassword[Select New Password]:::solar
         P0_SelectNewPassword --> P0_LoginPage
         P0_HomePage --> P0_CreateNew[Create New]:::solar
+        P0_HomePage --> Actions_Subgraph
+
+        %% --- ACTIONS SUBGRAPH ---
+        subgraph Actions_Subgraph[Actions]
+            direction TB
+
+            P0_ViewProject[View Project]:::solar
+            P0_UpdateStatus[Update Status]:::solar
+            P0_Filter[Filter]:::solar
+            P0_Search[Search]:::solar
+            P0_ChangeTabs[Change Tabs]:::solar
+        end
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 1 ---
