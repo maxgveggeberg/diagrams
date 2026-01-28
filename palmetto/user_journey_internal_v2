@@ -47,7 +47,7 @@ flowchart TD
             P0_UpdateStatus[Update Status]:::solar
             P0_Filter[Filter]:::solar
             P0_Search[Search]:::solar
-            P0_ChangeTabs[Change Tabs]:::solar
+            P0_ChangeTabs[Change Views]:::solar
         end
     end
 
