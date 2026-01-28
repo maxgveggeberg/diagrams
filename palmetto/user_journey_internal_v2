@@ -149,8 +149,8 @@ flowchart TD
 
             %% --- CHANGE ORDER FLOW ---
             CO_UpdateQuote[CO provides reason<br>and price change]:::sibi_question
-            CO_UpdateQuote --> CO_NotifySalesRep[Notify the Sales Rep]:::tetra_question
-            CO_NotifySalesRep --> CO_SalesFollowUp[[Sales Follow Up]]:::solar_question
+            CO_UpdateQuote --> CO_NotifySalesRep[Notify the Sales Rep]:::tetra
+            CO_NotifySalesRep --> CO_SalesFollowUp[[Sales Follow Up]]:::solar
             CO_SalesFollowUp --> Dec_HOApproved{HO<br>Approved?}:::logic
 
             %% --- HO NOT APPROVED ---
