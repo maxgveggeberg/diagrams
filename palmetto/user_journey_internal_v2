@@ -134,8 +134,7 @@ flowchart TD
 
         %% --- MAIN INSTALL FLOW ---
         Sibi_SiteInspection[Site Inspection]:::sibi
-        Sibi_SiteInspection --> Sibi_UpdateJobStatus[Update Job Status]:::sibi_question
-        Sibi_UpdateJobStatus --> Dec_ChangeOrder{Change<br>Order?}:::logic
+        Sibi_SiteInspection --> Dec_ChangeOrder{Change<br>Order?}:::logic
 
         %% --- NO CHANGE ORDER - MATERIAL ORDERING ---
         Dec_ChangeOrder -- No --> Sibi_MaterialOrder[[Material Ordering]]:::sibi
