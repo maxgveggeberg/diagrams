@@ -222,6 +222,7 @@ flowchart TD
     subgraph Phase4_Callbacks[PHASE 4: CALL BACKS]
         direction TB
 
+        P4_Placeholder[Placeholder]:::sibi
     end
 
     %% --- HIGHLIGHT STYLING ---
