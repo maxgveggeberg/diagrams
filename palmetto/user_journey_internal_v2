@@ -175,7 +175,8 @@ flowchart TD
         Dec_ChangeOrder -- Yes --> CO_UpdateQuote
         CO_HOEntersCard --> CO_UpdateJobRecord[HO selects preferred<br>install times]:::tetra
         CO_Phase1Financing --> CO_UpdateJobRecord
-        CO_UpdateJobRecord --> Sibi_MaterialOrder
+        CO_UpdateJobRecord --> DoubleConfirmation[[Double Confirmation]]:::subprocess
+        DoubleConfirmation --> Sibi_MaterialOrder
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 3 ---
