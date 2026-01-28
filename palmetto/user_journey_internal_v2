@@ -170,10 +170,9 @@ flowchart TD
 
         %% --- CHANGE ORDER CONNECTIONS ---
         Dec_ChangeOrder -- Yes --> CO_UpdateQuote
-        CO_HOEntersCard --> CO_UpdateJobRecord[Update Job Record]:::tetra
+        CO_HOEntersCard --> CO_UpdateJobRecord[HO selects preferred<br>install times]:::tetra
         CO_Phase1Financing --> CO_UpdateJobRecord
-        CO_UpdateJobRecord --> CO_UpdateSibi[Update Sibi]:::tetra
-        CO_UpdateSibi --> Sibi_MaterialOrder
+        CO_UpdateJobRecord --> Sibi_MaterialOrder
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 3 ---
