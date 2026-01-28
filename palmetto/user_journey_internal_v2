@@ -217,3 +217,4 @@ flowchart TD
     style Highlight_COConfirmSchedule fill:none,stroke:#c62828,stroke-width:3px,stroke-dasharray:0
     style Dec_SchInstall stroke:#c62828,stroke-width:3px
     style DoubleConfirmation stroke:#c62828,stroke-width:3px
+    style Sibi_SendQCPics stroke:#c62828,stroke-width:3px
