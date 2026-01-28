@@ -192,17 +192,18 @@ flowchart TD
 
         %% --- CASH PAYMENT ---
         Dec_PaymentMethod -- Cash --> Tetra_TriggerPayment[Trigger Payment<br>Processing]:::tetra
-        Tetra_TriggerPayment --> Pay_SibiSalesPalmetto[Pay Sibi/Sales Org/<br>Palmetto]:::tetra_question
-        Pay_SibiSalesPalmetto --> Exit_Complete([Job Complete]):::terminator
+        Tetra_TriggerPayment --> Pay_SibiSalesOrg[Pay Sibi/Sales Org]:::tetra
 
         %% --- LEASE PAYMENT ---
-        Dec_PaymentMethod -- Lease --> Notify_Palmetto[Notify Palmetto]:::tetra
-        Notify_Palmetto --> Pay_SibiSalesTetra[Pay Sibi/Sales Org/<br>Tetra]:::palmetto_question
-        Pay_SibiSalesTetra --> Exit_Complete2([Job Complete]):::terminator
+        Dec_PaymentMethod -- Lease --> Sibi_SendQCPics[Sibi send QC pics]:::sibi
+        Sibi_SendQCPics --> Tetra_SendToPalmetto[Tetra sends to Palmetto]:::tetra
+        Tetra_SendToPalmetto --> Pay_SibiSalesOrg
 
         %% --- LOAN PAYMENT ---
         Dec_PaymentMethod -- Loan --> Tetra_HOSignOff[HO Signs Off<br>on Work]:::tetra
         Tetra_HOSignOff --> Tetra_FundsReceived[Funds Received]:::tetra
-        Tetra_FundsReceived --> Pay_SibiSalesPalmetto2[Pay Sibi/Sales Org/<br>Palmetto]:::tetra_question
-        Pay_SibiSalesPalmetto2 --> Exit_Complete3([Job Complete]):::terminator
+        Tetra_FundsReceived --> Pay_SibiSalesOrg
+
+        %% --- JOB COMPLETE ---
+        Pay_SibiSalesOrg --> Exit_Complete([Job Complete]):::terminator
     end
