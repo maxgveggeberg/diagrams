@@ -136,8 +136,11 @@ flowchart TD
         Sibi_SiteInspection[Site Inspection]:::sibi
         Sibi_SiteInspection --> Dec_ChangeOrder{Change<br>Order?}:::logic
 
-        %% --- NO CHANGE ORDER - MATERIAL ORDERING ---
-        Dec_ChangeOrder -- No --> Sibi_MaterialOrder[[Material Ordering]]:::sibi
+        %% --- NO CHANGE ORDER - INSTALL SCHEDULING ---
+        Dec_ChangeOrder -- No --> Dec_SchInstall{Sch install<br>during site visit?}:::logic
+        Dec_SchInstall -- Yes --> Sibi_MaterialOrder[[Material Ordering]]:::sibi
+        Dec_SchInstall -- No --> TextEmailHO[Text/Email HO]:::sibi
+        TextEmailHO --> CO_UpdateJobRecord
         Sibi_MaterialOrder --> Sibi_InstallComplete[Install Complete]:::sibi
         Sibi_InstallComplete --> Sibi_NotifyTetra[Notify Tetra]:::sibi
 
