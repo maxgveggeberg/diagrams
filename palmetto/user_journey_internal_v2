@@ -187,6 +187,7 @@ flowchart TD
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 3 ---
     SendConfirmationHO --> Dec_PaymentMethod
+    SendConfirmationHO --> RebateSubmission
 
     %% =============================================
     %% PHASE 3: FOLLOW UP
@@ -194,6 +195,7 @@ flowchart TD
     subgraph Phase3_FollowUp[PHASE 3: PAYMENT]
         direction TB
 
+        RebateSubmission[[Rebate Submission]]:::subprocess
         Dec_PaymentMethod{Payment<br>Method?}:::logic
 
         %% --- CASH PAYMENT ---
@@ -249,3 +251,4 @@ flowchart TD
     style Sibi_SendQCPics stroke:#c62828,stroke-width:3px
     style Dec_MaterialNeeded stroke:#c62828,stroke-width:3px
     style P4_OrderMaterial stroke:#c62828,stroke-width:3px
+    style RebateSubmission stroke:#c62828,stroke-width:3px

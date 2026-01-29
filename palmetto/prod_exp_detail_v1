@@ -1,0 +1,97 @@
+```mermaid
+%%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
+flowchart LR
+
+subgraph dashboard["Sales/Ops Dashboard"]
+    login["Login"]
+    reset_password["Reset Password"]
+    ho_table["Job Table"]
+    ho_profile["HO Profile"]
+    visit["Visit"]
+    case["Case"]
+    settings["Settings"]
+    co_profile["CO Profile"]
+
+    login --> reset_password
+    login --> ho_table
+    ho_table --> ho_profile
+    ho_table --> visit
+    ho_table --> case
+    ho_table --> settings
+    ho_table --> co_profile
+    ho_profile <--> visit
+    ho_profile <--> case
+    visit --> co_profile
+    case --> co_profile
+end
+
+subgraph canvassing_tool["Canvassing Tool"]
+    contact_details["Contact Details"]
+    animation["Animation"]
+    home_details["Home Details"]
+    plp["PLP"]
+    pdp["PDP"]
+    payment["Payment"]
+    schedule["Schedule"]
+    confirm["Confirm"]
+    customize_project["Customize Project"]
+    change_order["Change Order"]
+
+    contact_details --> animation --> home_details --> plp
+    plp <--> pdp
+    pdp --> payment
+    plp --> payment --> schedule --> confirm
+    plp --> customize_project
+    pdp --> customize_project
+    payment --> customize_project
+    schedule --> customize_project
+    confirm --> customize_project
+end
+
+subgraph co_dashboard["CO Dashboard"]
+    co_login["Login"]
+    co_reset_password["Reset Password"]
+    co_ho_profile["HO Profile"]
+    co_ho_table["Job Table"]
+    co_case["Case"]
+    co_visit["Visit"]
+    co_settings["Settings"]
+
+    co_login --> co_reset_password
+    co_login --> co_ho_table
+    co_ho_table --> co_ho_profile
+    co_ho_table --> co_visit
+    co_ho_table --> co_case
+    co_ho_table --> co_settings
+end
+
+subgraph ho_dashboard["HO Dashboard"]
+    ho_login["Login"]
+    ho_reset_password["Reset Password"]
+    home["Home"]
+    reschedule["Reschedule"]
+    cancel["Cancel"]
+    change_co["Change CO"]
+    ho_change_order["Change Order"]
+    select_different_equipment["Select Different Equipment"]
+    change_financing["Change Financing"]
+
+    ho_login --> home
+    ho_login --> ho_reset_password
+    home --> cancel
+    home --> select_different_equipment
+    home --> reschedule
+    home --> change_co
+    home --> change_financing
+    home --> ho_change_order
+end
+
+subgraph co_field_app["CO Field App"]
+    project_details["Project Details"]
+    pictures["Pictures"]
+    field_change_order["Change Order"]
+end
+
+dashboard -- HO profile --> canvassing_tool
+dashboard -- HO profile --> ho_dashboard
+canvassing_tool --Confirm--> ho_dashboard
