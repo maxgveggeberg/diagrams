@@ -101,10 +101,13 @@ flowchart TD
             %% --- FINANCING NOT APPROVED ---
             Palmetto_Approved -- No --> Dec_InterestedCash{Interested<br>in Cash?}:::logic
             Dec_InterestedCash -- No --> Exit_Lost([Closed Lost]):::terminator
+
+            %% --- FINANCING APPROVED ---
+            Palmetto_Approved -- Yes --> Palmetto_CollectVerification[Collect Verification]:::solar
         end
 
         %% --- FINANCING TO INSTALL SCHEDULING ---
-        Palmetto_Approved -- Yes --> Solar_SelectInstallTime
+        Palmetto_CollectVerification --> Solar_SelectInstallTime
         Dec_InterestedCash -- Yes --> Solar_SelectInstallTime
 
         %% --- INSTALL SCHEDULING ---
