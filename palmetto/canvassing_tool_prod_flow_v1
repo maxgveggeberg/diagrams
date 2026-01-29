@@ -1,0 +1,48 @@
+```mermaid
+flowchart LR
+
+subgraph dashboard["Dashboard"]
+    login["Login"]
+    reset_password["Reset Password"]
+    ho_table["HO Table"]
+    ho_profile["HO Profile"]
+    visit["Visit"]
+    case["Case"]
+    settings["Settings"]
+    co_profile["CO Profile"]
+end
+
+subgraph canvassing_tool["Canvassing Tool"]
+    contact_details["Contact Details"]
+    home_details["Home Details"]
+    plp["PLP"]
+    pdp["PDP"]
+    payment["Payment"]
+    schedule["Schedule"]
+    confirm["Confirm"]
+    customize_project["Customize Project"]
+    change_order["Change Order"]
+end
+
+subgraph co_dashboard["CO Dashboard"]
+    co_ho_profile["HO Profile"]
+    co_ho_table["HO Table"]
+    co_settings["Settings"]
+end
+
+subgraph ho_dashboard["HO Dashboard"]
+    home["Home"]
+    reschedule["Reschedule"]
+    cancel["Cancel"]
+    change_co["Change CO"]
+    ho_change_order["Change Order"]
+    select_different_equipment["Select Different Equipment"]
+    change_financing["Change Financing"]
+    message_co["Message CO"]
+end
+
+subgraph co_field_app["CO Field App"]
+    project_details["Project Details"]
+    pictures["Pictures"]
+    field_change_order["Change Order"]
+end

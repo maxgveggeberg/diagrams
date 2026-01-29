@@ -148,6 +148,7 @@ flowchart TD
         TextEmailHO --> CO_UpdateJobRecord
         Sibi_MaterialOrder --> Sibi_InstallComplete[Install Complete]:::sibi
         Sibi_InstallComplete --> CO_CollectsQC[CO collects QC pics]:::sibi
+        CO_CollectsQC --> SendConfirmationHO[Send confirmation to HO]:::sibi
 
         %% =============================================
         %% CHANGE ORDER SUBGRAPH
@@ -185,12 +186,12 @@ flowchart TD
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 3 ---
-    CO_CollectsQC --> Dec_PaymentMethod
+    SendConfirmationHO --> Dec_PaymentMethod
 
     %% =============================================
     %% PHASE 3: FOLLOW UP
     %% =============================================
-    subgraph Phase3_FollowUp[PHASE 3: FOLLOW UP]
+    subgraph Phase3_FollowUp[PHASE 3: PAYMENT]
         direction TB
 
         Dec_PaymentMethod{Payment<br>Method?}:::logic
@@ -215,7 +216,7 @@ flowchart TD
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 4 ---
-    Exit_Complete --> Phase4_Callbacks
+    Exit_Complete --> P4_FormSubmit
 
     %% =============================================
     %% PHASE 4: CALL BACKS
@@ -223,7 +224,21 @@ flowchart TD
     subgraph Phase4_Callbacks[PHASE 4: CALL BACKS]
         direction TB
 
-        P4_Placeholder[Placeholder]:::sibi
+        %% --- CASE ENTRY ---
+        P4_FormSubmit([Customer Submits Case Form]):::sibi_question
+        P4_FormSubmit --> P4_CaseCreated[Case Created]:::tetra
+
+        %% --- INITIAL DIAGNOSIS ---
+        P4_CaseCreated --> P4_DiagnoseIssue[[Diagnose Issue<br>with Repairbot]]:::subprocess
+        P4_DiagnoseIssue --> Dec_ResolvedInitial{Resolved?}:::logic
+        Dec_ResolvedInitial -- Yes --> P4_CaseResolved([Case Resolved]):::terminator
+
+        %% --- MATERIAL & SCHEDULING ---
+        Dec_ResolvedInitial -- No --> P4_OpsReachOut[CO Reaches Out]:::tetra
+        P4_OpsReachOut --> Dec_MaterialNeeded{Material Needs<br>to be Ordered?}:::logic
+        Dec_MaterialNeeded -- Yes --> P4_OrderMaterial[Order Material]:::tetra
+        P4_OrderMaterial --> P4_CaseVisitScheduling
+        Dec_MaterialNeeded -- No --> P4_CaseVisitScheduling[[CO Resolves Case]]:::subprocess
     end
 
     %% --- HIGHLIGHT STYLING ---
@@ -232,3 +247,5 @@ flowchart TD
     style Dec_SchInstall stroke:#c62828,stroke-width:3px
     style DoubleConfirmation stroke:#c62828,stroke-width:3px
     style Sibi_SendQCPics stroke:#c62828,stroke-width:3px
+    style Dec_MaterialNeeded stroke:#c62828,stroke-width:3px
+    style P4_OrderMaterial stroke:#c62828,stroke-width:3px
