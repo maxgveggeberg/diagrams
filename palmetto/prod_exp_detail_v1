@@ -2,7 +2,7 @@
 %%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
 flowchart LR
 
-subgraph dashboard["Sales/Ops Dashboard"]
+subgraph dashboard["Dashboard (sales/ops/CO)"]
     login["Login"]
     reset_password["Reset Password"]
     ho_table["Job Table"]
@@ -35,7 +35,6 @@ subgraph canvassing_tool["Canvassing Tool"]
     schedule["Schedule"]
     confirm["Confirm"]
     customize_project["Customize Project"]
-    change_order["Change Order"]
 
     contact_details --> animation --> home_details --> plp
     plp <--> pdp
@@ -48,23 +47,6 @@ subgraph canvassing_tool["Canvassing Tool"]
     confirm --> customize_project
 end
 
-subgraph co_dashboard["CO Dashboard"]
-    co_login["Login"]
-    co_reset_password["Reset Password"]
-    co_ho_profile["HO Profile"]
-    co_ho_table["Job Table"]
-    co_case["Case"]
-    co_visit["Visit"]
-    co_settings["Settings"]
-
-    co_login --> co_reset_password
-    co_login --> co_ho_table
-    co_ho_table --> co_ho_profile
-    co_ho_table --> co_visit
-    co_ho_table --> co_case
-    co_ho_table --> co_settings
-end
-
 subgraph ho_dashboard["HO Dashboard"]
     ho_login["Login"]
     ho_reset_password["Reset Password"]
@@ -73,25 +55,43 @@ subgraph ho_dashboard["HO Dashboard"]
     cancel["Cancel"]
     change_co["Change CO"]
     ho_change_order["Change Order"]
-    select_different_equipment["Select Different Equipment"]
+    ho_plp["PLP"]
+    ho_pdp["PDP"]
     change_financing["Change Financing"]
+    ho_payment["Payment"]
+    ho_schedule["Schedule"]
 
     ho_login --> home
     ho_login --> ho_reset_password
     home --> cancel
-    home --> select_different_equipment
+    home --> ho_plp --> ho_pdp
     home --> reschedule
     home --> change_co
     home --> change_financing
-    home --> ho_change_order
+    home --> ho_change_order --> ho_payment --> ho_schedule
 end
 
 subgraph co_field_app["CO Field App"]
     project_details["Project Details"]
     pictures["Pictures"]
     field_change_order["Change Order"]
+    site_visit["Site Visit"]
+    install["Install"]
+    call_back["Call Back"]
+    project_overview["Project Overview"]
+
+    project_overview --> project_details
+    project_overview --> site_visit <--> pictures
+    project_overview --> install <--> pictures
+    project_overview --> call_back <--> pictures
+    site_visit --> field_change_order
+    project_overview --> field_change_order
 end
 
-dashboard -- HO profile --> canvassing_tool
-dashboard -- HO profile --> ho_dashboard
+job_status{"Job Status"}
+dashboard -- HO profile --> job_status
+job_status -- Open --> canvassing_tool
+job_status -- Closed won --> ho_dashboard
+dashboard --Visit--> co_field_app
 canvassing_tool --Confirm--> ho_dashboard
+ho_dashboard --Change order--> canvassing_tool
