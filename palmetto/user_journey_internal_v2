@@ -151,7 +151,9 @@ flowchart TD
         TextEmailHO --> CO_UpdateJobRecord
         Sibi_MaterialOrder --> Sibi_InstallComplete[Install Complete]:::sibi
         Sibi_InstallComplete --> CO_CollectsQC[CO collects QC pics]:::sibi
-        CO_CollectsQC --> SendConfirmationHO[Send confirmation to HO]:::sibi
+        CO_CollectsQC --> HO_SignsOff[HO signs off on work]:::sibi
+        HO_SignsOff --> HO_CSAT[HO completes CSAT survey]:::sibi
+        HO_CSAT --> SendReceiptHOCO[Send receipt to HO/CO]:::sibi
 
         %% =============================================
         %% CHANGE ORDER SUBGRAPH
@@ -189,8 +191,8 @@ flowchart TD
     end
 
     %% --- CROSS-PHASE CONNECTION TO PHASE 3 ---
-    SendConfirmationHO --> Dec_PaymentMethod
-    SendConfirmationHO --> RebateSubmission
+    SendReceiptHOCO --> Dec_PaymentMethod
+    SendReceiptHOCO --> RebateSubmission
 
     %% =============================================
     %% PHASE 3: FOLLOW UP
