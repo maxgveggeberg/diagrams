@@ -84,6 +84,7 @@ subgraph co_field_app["CO Field App"]
     project_overview --> site_visit <--> pictures
     project_overview --> install <--> pictures
     project_overview --> call_back <--> pictures
+    site_visit --> scheduling["Scheduling"]
     site_visit --> field_change_order
     project_overview --> field_change_order
 end
