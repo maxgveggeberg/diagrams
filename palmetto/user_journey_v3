@@ -6,7 +6,7 @@ flowchart TD
     %% --- STYLING ---
     classDef ho fill:#f3e5f5,stroke:#7b1fa2,color:#6a1b9a,stroke-width:2px
     classDef solar fill:#f5f5f5,stroke:#616161,color:#424242,stroke-width:2px
-    classDef tetra fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
+    classDef tetra fill:#fff9c4,stroke:#f9a825,color:#e65100,stroke-width:2px
     classDef palmetto fill:#fff3e0,stroke:#ef6c00,color:#e65100,stroke-width:2px
     classDef sibi fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
     classDef co fill:#e0f2f1,stroke:#00796b,color:#004d40,stroke-width:2px
@@ -100,20 +100,19 @@ flowchart TD
         P1_EnterCC --> P1_SelectSiteVisit
 
         %% --- SELECT SITE VISIT ---
-        P1_SelectSiteVisit[Select Site Visit Times]:::ho
+        P1_SelectSiteVisit[Select Preferred Site Visit Times]:::ho
 
     end
 
-    P1_SelectSiteVisit --> P2_COConfirmTask
+    P1_SelectSiteVisit --> Dec_COConfirms
 
     %% =============================================
-    %% PHASE 2: SITE VISIT
+    %% PHASE 2: SCHEDULE SITE VISIT
     %% =============================================
-    subgraph Phase2_SiteVisit[PHASE 2: SITE VISIT]
+    subgraph Phase2_ScheduleSiteVisit[PHASE 2: SCHEDULE SITE VISIT]
         direction TB
 
-        P2_COConfirmTask[Confirm Site Visit Time]:::co
-        P2_COConfirmTask --> Dec_COConfirms{CO Confirms<br>a Time?}:::logic
+        Dec_COConfirms{CO Selects<br>Preferred Time?}:::logic
 
         Dec_COConfirms -- Yes --> P2_HOConfirmTask[Confirm Site Visit Time]:::ho
         P2_HOConfirmTask --> Dec_HOConfirms{HO<br>Confirms?}:::logic
@@ -123,104 +122,81 @@ flowchart TD
 
         Dec_HOConfirms -- No --> P2_COScheduleTask
         Dec_HOConfirms -- Yes --> P2_SiteVisitConfirmed["✓ Site Visit Confirmed"]:::monitor
-        Dec_Scheduled -- Yes --> P2_SiteVisitConfirmed
-        Dec_Scheduled -- No --> P2_Sub_Sales[[PHASE 1: SALES]]:::subprocess
-
-        P2_SiteVisitConfirmed --> P2_ConductVisit[Conduct Site Visit]:::co
+        Dec_Scheduled -- Yes --> P2_UpdateScheduled[Update Scheduled Time]:::co
+        P2_UpdateScheduled --> P2_SiteVisitConfirmed
+        Dec_Scheduled -- No --> P2_ContactCustomer[Contact Customer]:::solar
     end
 
-    P2_ConductVisit --> Dec_ChangeOrder
+    P2_SiteVisitConfirmed --> P2_ConductVisit
 
     %% =============================================
-    %% PHASE 3: CHANGE ORDER
+    %% PHASE 3: SITE VISIT
     %% =============================================
-    subgraph Phase3_ChangeOrder[PHASE 3: CHANGE ORDER]
+    subgraph Phase3_SiteVisit[PHASE 3: SITE VISIT]
         direction TB
 
-        Dec_ChangeOrder{Change Order<br>Required?}:::logic
-        Dec_ChangeOrder -- No --> P3_Sub_Materials[[PHASE 4: MATERIAL ORDERING]]:::subprocess
+        P2_ConductVisit[Conduct Site Visit]:::co
 
-        Dec_ChangeOrder -- Yes --> P3_SendToSales[Send Change Order to HO]:::solar
-        P3_SendToSales --> P3_HOReviewTask[Review Change Order]:::ho
-        P3_HOReviewTask --> Dec_HOApproves{HO<br>Approves?}:::logic
+        P2_ConductVisit --> Dec_ChangeOrder
 
-        Dec_HOApproves -- No --> Dec_CancelJob{Cancel<br>Job?}:::logic
-        Dec_CancelJob -- Yes --> Exit_Cancelled([Job Cancelled]):::terminator
-        Dec_CancelJob -- No --> Dec_ChangeOrder
+        Dec_ChangeOrder{Change Order<br>Created?}:::logic
+        Dec_ChangeOrder -- No --> Dec_EquipAvail
 
-        Dec_HOApproves -- Yes --> Dec_COAmount{Change Order<br>Amount > $0?}:::logic
+        Dec_ChangeOrder -- Yes --> P3_SendToSales
 
-        Dec_COAmount -- No --> P3_Done["✓ Change Order Complete"]:::monitor
-        Dec_COAmount -- Yes --> P3_COPaymentTask[Select Payment Method]:::ho
-        P3_COPaymentTask --> Dec_COPaymentType{Payment<br>Method?}:::logic
+        %% --- CHANGE ORDER ---
+        subgraph Phase3_ChangeOrder[Change Order]
+            direction TB
 
-        %% --- CASH PATH ---
-        subgraph P3_Cash["Cash"]
-            P3_COEnterCC[Enter Credit Card]:::ho
+            P3_SendToSales[Send Change Order to HO]:::solar
+            P3_SendToSales --> P3_HOReviewTask[Review Change Order]:::ho
+            P3_HOReviewTask --> Dec_HOApproves{HO<br>Approves?}:::logic
+
+            Dec_HOApproves -- No --> Dec_CORequired{Change Order<br>Required?}:::logic
+            Dec_CORequired -- Yes --> Exit_Cancelled([Job Cancelled]):::terminator
+            Dec_CORequired -- No --> Dec_EquipAvail
+
+            Dec_HOApproves -- Yes --> P3_COPaymentTask[Select Payment Method]:::ho
+            P3_COPaymentTask --> Dec_COPaymentType{Payment<br>Method?}:::logic
+
+            Dec_COPaymentType -- Cash --> P3_Sub_Cash[[Cash]]:::subprocess
+            Dec_COPaymentType -- Lease --> P3_Sub_Lease[[Lease]]:::subprocess
+            Dec_COPaymentType -- Loan --> P3_Sub_Loan[[Loan]]:::subprocess
+            P3_Sub_Cash --> Dec_EquipAvail
+            P3_Sub_Lease --> Dec_EquipAvail
+            P3_Sub_Loan --> Dec_EquipAvail
         end
-        Dec_COPaymentType -- Cash --> P3_COEnterCC
-        P3_COEnterCC --> P3_Done
-
-        %% --- LEASE PATH (Palmetto) ---
-        subgraph P3_Palmetto["Palmetto (Lease)"]
-            P3_COLeaseTask[Submit Lease Application]:::ho
-            P3_COLeaseTask --> P3_COLeaseFinancing[Process Lease Financing]:::palmetto
-            P3_COLeaseFinancing --> Dec_COLeaseFinStatus{Financing<br>Status?}:::logic
-            Dec_COLeaseFinStatus -- Conditionally Approved --> P3_COLeaseVerTask[Submit Verification]:::ho
-            P3_COLeaseVerTask --> Dec_COLeaseVerResult{Verification<br>Result?}:::logic
-            Dec_COLeaseVerResult -- Rejected --> P3_COLeaseResubmitTask[Resubmit Verification]:::ho
-            P3_COLeaseResubmitTask --> Dec_COLeaseVerResult
-            Dec_COLeaseFinStatus -- Denied --> Dec_COLeaseTryCash{Try Cash?}:::logic
-            Dec_COLeaseTryCash -- No --> Exit_Cancelled
-            Dec_COLeaseTryCash -- Yes --> P3_COEnterCC
-        end
-        Dec_COPaymentType -- Lease --> P3_COLeaseTask
-        Dec_COLeaseFinStatus -- Approved --> P3_Done
-        Dec_COLeaseVerResult -- Approved --> P3_Done
-
-        %% --- LOAN PATH (Goodleap) ---
-        subgraph P3_Goodleap["Goodleap (Loan)"]
-            P3_COLoanTask[Submit Loan Application]:::ho
-            P3_COLoanTask --> P3_COLoanFinancing[Process Loan Financing]:::palmetto
-            P3_COLoanFinancing --> Dec_COLoanFinStatus{Financing<br>Status?}:::logic
-            Dec_COLoanFinStatus -- Conditionally Approved --> P3_COLoanVerTask[Submit Verification]:::ho
-            P3_COLoanVerTask --> Dec_COLoanVerResult{Verification<br>Result?}:::logic
-            Dec_COLoanVerResult -- Rejected --> P3_COLoanResubmitTask[Resubmit Verification]:::ho
-            P3_COLoanResubmitTask --> Dec_COLoanVerResult
-            Dec_COLoanFinStatus -- Denied --> Dec_COLoanTryCash{Try Cash?}:::logic
-            Dec_COLoanTryCash -- No --> Exit_Cancelled
-            Dec_COLoanTryCash -- Yes --> P3_COEnterCC
-        end
-        Dec_COPaymentType -- Loan --> P3_COLoanTask
-        Dec_COLoanFinStatus -- Approved --> P3_Done
-        Dec_COLoanVerResult -- Approved --> P3_Done
     end
 
-    P3_Done --> P4_SelectTask
-
     %% =============================================
-    %% PHASE 4: MATERIAL ORDERING
+    %% PHASE 4: SCHEDULE INSTALL
     %% =============================================
-    subgraph Phase4_Materials[PHASE 4: MATERIAL ORDERING]
+    subgraph Phase4_ScheduleInstall[PHASE 4: SCHEDULE INSTALL]
         direction TB
 
-        P4_SelectTask[Select Preferred Install Dates]:::ho
-        P4_SelectTask --> P4_SibiApproves[Review Order]:::sibi
-        P4_SibiApproves --> Dec_OrderStatus{Order<br>Status?}:::logic
-        Dec_OrderStatus -- Delayed --> P4_ReviewSchedule[Review Install Schedule Impact]:::tetra
-        P4_ReviewSchedule --> Dec_OrderStatus
+        Dec_EquipAvail{Equipment<br>Available?}:::logic
+        Dec_EquipAvail -- Yes --> P4_SelectTask
+        Dec_EquipAvail -- "Unavailable / Out of Stock" --> P4_Sub_MaterialOrder[[Material Ordering]]:::subprocess
+        P4_Sub_MaterialOrder --> P4_MaterialReady["✓ Material Ready for Pickup"]:::monitor
+        P4_MaterialReady --> P4_SelectTask
 
-        Dec_OrderStatus -- Confirmed --> Dec_Delivery{Delivery<br>Method?}:::logic
+        P4_SelectTask[Select Preferred Install Times]:::ho
+        P4_SelectTask --> Dec_COConfirmsInstall{CO Selects<br>Preferred Time?}:::logic
 
-        Dec_Delivery -- Shipped --> P4_Delivered["✓ Material Delivered"]:::monitor
+        Dec_COConfirmsInstall -- Yes --> P4_HOConfirmInstall[Confirm Install Time]:::ho
+        P4_HOConfirmInstall --> Dec_HOConfirmsInstall{HO<br>Confirms?}:::logic
 
-        Dec_Delivery -- Pickup --> P4_COPickup[Pick Up Materials]:::co
-        P4_COPickup --> P4_Delivered
+        Dec_COConfirmsInstall -- No --> P4_COScheduleInstall[Contact HO to Schedule Install]:::co
+        P4_COScheduleInstall --> Dec_InstallScheduled{Scheduled?}:::logic
 
-        Dec_OrderStatus -- Cancelled --> P4_Exit_Cancelled([Job Cancelled]):::terminator
+        Dec_HOConfirmsInstall -- No --> P4_COScheduleInstall
+        Dec_HOConfirmsInstall -- Yes --> P4_InstallConfirmed["✓ Install Dates Confirmed"]:::monitor
+        Dec_InstallScheduled -- Yes --> P4_UpdateInstallScheduled[Update Scheduled Time]:::co
+        P4_UpdateInstallScheduled --> P4_InstallConfirmed
+        Dec_InstallScheduled -- No --> P4_ContactCustomerInstall[Contact Customer]:::solar
     end
 
-    P4_Delivered --> P5_COConfirmTask
+    P4_InstallConfirmed --> P4_OrderPending
 
     %% =============================================
     %% PHASE 5: INSTALLATION
@@ -228,23 +204,39 @@ flowchart TD
     subgraph Phase5_Installation[PHASE 5: INSTALLATION]
         direction TB
 
-        P5_COConfirmTask[Confirm Install Date]:::co
-        P5_COConfirmTask --> Dec_COConfirmsInstall{CO Confirms<br>Date?}:::logic
+        %% --- MATERIAL ORDERING ---
+        subgraph Phase4_Materials[Material Ordering]
+            direction TB
 
-        Dec_COConfirmsInstall -- Yes --> P5_HOConfirmTask[Confirm Install Date]:::ho
-        P5_HOConfirmTask --> Dec_HOConfirmsInstall{HO<br>Confirms?}:::logic
+            P4_OrderPending[Order Pending]:::sibi
+            P4_OrderPending --> P4_OrderApproved[Order Approved]:::sibi
+            P4_OrderApproved --> P4_Processing[Processing Order]:::sibi
+            P4_Processing --> P4_OrderDelayed[Order Delayed]:::sibi
+            P4_OrderDelayed --> P4_OrderConfirmed[Order Confirmed]:::sibi
+            P4_OrderConfirmed --> P4_AtDistCenter[At Distribution Center]:::sibi
+            P4_AtDistCenter --> P4_InTransit[In Transit]:::sibi
+            P4_InTransit --> P4_ReadyPickup[Ready for Pickup]:::sibi
 
-        Dec_COConfirmsInstall -- No --> P5_COScheduleInstall[Contact HO to Schedule Install]:::co
+            P4_ReadyPickup --> Dec_ReadyBeforeInstall{Ready Before<br>Install Date?}:::logic
+            Dec_ReadyBeforeInstall -- Yes --> P4_Delivered["✓ Material Ready for Pickup"]:::monitor
+            Dec_ReadyBeforeInstall -- No --> P4_Reschedule[Reschedule Install]:::sibi
+            P4_Reschedule --> P4_Delivered
 
-        Dec_HOConfirmsInstall -- No --> P5_COScheduleInstall
-        Dec_HOConfirmsInstall -- Yes --> P5_InstallComplete[Complete Installation]:::co
-        P5_COScheduleInstall --> P5_InstallComplete
+            P4_OrderCancelled[Order Cancelled]:::sibi
+            P4_OrderCancelled --> P4_Exit_Cancelled([Job Cancelled]):::terminator
+        end
 
+        %% --- INSTALLATION ---
+        P4_Delivered --> P5_InstallComplete[Complete Installation]:::co
         P5_InstallComplete --> P5_CollectQC[Collect Verification Photos]:::co
-        P5_CollectQC --> P5_HOApproveTask[Approve Installation]:::ho
+        P5_CollectQC --> P5_AICheck[AI Checks Legibility]:::tetra
+        P5_AICheck --> Dec_AILegible{Serial & Model No.<br>Legible?}:::logic
+        Dec_AILegible -- Yes --> P5_HOApproveTask{HO Approves<br>Installation?}:::logic
+        Dec_AILegible -- No --> P5_CollectQC
     end
 
-    P5_HOApproveTask --> Dec_FinalPaymentMethod
+    P5_HOApproveTask -- Yes --> Dec_FinalPaymentMethod
+    P5_HOApproveTask -- Yes --> P9_SubmitWarranty
 
     %% =============================================
     %% PHASE 6: FOLLOW UP
@@ -313,7 +305,7 @@ flowchart TD
             P8_ContactTask --> P8_ResolveTask[Resolve Case]:::co
             P8_ResolveTask --> Dec_CaseResolved{Case<br>Resolved?}:::logic
             Dec_CaseResolved -- No --> Dec_MaterialForCase{Material<br>Needed?}:::logic
-            Dec_MaterialForCase -- Yes --> P8_Sub_Materials[[PHASE 4: MATERIAL ORDERING]]:::subprocess
+            Dec_MaterialForCase -- Yes --> P8_Sub_Materials[[Material Ordering]]:::subprocess
             Dec_MaterialForCase -- No --> P8_ResolveTask
         end
 
