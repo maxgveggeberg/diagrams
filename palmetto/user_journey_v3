@@ -4,16 +4,17 @@
 
 flowchart TD
     %% --- STYLING ---
-    classDef ho fill:#e6f3ff,stroke:#08427b,color:#08427b,stroke-width:2px
+    classDef ho fill:#f3e5f5,stroke:#7b1fa2,color:#6a1b9a,stroke-width:2px
     classDef solar fill:#f5f5f5,stroke:#616161,color:#424242,stroke-width:2px
     classDef tetra fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
     classDef palmetto fill:#fff3e0,stroke:#ef6c00,color:#e65100,stroke-width:2px
     classDef sibi fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
+    classDef co fill:#e0f2f1,stroke:#00796b,color:#004d40,stroke-width:2px
+    classDef goodleap fill:#fce4ec,stroke:#c62828,color:#b71c1c,stroke-width:2px
     classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
     classDef terminator fill:#333333,stroke:#333333,color:#ffffff
     classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
     classDef monitor fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
-    classDef status fill:#fce4ec,stroke:#c2185b,color:#880e4f,stroke-width:1px,stroke-dasharray:3 3
 
     %% --- KEY/LEGEND ---
     subgraph Key["Key"]
@@ -22,7 +23,9 @@ flowchart TD
         Key_Solar[Solar Sales]:::solar
         Key_Tetra[Tetra]:::tetra
         Key_Palmetto[Palmetto]:::palmetto
-        Key_Sibi[Sibi/CO]:::sibi
+        Key_Sibi[Sibi]:::sibi
+        Key_CO[CO]:::co
+        Key_Goodleap[Goodleap]:::goodleap
     end
 
     %% =============================================
@@ -31,10 +34,10 @@ flowchart TD
     subgraph Phase0_Dashboard[PHASE 0: SALES DASHBOARD]
         direction TB
 
-        P0_Login[Sales: Login]:::solar
-        P0_Login --> P0_HomePage[Sales: View Pipeline]:::solar
-        P0_HomePage --> P0_CreateNew[Sales: Create New Quote]:::solar
-        P0_HomePage --> P0_ViewProject[Sales: View Existing Project]:::solar
+        P0_Login[Login]:::solar
+        P0_Login --> P0_HomePage[View Pipeline]:::solar
+        P0_HomePage --> P0_CreateNew[Create New Quote]:::solar
+        P0_HomePage --> P0_ViewProject[View Existing Project]:::solar
     end
 
     P0_CreateNew --> P1_EnterAddress
@@ -46,58 +49,62 @@ flowchart TD
         direction TB
 
         %% --- QUOTING ---
-        P1_EnterAddress[Sales: Enter HO Address]:::solar
-        P1_EnterAddress --> P1_DigitalTwin[Tetra: Generate Digital Twin]:::tetra
-        P1_DigitalTwin --> P1_ConfirmHousing[Sales: Confirm Housing Details]:::solar
-        P1_ConfirmHousing --> P1_SelectEquipment[Sales: Select Equipment]:::solar
-        P1_SelectEquipment --> P1_QuoteGenerated["Status: Quote Generated"]:::status
-        P1_QuoteGenerated --> Dec_QuoteSent{Send Quote<br>to HO?}:::logic
-        Dec_QuoteSent -- Yes --> P1_QuoteSent["Status: Quote Sent"]:::status
-        Dec_QuoteSent -- No --> P1_ReviewWithHO[Sales: Review with HO]:::solar
-
-        P1_QuoteSent --> Dec_HOReviews{HO Reviews<br>Quote?}:::logic
-        Dec_HOReviews -- No Response --> P1_Unresponsive["Status: Unresponsive"]:::status
-        P1_Unresponsive --> P1_SalesFollowUp[Task: Sales Contact Customer]:::solar
-        P1_SalesFollowUp --> Dec_HOReviews
-
-        P1_ReviewWithHO --> Dec_HOInterested{HO<br>Interested?}:::logic
-        Dec_HOReviews -- Yes --> Dec_HOInterested
-        Dec_HOInterested -- No --> Exit_Lost([Closed Lost]):::terminator
+        P1_EnterAddress[Enter HO Address]:::solar
+        P1_EnterAddress --> P1_ConfirmHousing[Confirm Housing Details]:::solar
+        P1_ConfirmHousing --> P1_SelectEquipment[Select Equipment]:::solar
+        P1_SelectEquipment --> P1_ReviewWithHO[Review with HO]:::solar
+        P1_ReviewWithHO --> P1_SendQuote[Send Quote to HO]:::solar
+        P1_SendQuote --> Dec_HOInterested{HO<br>Interested?}:::logic
+        Exit_Lost([Closed Lost]):::terminator
+        Dec_HOInterested -- No --> Exit_Lost
 
         %% --- PAYMENT METHOD SELECTION ---
-        Dec_HOInterested -- Yes --> P1_SelectPayment["Status: Select Payment Method"]:::status
-        P1_SelectPayment --> Dec_PaymentType{Payment<br>Method?}:::logic
+        Dec_HOInterested -- Yes --> P1_SelectPayment{Select Payment<br>Method}:::logic
+
+        %% --- LEASE PATH (Palmetto) ---
+        subgraph P1_Palmetto["Palmetto (Lease)"]
+            P1_SubmitLease[Submit Application]:::ho
+            P1_SubmitLease ~~~ Dec_LeaseStatus
+            P1_SubmitLease --> Dec_LeaseStatus{Financing<br>Status?}:::logic
+            Dec_LeaseStatus -- Conditionally Approved --> P1_LeaseVerifyTask[Submit Verification Docs]:::ho
+            P1_LeaseVerifyTask --> Dec_LeaseVerifyResult{Verification<br>Result?}:::logic
+            Dec_LeaseVerifyResult -- Rejected --> P1_LeaseResubmitTask[Resubmit Documents]:::ho
+            P1_LeaseResubmitTask --> Dec_LeaseVerifyResult
+            Dec_LeaseStatus -- Denied --> Dec_LeaseDenied{Next<br>Step?}:::logic
+            Dec_LeaseDenied -- Change Applicant / Add Co-Applicant --> P1_SubmitLease
+        end
+        P1_SelectPayment -- Palmetto --> P1_SubmitLease
+        Dec_LeaseDenied -- Not Interested --> Exit_Lost
+        Dec_LeaseStatus -- Approved --> P1_SelectSiteVisit
+        Dec_LeaseVerifyResult -- Approved --> P1_SelectSiteVisit
+
+        %% --- LOAN PATH (Goodleap) ---
+        subgraph P1_Goodleap["Goodleap (Loan)"]
+            P1_SubmitLoan[Submit Application]:::ho
+            P1_SubmitLoan ~~~ Dec_LoanStatus
+            P1_SubmitLoan --> Dec_LoanStatus{Financing<br>Status?}:::logic
+            Dec_LoanStatus -- Conditionally Approved --> P1_LoanVerifyTask[Submit Verification Docs]:::ho
+            P1_LoanVerifyTask --> Dec_LoanVerifyResult{Verification<br>Result?}:::logic
+            Dec_LoanVerifyResult -- Rejected --> P1_LoanResubmitTask[Resubmit Documents]:::ho
+            P1_LoanResubmitTask --> Dec_LoanVerifyResult
+            Dec_LoanStatus -- Denied --> Dec_LoanDenied{Next<br>Step?}:::logic
+            Dec_LoanDenied -- Change Applicant / Add Co-Applicant --> P1_SubmitLoan
+        end
+        P1_SelectPayment -- Goodleap --> P1_SubmitLoan
+        Dec_LoanDenied -- Not Interested --> Exit_Lost
+        Dec_LoanStatus -- Approved --> P1_SelectSiteVisit
+        Dec_LoanVerifyResult -- Approved --> P1_SelectSiteVisit
 
         %% --- CASH PATH ---
-        Dec_PaymentType -- Cash --> P1_CCRequired["Status: Credit Card Required"]:::status
-        P1_CCRequired --> P1_EnterCC[Task: HO Enter Credit Card]:::ho
-        P1_EnterCC --> P1_Deposit
+        P1_SelectPayment -- Cash --> P1_EnterCC[Enter Credit Card Info]:::ho
+        P1_EnterCC --> P1_SelectSiteVisit
 
-        %% --- FINANCING PATH ---
-        Dec_PaymentType -- Lease/Loan --> P1_SubmitFinancing[Palmetto: Submit Application]:::palmetto
-        P1_SubmitFinancing --> Dec_FinancingStatus{Financing<br>Status?}:::logic
+        %% --- SELECT SITE VISIT ---
+        P1_SelectSiteVisit[Select Site Visit Times]:::ho
 
-        Dec_FinancingStatus -- Approved --> P1_Deposit
-        Dec_FinancingStatus -- Conditionally Approved --> P1_VerificationNeeded["Status: Payment Verification Needed"]:::status
-        P1_VerificationNeeded --> P1_VerificationTask[Task: HO Submit Verification Docs]:::ho
-        P1_VerificationTask --> P1_VerificationSubmitted["Status: Payment Verification Submitted"]:::status
-        P1_VerificationSubmitted --> Dec_VerificationResult{Verification<br>Result?}:::logic
-        Dec_VerificationResult -- Approved --> P1_Deposit
-        Dec_VerificationResult -- Rejected --> P1_ResubmitVerification["Status: Resubmit Verification Documents"]:::status
-        P1_ResubmitVerification --> P1_ResubmitTask[Task: HO Resubmit Documents]:::ho
-        P1_ResubmitTask --> P1_VerificationSubmitted
-
-        Dec_FinancingStatus -- Denied --> P1_Denied["Status: Denied"]:::status
-        P1_Denied --> Dec_TryCash{Try Cash<br>Instead?}:::logic
-        Dec_TryCash -- No --> Exit_Lost
-        Dec_TryCash -- Yes --> P1_CCRequired
-
-        %% --- DEPOSIT & CLOSE ---
-        P1_Deposit[HO: Complete Deposit]:::ho
-        P1_Deposit --> P1_SaleComplete["Status: Sale Complete / Closed Won"]:::status
     end
 
-    P1_SaleComplete --> P2_SelectTimes
+    P1_SelectSiteVisit --> P2_COConfirmTask
 
     %% =============================================
     %% PHASE 2: SITE VISIT
@@ -105,27 +112,21 @@ flowchart TD
     subgraph Phase2_SiteVisit[PHASE 2: SITE VISIT]
         direction TB
 
-        P2_SelectTimes["Status: Select Preferred Times"]:::status
-        P2_SelectTimes --> P2_HOSelectTask[Task: HO Select Site Visit Times]:::ho
-        P2_HOSelectTask --> P2_WaitingCO["Status: Waiting on Install Partner to Confirm"]:::status
-        P2_WaitingCO --> P2_COConfirmTask[Task: CO Confirm Site Visit Time]:::sibi
+        P2_COConfirmTask[Confirm Site Visit Time]:::co
         P2_COConfirmTask --> Dec_COConfirms{CO Confirms<br>a Time?}:::logic
 
-        Dec_COConfirms -- Yes --> P2_WaitingHO["Status: Confirm Your Appointment"]:::status
-        P2_WaitingHO --> P2_HOConfirmTask[Task: HO Confirm Site Visit Time]:::ho
+        Dec_COConfirms -- Yes --> P2_HOConfirmTask[Confirm Site Visit Time]:::ho
         P2_HOConfirmTask --> Dec_HOConfirms{HO<br>Confirms?}:::logic
 
-        Dec_COConfirms -- No --> P2_COContact["Status: Install Partner to Contact You"]:::status
-        P2_COContact --> P2_COScheduleTask[Task: CO Contact HO to Schedule]:::sibi
+        Dec_COConfirms -- No --> P2_COScheduleTask[Contact HO to Schedule]:::co
         P2_COScheduleTask --> Dec_Scheduled{Scheduled?}:::logic
 
-        Dec_HOConfirms -- No --> P2_COContact
+        Dec_HOConfirms -- No --> P2_COScheduleTask
         Dec_HOConfirms -- Yes --> P2_SiteVisitConfirmed["✓ Site Visit Confirmed"]:::monitor
         Dec_Scheduled -- Yes --> P2_SiteVisitConfirmed
-        Dec_Scheduled -- No --> P2_Unresponsive["Status: Unresponsive"]:::status
-        P2_Unresponsive --> P2_Sub_Sales[[PHASE 1: SALES]]:::subprocess
+        Dec_Scheduled -- No --> P2_Sub_Sales[[PHASE 1: SALES]]:::subprocess
 
-        P2_SiteVisitConfirmed --> P2_ConductVisit[Task: CO Conduct Site Visit]:::sibi
+        P2_SiteVisitConfirmed --> P2_ConductVisit[Conduct Site Visit]:::co
     end
 
     P2_ConductVisit --> Dec_ChangeOrder
@@ -139,50 +140,63 @@ flowchart TD
         Dec_ChangeOrder{Change Order<br>Required?}:::logic
         Dec_ChangeOrder -- No --> P3_Sub_Materials[[PHASE 4: MATERIAL ORDERING]]:::subprocess
 
-        Dec_ChangeOrder -- Yes --> P3_COCreates["Status: Change Order Created"]:::status
-        P3_COCreates --> P3_SendToSales[Task: Sales Send Change Order to HO]:::solar
-        P3_SendToSales --> P3_COSent["Status: Change Order Sent"]:::status
-        P3_COSent --> P3_HOReviewTask[Task: HO Review Change Order]:::ho
+        Dec_ChangeOrder -- Yes --> P3_SendToSales[Send Change Order to HO]:::solar
+        P3_SendToSales --> P3_HOReviewTask[Review Change Order]:::ho
         P3_HOReviewTask --> Dec_HOApproves{HO<br>Approves?}:::logic
 
-        Dec_HOApproves -- No --> P3_Declined["Status: Change Order Declined"]:::status
-        P3_Declined --> Dec_CancelJob{Cancel<br>Job?}:::logic
+        Dec_HOApproves -- No --> Dec_CancelJob{Cancel<br>Job?}:::logic
         Dec_CancelJob -- Yes --> Exit_Cancelled([Job Cancelled]):::terminator
         Dec_CancelJob -- No --> Dec_ChangeOrder
 
-        Dec_HOApproves -- Yes --> P3_Approved["Status: Change Order Approved"]:::status
-        P3_Approved --> Dec_COAmount{Change Order<br>Amount > $0?}:::logic
+        Dec_HOApproves -- Yes --> Dec_COAmount{Change Order<br>Amount > $0?}:::logic
 
-        Dec_COAmount -- No --> P3_Complete["Status: Change Order Complete"]:::status
-        Dec_COAmount -- Yes --> P3_COSelectPayment["Status: Select Payment Method"]:::status
-        P3_COSelectPayment --> P3_COPaymentTask[Task: HO Select Payment Method]:::ho
+        Dec_COAmount -- No --> P3_Done["✓ Change Order Complete"]:::monitor
+        Dec_COAmount -- Yes --> P3_COPaymentTask[Select Payment Method]:::ho
         P3_COPaymentTask --> Dec_COPaymentType{Payment<br>Method?}:::logic
 
-        Dec_COPaymentType -- Cash --> P3_COCCRequired["Status: Credit Card Required"]:::status
-        P3_COCCRequired --> P3_COEnterCC[Task: HO Enter Credit Card]:::ho
-        P3_COEnterCC --> P3_Complete
+        %% --- CASH PATH ---
+        subgraph P3_Cash["Cash"]
+            P3_COEnterCC[Enter Credit Card]:::ho
+        end
+        Dec_COPaymentType -- Cash --> P3_COEnterCC
+        P3_COEnterCC --> P3_Done
 
-        Dec_COPaymentType -- Lease --> P3_COLeaseTask[Task: HO Submit Lease Application]:::ho
-        Dec_COPaymentType -- Loan --> P3_COLoanTask[Task: HO Submit Loan Application]:::ho
-        P3_COLeaseTask --> P3_COFinancing[Palmetto: Process Change Order Financing]:::palmetto
-        P3_COLoanTask --> P3_COFinancing
+        %% --- LEASE PATH (Palmetto) ---
+        subgraph P3_Palmetto["Palmetto (Lease)"]
+            P3_COLeaseTask[Submit Lease Application]:::ho
+            P3_COLeaseTask --> P3_COLeaseFinancing[Process Lease Financing]:::palmetto
+            P3_COLeaseFinancing --> Dec_COLeaseFinStatus{Financing<br>Status?}:::logic
+            Dec_COLeaseFinStatus -- Conditionally Approved --> P3_COLeaseVerTask[Submit Verification]:::ho
+            P3_COLeaseVerTask --> Dec_COLeaseVerResult{Verification<br>Result?}:::logic
+            Dec_COLeaseVerResult -- Rejected --> P3_COLeaseResubmitTask[Resubmit Verification]:::ho
+            P3_COLeaseResubmitTask --> Dec_COLeaseVerResult
+            Dec_COLeaseFinStatus -- Denied --> Dec_COLeaseTryCash{Try Cash?}:::logic
+            Dec_COLeaseTryCash -- No --> Exit_Cancelled
+            Dec_COLeaseTryCash -- Yes --> P3_COEnterCC
+        end
+        Dec_COPaymentType -- Lease --> P3_COLeaseTask
+        Dec_COLeaseFinStatus -- Approved --> P3_Done
+        Dec_COLeaseVerResult -- Approved --> P3_Done
 
-        P3_COFinancing --> Dec_COFinancingStatus{Financing<br>Status?}:::logic
-        Dec_COFinancingStatus -- Approved --> P3_Complete
-        Dec_COFinancingStatus -- Conditionally Approved --> P3_COVerificationNeeded["Status: Payment Verification Needed"]:::status
-        P3_COVerificationNeeded --> P3_COVerificationTask[Task: HO Submit Verification]:::ho
-        P3_COVerificationTask --> P3_COVerificationSubmitted["Status: Payment Verification Submitted"]:::status
-        P3_COVerificationSubmitted --> Dec_COVerificationResult{Verification<br>Result?}:::logic
-        Dec_COVerificationResult -- Approved --> P3_Complete
-        Dec_COVerificationResult -- Rejected --> P3_COResubmit["Status: Resubmit Verification Documents"]:::status
-        P3_COResubmit --> P3_COVerificationTask
-        Dec_COFinancingStatus -- Denied --> P3_PaymentDenied["Status: Payment Denied"]:::status
-        P3_PaymentDenied --> Dec_COTryCash{Try Cash?}:::logic
-        Dec_COTryCash -- Yes --> P3_COCCRequired
-        Dec_COTryCash -- No --> Exit_Cancelled
+        %% --- LOAN PATH (Goodleap) ---
+        subgraph P3_Goodleap["Goodleap (Loan)"]
+            P3_COLoanTask[Submit Loan Application]:::ho
+            P3_COLoanTask --> P3_COLoanFinancing[Process Loan Financing]:::palmetto
+            P3_COLoanFinancing --> Dec_COLoanFinStatus{Financing<br>Status?}:::logic
+            Dec_COLoanFinStatus -- Conditionally Approved --> P3_COLoanVerTask[Submit Verification]:::ho
+            P3_COLoanVerTask --> Dec_COLoanVerResult{Verification<br>Result?}:::logic
+            Dec_COLoanVerResult -- Rejected --> P3_COLoanResubmitTask[Resubmit Verification]:::ho
+            P3_COLoanResubmitTask --> Dec_COLoanVerResult
+            Dec_COLoanFinStatus -- Denied --> Dec_COLoanTryCash{Try Cash?}:::logic
+            Dec_COLoanTryCash -- No --> Exit_Cancelled
+            Dec_COLoanTryCash -- Yes --> P3_COEnterCC
+        end
+        Dec_COPaymentType -- Loan --> P3_COLoanTask
+        Dec_COLoanFinStatus -- Approved --> P3_Done
+        Dec_COLoanVerResult -- Approved --> P3_Done
     end
 
-    P3_Complete --> P4_SelectInstallDates
+    P3_Done --> P4_SelectTask
 
     %% =============================================
     %% PHASE 4: MATERIAL ORDERING
@@ -190,42 +204,23 @@ flowchart TD
     subgraph Phase4_Materials[PHASE 4: MATERIAL ORDERING]
         direction TB
 
-        P4_SelectInstallDates["Status: Select Preferred Install Dates"]:::status
-        P4_SelectInstallDates --> P4_SelectTask[Task: HO Select Preferred Install Dates]:::ho
-        P4_SelectTask --> P4_OrderPending["Status: Order Pending"]:::status
-        P4_OrderPending --> P4_SibiApproves[Sibi: Review Order]:::sibi
-        P4_SibiApproves --> P4_OrderApproved["Status: Order Approved"]:::status
-        P4_OrderApproved --> P4_Processing["Status: Processing Order"]:::status
-
-        P4_Processing --> Dec_OrderStatus{Order<br>Status?}:::logic
-        Dec_OrderStatus -- Delayed --> P4_OrderDelayed["Status: Order Delayed"]:::status
-        P4_OrderDelayed --> P4_ReviewSchedule[Tetra: Review Install Schedule Impact]:::tetra
+        P4_SelectTask[Select Preferred Install Dates]:::ho
+        P4_SelectTask --> P4_SibiApproves[Review Order]:::sibi
+        P4_SibiApproves --> Dec_OrderStatus{Order<br>Status?}:::logic
+        Dec_OrderStatus -- Delayed --> P4_ReviewSchedule[Review Install Schedule Impact]:::tetra
         P4_ReviewSchedule --> Dec_OrderStatus
-        
-        Dec_OrderStatus -- Confirmed --> P4_OrderConfirmed["Status: Order Confirmed"]:::status
-        P4_OrderConfirmed --> P4_AtDistribution["Status: At Distribution Center"]:::status
-        P4_AtDistribution --> Dec_Delivery{Delivery<br>Method?}:::logic
 
-        Dec_Delivery -- Shipped --> P4_InTransit["Status: In Transit"]:::status
-        P4_InTransit --> P4_Delivered["Status: Material Delivered"]:::status
+        Dec_OrderStatus -- Confirmed --> Dec_Delivery{Delivery<br>Method?}:::logic
 
-        Dec_Delivery -- Pickup --> P4_ReadyPickup["Status: Ready for Pickup"]:::status
-        P4_ReadyPickup --> P4_COPickup[CO: Pick Up Materials]:::sibi
+        Dec_Delivery -- Shipped --> P4_Delivered["✓ Material Delivered"]:::monitor
+
+        Dec_Delivery -- Pickup --> P4_COPickup[Pick Up Materials]:::co
         P4_COPickup --> P4_Delivered
 
-        Dec_OrderStatus -- Cancelled --> P4_OrderCancelled["Status: Order Cancelled"]:::status
-        P4_OrderCancelled --> P4_Exit_Cancelled([Job Cancelled]):::terminator
-
-        %% --- THERMOSTAT ADDON ---
-        subgraph Thermostat[Thermostat Add-on]
-            direction TB
-            P4_ThermostatOrdered["Status: Thermostat Ordered"]:::status
-            P4_ThermostatOrdered --> P4_ThermostatTransit["Status: Thermostat In Transit"]:::status
-            P4_ThermostatTransit --> P4_ThermostatDelivered["Status: Thermostat Delivered"]:::status
-        end
+        Dec_OrderStatus -- Cancelled --> P4_Exit_Cancelled([Job Cancelled]):::terminator
     end
 
-    P4_Delivered --> P5_WaitingCO
+    P4_Delivered --> P5_COConfirmTask
 
     %% =============================================
     %% PHASE 5: INSTALLATION
@@ -233,113 +228,103 @@ flowchart TD
     subgraph Phase5_Installation[PHASE 5: INSTALLATION]
         direction TB
 
-        P5_WaitingCO["Status: Waiting for Install Partner to Confirm Dates"]:::status
-        P5_WaitingCO --> P5_COConfirmTask[Task: CO Confirm Install Date]:::sibi
+        P5_COConfirmTask[Confirm Install Date]:::co
         P5_COConfirmTask --> Dec_COConfirmsInstall{CO Confirms<br>Date?}:::logic
 
-        Dec_COConfirmsInstall -- Yes --> P5_WaitingHO["Status: Confirm Your Install Date"]:::status
-        P5_WaitingHO --> P5_HOConfirmTask[Task: HO Confirm Install Date]:::ho
+        Dec_COConfirmsInstall -- Yes --> P5_HOConfirmTask[Confirm Install Date]:::ho
         P5_HOConfirmTask --> Dec_HOConfirmsInstall{HO<br>Confirms?}:::logic
 
-        Dec_COConfirmsInstall -- No --> P5_COContactInstall["Status: Install Partner to Contact You to Schedule"]:::status
-        P5_COContactInstall --> P5_COScheduleInstall[Task: CO Contact HO to Schedule Install]:::sibi
+        Dec_COConfirmsInstall -- No --> P5_COScheduleInstall[Contact HO to Schedule Install]:::co
 
-        Dec_HOConfirmsInstall -- No --> P5_COContactInstall
-        Dec_HOConfirmsInstall -- Yes --> P5_InstallConfirmed["Status: Install Date Confirmed"]:::status
-        P5_COScheduleInstall --> P5_InstallConfirmed
+        Dec_HOConfirmsInstall -- No --> P5_COScheduleInstall
+        Dec_HOConfirmsInstall -- Yes --> P5_InstallComplete[Complete Installation]:::co
+        P5_COScheduleInstall --> P5_InstallComplete
 
-        P5_InstallConfirmed --> P5_InstallComplete[CO: Complete Installation]:::sibi
-        P5_InstallComplete --> P5_CollectQC[Task: CO Collect Verification Photos]:::sibi
-        P5_CollectQC --> P5_ReviewFinalize["Status: Review & Finalize Installation"]:::status
-        P5_ReviewFinalize --> P5_HOApproveTask[Task: HO Approve Installation]:::ho
-        P5_HOApproveTask --> P5_PaymentDue["Status: Payment Due"]:::status
+        P5_InstallComplete --> P5_CollectQC[Collect Verification Photos]:::co
+        P5_CollectQC --> P5_HOApproveTask[Approve Installation]:::ho
     end
 
-    P5_PaymentDue --> Dec_FinalPaymentMethod
+    P5_HOApproveTask --> Dec_FinalPaymentMethod
 
     %% =============================================
-    %% PHASE 6: PAYMENT
+    %% PHASE 6: FOLLOW UP
     %% =============================================
-    subgraph Phase6_Payment[PHASE 6: PAYMENT]
+    subgraph Phase6_FollowUp[PHASE 6: FOLLOW UP]
         direction TB
 
-        Dec_FinalPaymentMethod{Payment<br>Method?}:::logic
+        %% --- PAYMENT ---
+        subgraph Phase6_Payment[Payment]
+            direction TB
 
-        %% --- CASH PAYMENT ---
-        Dec_FinalPaymentMethod -- Cash --> P6_ProcessCash[Tetra: Process Payment]:::tetra
-        P6_ProcessCash --> Dec_CashPaymentResult{Payment<br>Successful?}:::logic
-        Dec_CashPaymentResult -- Yes --> P6_PaymentReceived["Status: Payment Received"]:::status
-        P6_PaymentReceived --> P6_PaySibiSalesOrg[Tetra: Pay Sibi/Sales Org]:::tetra
-        P6_PaySibiSalesOrg --> P6_CashComplete["Status: Cash Complete"]:::status
-        P6_CashComplete --> P6_Complete["Status: Payment Complete"]:::status
+            Dec_FinalPaymentMethod{Payment<br>Method?}:::logic
 
-        Dec_CashPaymentResult -- No --> P6_PaymentIssue["Status: Payment Issue"]:::status
-        P6_PaymentIssue --> P6_ContactCustomerTask[Task: Sales Payment Issue - Contact Customer]:::solar
-        P6_PaymentIssue --> P6_UpdateCCTask[Task: HO Enter Credit Card Information]:::ho
-        P6_UpdateCCTask --> P6_ProcessCash
+            %% --- CASH PAYMENT ---
+            subgraph P6_Cash["Cash"]
+                P6_ProcessCash[Process Payment]:::tetra
+                P6_ProcessCash --> Dec_CashPaymentResult{Payment<br>Successful?}:::logic
+                Dec_CashPaymentResult -- Yes --> P6_PaySibiSalesOrg[Pay Sibi/Sales Org]:::tetra
+                Dec_CashPaymentResult -- No --> P6_ContactCustomerTask[Payment Issue - Contact Customer]:::solar
+                Dec_CashPaymentResult -- No --> P6_UpdateCCTask[Enter Credit Card Information]:::ho
+                P6_UpdateCCTask --> P6_ProcessCash
+            end
+            Dec_FinalPaymentMethod -- Cash --> P6_ProcessCash
 
-        P6_PaymentIssue --> Dec_PaymentEscalation{Resolved?}:::logic
-        Dec_PaymentEscalation -- No --> P6_PaymentOverdue["Status: Payment Overdue"]:::status
-        P6_PaymentOverdue --> P6_Collections["Status: Payment Sent to Collections"]:::status
+            %% --- LEASE PAYMENT (Palmetto) ---
+            subgraph P6_Palmetto["Palmetto (Lease)"]
+                P6_SendQC[Send QC Photos]:::co
+                P6_SendQC --> P6_TetraToPalmetto[Send to Palmetto]:::tetra
+                P6_TetraToPalmetto --> P6_PalmettoRelease[Release Funds]:::palmetto
+            end
+            Dec_FinalPaymentMethod -- Lease --> P6_SendQC
 
-        %% --- LEASE PAYMENT ---
-        Dec_FinalPaymentMethod -- Lease --> P6_SendQC[Sibi: Send QC Photos]:::sibi
-        P6_SendQC --> P6_TetraToPalmetto[Tetra: Send to Palmetto]:::tetra
-        P6_TetraToPalmetto --> P6_PalmettoRelease[Palmetto: Release Funds]:::palmetto
-        P6_PalmettoRelease --> P6_PaymentSent["Status: Payment Sent"]:::status
-        P6_PaymentSent --> P6_LeaseComplete["Status: Lease Complete"]:::status
-        P6_LeaseComplete --> P6_Complete
+            %% --- LOAN PAYMENT (Goodleap) ---
+            subgraph P6_Goodleap["Goodleap (Loan)"]
+                P6_HOSignOff[Sign Off on Work]:::ho
+                P6_HOSignOff --> P6_FundsReceived[Funds Received]:::tetra
+                P6_FundsReceived --> P6_PaySibiSalesOrgLoan[Pay Sibi/Sales Org]:::tetra
+            end
+            Dec_FinalPaymentMethod -- Loan --> P6_HOSignOff
+        end
 
-        %% --- LOAN PAYMENT ---
-        Dec_FinalPaymentMethod -- Loan --> P6_HOSignOff[HO: Sign Off on Work]:::ho
-        P6_HOSignOff --> P6_FundsReceived[Tetra: Funds Received]:::tetra
-        P6_FundsReceived --> P6_PaySibiSalesOrgLoan[Tetra: Pay Sibi/Sales Org]:::tetra
-        P6_PaySibiSalesOrgLoan --> P6_LoanComplete["Status: Loan Complete"]:::status
-        P6_LoanComplete --> P6_Complete
-    end
+        P6_PaySibiSalesOrg --> P7_RebateCheck
+        P6_PalmettoRelease --> P7_RebateCheck
+        P6_PaySibiSalesOrgLoan --> P7_RebateCheck
 
-    P6_Complete --> P7_RebateCheck
+        %% --- REBATES ---
+        subgraph Phase6_Rebates[Rebates]
+            direction TB
 
-    %% =============================================
-    %% PHASE 7: REBATES
-    %% =============================================
-    subgraph Phase7_Rebates[PHASE 7: REBATES]
-        direction TB
+            P7_RebateCheck{Rebates<br>Eligible?}:::logic
+            P7_RebateCheck -- No --> Exit_Complete([Job Complete]):::terminator
 
-        P7_RebateCheck{Rebates<br>Eligible?}:::logic
-        P7_RebateCheck -- No --> Exit_Complete([Job Complete]):::terminator
+            P7_RebateCheck -- Yes --> P7_UploadTask[Upload Documents for Rebate]:::tetra
+            P7_UploadTask --> P7_SubmitTask[Submit Rebate]:::tetra
+            P7_SubmitTask --> Dec_RebateResult{Rebate<br>Result?}:::logic
+            Dec_RebateResult -- Approved --> Exit_Complete
+            Dec_RebateResult -- Pending --> P7_SubmitTask
+        end
 
-        P7_RebateCheck -- Yes --> P7_UploadDocs["Status: Upload Documents"]:::status
-        P7_UploadDocs --> P7_UploadTask[Task: Tetra Upload Documents for Rebate]:::tetra
-        P7_UploadTask --> P7_DocsUploaded["Status: Documents Uploaded"]:::status
-        P7_DocsUploaded --> P7_SubmitTask[Task: Tetra Submit Rebate]:::tetra
-        P7_SubmitTask --> P7_Submitted["Status: Rebates Submitted"]:::status
-        P7_Submitted --> Dec_RebateResult{Rebate<br>Result?}:::logic
-        Dec_RebateResult -- Approved --> P7_Approved["Status: Rebates Approved"]:::status
-        P7_Approved --> P7_Received["Status: Rebates Received"]:::status
-        P7_Received --> Exit_Complete
-        Dec_RebateResult -- Pending --> P7_Submitted
+        %% --- SUPPORT CASES ---
+        subgraph Phase6_Cases[Support Cases]
+            direction TB
 
-        Exit_Complete -.-> P7_Sub_Cases[[PHASE 8: SUPPORT CASES]]:::subprocess
-    end
+            P8_Entry([Submits Case]):::ho
+            P8_Entry --> P8_ContactTask[Contact Customer]:::co
+            P8_ContactTask --> P8_ResolveTask[Resolve Case]:::co
+            P8_ResolveTask --> Dec_CaseResolved{Case<br>Resolved?}:::logic
+            Dec_CaseResolved -- No --> Dec_MaterialForCase{Material<br>Needed?}:::logic
+            Dec_MaterialForCase -- Yes --> P8_Sub_Materials[[PHASE 4: MATERIAL ORDERING]]:::subprocess
+            Dec_MaterialForCase -- No --> P8_ResolveTask
+        end
 
-    %% =============================================
-    %% PHASE 8: SUPPORT CASES
-    %% =============================================
-    subgraph Phase8_Cases[PHASE 8: SUPPORT CASES]
-        direction TB
+        Exit_Complete -.-> P8_Entry
+        Dec_CaseResolved -. Yes .-> P7_RebateCheck
 
-        P8_Entry([HO Submits Case]):::ho
-        P8_Entry --> P8_CaseCreated["Status: Case Created"]:::status
-        P8_CaseCreated --> P8_ContactTask[Task: CO Contact Customer]:::sibi
-        P8_ContactTask --> P8_InProgress["Status: In Progress"]:::status
-        P8_InProgress --> P8_ResolveTask[Task: CO Resolve Case]:::sibi
-        P8_ResolveTask --> Dec_CaseResolved{Case<br>Resolved?}:::logic
-        Dec_CaseResolved -- Yes --> P8_Resolved["Status: Case Resolved"]:::status
-        Dec_CaseResolved -- No --> Dec_MaterialForCase{Material<br>Needed?}:::logic
-        Dec_MaterialForCase -- Yes --> P8_Sub_Materials[[PHASE 4: MATERIAL ORDERING]]:::subprocess
-        Dec_MaterialForCase -- No --> P8_InProgress
+        %% --- WARRANTY ---
+        subgraph Phase6_Warranty[Warranty]
+            direction TB
 
-        P8_Resolved --> P8_Sub_Rebates[[PHASE 7: REBATES]]:::subprocess
+            P9_SubmitWarranty[Submit Warranty]:::ho
+        end
     end
 
