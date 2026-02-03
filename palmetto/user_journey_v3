@@ -255,11 +255,11 @@ flowchart TD
             subgraph P6_Cash["Cash"]
                 P6_ProcessCash[Process Payment]:::tetra
                 P6_ProcessCash --> Dec_CashPaymentResult{Payment<br>Successful?}:::logic
-                Dec_CashPaymentResult -- Yes --> P6_PaySibiSalesOrg
                 Dec_CashPaymentResult -- No --> P6_ContactCustomerTask[Payment Issue - Contact Customer]:::solar
                 Dec_CashPaymentResult -- No --> P6_UpdateCCTask[Enter Credit Card Information]:::ho
                 P6_UpdateCCTask --> P6_ProcessCash
             end
+            Dec_CashPaymentResult -- Yes --> P6_PaySibiSalesOrg
             Dec_FinalPaymentMethod -- Cash --> P6_ProcessCash
 
             %% --- LEASE PAYMENT (Palmetto) ---
@@ -281,7 +281,7 @@ flowchart TD
         end
 
         P6_PaySibiSalesOrg --> P7_RebateCheck
-        P6_PalmettoRelease --> P7_RebateCheck
+        P6_PalmettoRelease --> P6_PaySibiSalesOrg
 
         %% --- REBATES ---
         subgraph Phase6_Rebates[Rebates]
