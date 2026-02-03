@@ -143,11 +143,16 @@ flowchart TD
         Dec_ChangeOrder{Change Order<br>Created?}:::logic
         Dec_ChangeOrder -- No --> Dec_EquipAvail
 
-        Dec_ChangeOrder -- Yes --> P3_SendToSales
+        Dec_ChangeOrder -- Yes --> P3_ReviewCO
 
         %% --- CHANGE ORDER ---
         subgraph Phase3_ChangeOrder[Change Order]
             direction TB
+
+            P3_ReviewCO[Review Change Order]:::sibi
+            P3_ReviewCO --> Dec_SibiApproves{Approved?}:::logic
+            Dec_SibiApproves -- No --> Dec_EquipAvail
+            Dec_SibiApproves -- Yes --> P3_SendToSales
 
             P3_SendToSales[Send Change Order to HO]:::solar
             P3_SendToSales --> P3_HOReviewTask[Review Change Order]:::ho
