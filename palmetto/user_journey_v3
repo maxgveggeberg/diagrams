@@ -294,11 +294,9 @@ flowchart TD
             P7_RebateCheck{Rebates<br>Eligible?}:::logic
             P7_RebateCheck -- No --> Exit_Complete([Job Complete]):::terminator
 
-            P7_RebateCheck -- Yes --> P7_UploadTask[Upload Documents for Rebate]:::tetra
+            P7_RebateCheck -- Yes --> P7_UploadTask[Upload Documents for Rebate]:::ho
             P7_UploadTask --> P7_SubmitTask[Submit Rebate]:::tetra
-            P7_SubmitTask --> Dec_RebateResult{Rebate<br>Result?}:::logic
-            Dec_RebateResult -- Approved --> Exit_Complete
-            Dec_RebateResult -- Pending --> P7_SubmitTask
+            P7_SubmitTask --> Exit_Complete
         end
 
         %% --- SUPPORT CASES ---
