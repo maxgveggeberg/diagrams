@@ -305,7 +305,9 @@ flowchart TD
             P8_Entry([Create Case]):::ho
             P8_Entry --> P8_ContactTask[Contact Customer]:::co
             P8_ContactTask --> P8_ResolveTask[Resolve Case]:::co
-            P8_ResolveTask --> P7_RebateCheck
+            P8_ResolveTask --> Dec_PaymentReceived{Payment<br>Received?}:::logic
+            Dec_PaymentReceived -- Yes --> P7_RebateCheck
+            Dec_PaymentReceived -- No --> Dec_FinalPaymentMethod
         end
 
         Exit_Complete -.-> P8_Entry
