@@ -254,9 +254,10 @@ flowchart TD
             subgraph P6_Cash["Cash"]
                 P6_ProcessCash[Process Payment]:::tetra
                 P6_ProcessCash --> Dec_CashPaymentResult{Payment<br>Successful?}:::logic
-                Dec_CashPaymentResult -- No --> P6_ContactCustomerTask[Payment Issue - Contact Customer]:::solar
-                Dec_CashPaymentResult -- No --> P6_UpdateCCTask[Enter Credit Card Information]:::ho
-                P6_UpdateCCTask --> P6_ProcessCash
+                Dec_CashPaymentResult -- No --> P6_ContactCustomerTask[Contact Customer]:::solar
+                P6_ContactCustomerTask --> Dec_UpdateCC{Update<br>Credit Card?}:::logic
+                Dec_UpdateCC -- Yes --> P6_ProcessCash
+                Dec_UpdateCC -- No --> P6_SendCollections[Send to Collections]:::tetra
             end
             Dec_CashPaymentResult -- Yes --> P6_PaySibiSalesOrg
             Dec_FinalPaymentMethod -- Cash --> P6_ProcessCash
