@@ -235,8 +235,6 @@ flowchart TD
         Dec_AILegible -- No --> P5_CollectQC
     end
 
-    P6_PaySibiSalesOrg[Pay Sibi/Sales Org]:::tetra
-
     P5_HOApproveTask -- Yes --> Dec_FinalPaymentMethod
     P5_HOApproveTask -- Yes --> P9_SubmitWarranty
 
@@ -278,6 +276,8 @@ flowchart TD
                 P6_FundsReceived --> P6_PaySibiSalesOrg
             end
             Dec_FinalPaymentMethod -- Loan --> P6_HOSignOff
+
+            P6_PaySibiSalesOrg[Pay Sibi/Sales Org]:::tetra
         end
 
         P6_PaySibiSalesOrg --> P7_RebateCheck
