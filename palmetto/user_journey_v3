@@ -249,7 +249,6 @@ flowchart TD
             direction TB
 
             Dec_FinalPaymentMethod{Payment<br>Method?}:::logic
-            P6_PaySibiSalesOrg[Pay Sibi/Sales Org]:::tetra
 
             %% --- CASH PAYMENT ---
             subgraph P6_Cash["Cash"]
@@ -274,12 +273,13 @@ flowchart TD
             subgraph P6_Goodleap["Goodleap (Loan)"]
                 P6_HOSignOff[Sign Off on Work]:::ho
                 P6_HOSignOff --> P6_FundsReceived[Funds Received]:::tetra
-                P6_FundsReceived --> P6_PaySibiSalesOrg
             end
+            P6_FundsReceived --> P6_PaySibiSalesOrg
             Dec_FinalPaymentMethod -- Loan --> P6_HOSignOff
 
         end
 
+        P6_PaySibiSalesOrg[Pay Sibi/Sales Org]:::tetra
         P6_PaySibiSalesOrg --> P7_RebateCheck
         P6_PalmettoRelease --> P6_PaySibiSalesOrg
 
