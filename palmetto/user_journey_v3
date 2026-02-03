@@ -237,6 +237,8 @@ flowchart TD
 
     P5_HOApproveTask -- Yes --> Dec_FinalPaymentMethod
     P5_HOApproveTask -- Yes --> P9_SubmitWarranty
+    P5_HOApproveTask -- "No, Install Issue" --> P8_Entry
+    P5_HOApproveTask -- "No, Unresponsive" --> Dec_FinalPaymentMethod
 
     %% =============================================
     %% PHASE 6: FOLLOW UP
@@ -303,7 +305,7 @@ flowchart TD
         subgraph Phase6_Cases[Support Cases]
             direction TB
 
-            P8_Entry([Submits Case]):::ho
+            P8_Entry([Create Case]):::ho
             P8_Entry --> P8_ContactTask[Contact Customer]:::co
             P8_ContactTask --> P8_ResolveTask[Resolve Case]:::co
             P8_ResolveTask --> Dec_CaseResolved{Case<br>Resolved?}:::logic
