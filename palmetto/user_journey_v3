@@ -253,6 +253,7 @@ flowchart TD
             %% --- CASH PAYMENT ---
             subgraph P6_Cash["Cash"]
                 P6_ProcessCash[Process Payment]:::tetra
+                P6_ProcessCash ~~~ Dec_CashPaymentResult
                 P6_ProcessCash --> Dec_CashPaymentResult{Payment<br>Successful?}:::logic
                 Dec_CashPaymentResult -- No --> P6_ContactCustomerTask[Contact Customer]:::solar
                 P6_ContactCustomerTask --> Dec_UpdateCC{Update<br>Credit Card?}:::logic
