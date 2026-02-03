@@ -308,14 +308,10 @@ flowchart TD
             P8_Entry([Create Case]):::ho
             P8_Entry --> P8_ContactTask[Contact Customer]:::co
             P8_ContactTask --> P8_ResolveTask[Resolve Case]:::co
-            P8_ResolveTask --> Dec_CaseResolved{Case<br>Resolved?}:::logic
-            Dec_CaseResolved -- No --> Dec_MaterialForCase{Material<br>Needed?}:::logic
-            Dec_MaterialForCase -- Yes --> P8_Sub_Materials[[Material Ordering]]:::subprocess
-            Dec_MaterialForCase -- No --> P8_ResolveTask
+            P8_ResolveTask --> P7_RebateCheck
         end
 
         Exit_Complete -.-> P8_Entry
-        Dec_CaseResolved -. Yes .-> P7_RebateCheck
 
         %% --- WARRANTY ---
         subgraph Phase6_Warranty[Warranty]
