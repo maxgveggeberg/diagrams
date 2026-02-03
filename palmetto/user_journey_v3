@@ -267,7 +267,7 @@ flowchart TD
 
             %% --- LEASE PAYMENT (Palmetto) ---
             subgraph P6_Palmetto["Palmetto (Lease)"]
-                P6_SendQC[Send QC Photos]:::co
+                P6_SendQC[Send QC Photos]:::tetra
                 P6_SendQC --> P6_TetraToPalmetto[Send to Palmetto]:::tetra
                 P6_TetraToPalmetto --> P6_PalmettoRelease[Release Funds]:::palmetto
             end
