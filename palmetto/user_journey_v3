@@ -97,8 +97,14 @@ flowchart TD
         Dec_LoanVerifyResult -- Approved --> P1_SelectSiteVisit
 
         %% --- CASH PATH ---
-        P1_SelectPayment -- Cash --> P1_EnterCC[Enter Credit Card Info]:::ho
-        P1_EnterCC --> P1_SelectSiteVisit
+        subgraph P1_Cash["Cash"]
+            P1_EnterCC[Enter Credit Card Info]:::ho
+            P1_EnterCC --> Dec_CashEquipAvail{Equipment<br>Available?}:::logic
+            Dec_CashEquipAvail -- No --> P1_Collect30[Collect 30% Deposit]:::ho
+        end
+        P1_SelectPayment -- Cash --> P1_EnterCC
+        Dec_CashEquipAvail -- Yes --> P1_SelectSiteVisit
+        P1_Collect30 --> P1_SelectSiteVisit
 
         %% --- SELECT SITE VISIT ---
         P1_SelectSiteVisit[Select Preferred Site Visit Times]:::ho
