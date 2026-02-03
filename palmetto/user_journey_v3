@@ -236,7 +236,6 @@ flowchart TD
     end
 
     P5_HOApproveTask -- Yes --> Dec_FinalPaymentMethod
-    P5_HOApproveTask -- Yes --> P9_SubmitWarranty
     P5_HOApproveTask -- "No, Install Issue" --> P8_Entry
     P5_HOApproveTask -- "No, Unresponsive" --> Dec_FinalPaymentMethod
 
@@ -311,11 +310,5 @@ flowchart TD
 
         Exit_Complete -.-> P8_Entry
 
-        %% --- WARRANTY ---
-        subgraph Phase6_Warranty[Warranty]
-            direction TB
-
-            P9_SubmitWarranty[Submit Warranty]:::ho
-        end
     end
 
