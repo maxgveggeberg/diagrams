@@ -50,7 +50,8 @@ flowchart TD
 
         %% --- QUOTING ---
         P1_EnterAddress[Enter HO Address]:::solar
-        P1_EnterAddress --> P1_ConfirmHousing[Confirm Housing Details]:::solar
+        P1_EnterAddress --> P1_PicsOfSystem[Pics of System]:::solar
+        P1_PicsOfSystem --> P1_ConfirmHousing[Confirm Housing Details]:::solar
         P1_ConfirmHousing --> P1_SelectEquipment[Select Equipment]:::solar
         P1_SelectEquipment --> P1_ReviewWithHO[Review with HO]:::solar
         P1_ReviewWithHO --> P1_SendQuote[Send Quote to HO]:::solar
