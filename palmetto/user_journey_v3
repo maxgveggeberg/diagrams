@@ -249,6 +249,7 @@ flowchart TD
             direction TB
 
             Dec_FinalPaymentMethod{Payment<br>Method?}:::logic
+            P6_PaySibiSalesOrg[Pay Sibi/Sales Org]:::tetra
 
             %% --- CASH PAYMENT ---
             subgraph P6_Cash["Cash"]
@@ -277,7 +278,6 @@ flowchart TD
             end
             Dec_FinalPaymentMethod -- Loan --> P6_HOSignOff
 
-            P6_PaySibiSalesOrg[Pay Sibi/Sales Org]:::tetra
         end
 
         P6_PaySibiSalesOrg --> P7_RebateCheck
