@@ -107,7 +107,7 @@ flowchart TD
         P1_Collect30 --> P1_SelectSiteVisit
 
         %% --- SELECT SITE VISIT ---
-        P1_SelectSiteVisit[Order Thermostat]:::ho
+        P1_SelectSiteVisit[Order Thermostat]:::tetra
 
     end
 
