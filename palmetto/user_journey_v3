@@ -274,7 +274,9 @@ flowchart TD
                 Dec_UpdateCC -- Yes --> P6_ProcessCash
                 Dec_UpdateCC -- No --> P6_SendCollections[Send to Collections]:::tetra
             end
-            Dec_CashPaymentResult -- Yes --> P6_PaySibiSalesOrg
+            Dec_CashPaymentResult -- Yes --> P6_PaySibi
+            Dec_CashPaymentResult -- Yes --> P6_PayPalmetto
+            Dec_CashPaymentResult -- Yes --> P6_PaySales
             Dec_FinalPaymentMethod -- Cash --> P6_ProcessCash
 
             %% --- LEASE PAYMENT (Palmetto) ---
@@ -290,14 +292,21 @@ flowchart TD
                 P6_HOSignOff[Sign Off on Work]:::ho
                 P6_HOSignOff --> P6_FundsReceived[Funds Received]:::tetra
             end
-            P6_FundsReceived --> P6_PaySibiSalesOrg
+            P6_FundsReceived --> P6_PaySibi
+            P6_FundsReceived --> P6_PayPalmetto
+            P6_FundsReceived --> P6_PaySales
             Dec_FinalPaymentMethod -- Loan --> P6_HOSignOff
 
         end
 
-        P6_PaySibiSalesOrg[Pay Sibi/Sales Org]:::tetra
-        P6_PaySibiSalesOrg --> P7_RebateCheck
-        P6_PalmettoRelease --> P6_PaySibiSalesOrg
+        P6_PaySibi[Sibi]:::sibi
+        P6_PayPalmetto[Palmetto]:::palmetto
+        P6_PaySales[Sales]:::solar
+        P6_PaySibi --> P7_RebateCheck
+        P6_PayPalmetto --> P7_RebateCheck
+        P6_PaySales --> P7_RebateCheck
+        P6_PalmettoRelease --> P6_PaySibi
+        P6_PalmettoRelease --> P6_PaySales
 
         %% --- REBATES ---
         subgraph Phase6_Rebates[Rebates]
