@@ -111,7 +111,7 @@ flowchart TD
 
     end
 
-    P1_SelectSiteVisit --> Dec_COConfirms
+    P1_SelectSiteVisit --> P2_SelectSiteVisit
 
     %% =============================================
     %% PHASE 2: SCHEDULE SITE VISIT
@@ -119,7 +119,8 @@ flowchart TD
     subgraph Phase2_ScheduleSiteVisit[PHASE 2: SCHEDULE SITE VISIT]
         direction TB
 
-        Dec_COConfirms{CO Selects<br>Preferred Time?}:::logic
+        P2_SelectSiteVisit[Select Preferred Site Visit Times]:::ho
+        P2_SelectSiteVisit --> Dec_COConfirms{CO Selects<br>Preferred Time?}:::logic
 
         Dec_COConfirms -- Yes --> P2_HOConfirmTask[Confirm Site Visit Time]:::ho
         P2_HOConfirmTask --> Dec_HOConfirms{HO<br>Confirms?}:::logic
