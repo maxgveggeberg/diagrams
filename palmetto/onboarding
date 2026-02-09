@@ -18,9 +18,9 @@ flowchart TD
         Start([Begin Onboarding]):::terminator --> Org_BusinessInfo[Enter Business Info]:::org
         Org_BusinessInfo --> Org_ContactInfo[Enter Contact Info]:::org
         Org_ContactInfo --> Dec_OrgType{Organization Type?}:::logic
-        Dec_OrgType -- Sales Org --> Tag_Sales[Platform: Tag as Sales Org]:::tetra
-        Dec_OrgType -- Contractor --> Tag_Contractor[Platform: Tag as Contractor]:::tetra
-        Dec_OrgType -- Both --> Tag_Both[Platform: Tag as Sales + Contractor]:::tetra
+        Dec_OrgType -- Sales Org --> Tag_Sales[Tag as Sales Org]:::tetra
+        Dec_OrgType -- Contractor --> Tag_Contractor[Tag as Contractor]:::tetra
+        Dec_OrgType -- Both --> Tag_Both[Tag as Sales + Contractor]:::tetra
     end
 
     Tag_Sales --> Org_SelectStates
@@ -37,7 +37,7 @@ flowchart TD
         Org_SelectStates --> Org_SelectCounties[Select Counties]:::org
         Org_SelectCounties --> Dec_AdjustZips{Adjust Zip Codes?}:::logic
         Dec_AdjustZips -- Yes --> Org_AdjustZips[Add / Remove Zip Codes]:::org
-        Dec_AdjustZips -- No --> Location_Complete[Platform: Save Service Area]:::tetra
+        Dec_AdjustZips -- No --> Location_Complete[Save Service Area]:::tetra
         Org_AdjustZips --> Location_Complete
     end
 
@@ -46,7 +46,7 @@ flowchart TD
     %% =============================================
     %% ROUTING BY ORG TYPE
     %% =============================================
-    Dec_RouteByType{Platform: Org Type?}:::logic
+    Dec_RouteByType{Org Type?}:::logic
     Dec_RouteByType -- Sales Org --> Dec_ContractorPrefs
     Dec_RouteByType -- Contractor --> Dec_JobSource
     %% =============================================
@@ -57,11 +57,11 @@ flowchart TD
 
         %% --- CONTRACTOR PREFERENCES ---
         Dec_ContractorPrefs{Contractor Preferences?}:::logic
-        Dec_ContractorPrefs -- No --> Plat_DefaultContractors[Platform: Use Default Contractor Matching]:::tetra
+        Dec_ContractorPrefs -- No --> Plat_DefaultContractors[Use Default Contractor Matching]:::tetra
         Dec_ContractorPrefs -- Yes --> Org_SelectRegions[Select Regions for Preferences]:::org
         Org_SelectRegions --> Org_SelectContractor[Select Preferred Contractor]:::org
-        Org_SelectContractor --> Dec_ContractorExists{Platform: Contractor Account Exists?}:::logic
-        Dec_ContractorExists -- Yes --> Plat_LinkContractor[Platform: Link Contractor to Sales Org]:::tetra
+        Org_SelectContractor --> Dec_ContractorExists{Contractor Account Exists?}:::logic
+        Dec_ContractorExists -- Yes --> Plat_LinkContractor[Link Contractor to Sales Org]:::tetra
         Dec_ContractorExists -- No --> Org_CreateContractor[Create Contractor Account]:::org
         Org_CreateContractor --> Plat_LinkContractor
 
@@ -70,11 +70,11 @@ flowchart TD
 
         %% --- EQUIPMENT PREFERENCES ---
         Dec_EquipPrefs{Equipment Preferences?}:::logic
-        Dec_EquipPrefs -- Default --> Plat_DefaultEquip[Platform: Set Default Equipment - Carrier]:::tetra
+        Dec_EquipPrefs -- Default --> Plat_DefaultEquip[Set Default Equipment - Carrier]:::tetra
         Dec_EquipPrefs -- Custom --> Org_SelectBrands[Select Preferred Brands]:::org
         Org_SelectBrands --> Org_SelectModels[Select Preferred Models]:::org
-        Org_SelectModels --> Plat_SaveEquip[Platform: Save Equipment Preferences]:::tetra
-        Plat_DefaultEquip --> Sales_Complete[Platform: Sales Config Complete]:::tetra
+        Org_SelectModels --> Plat_SaveEquip[Save Equipment Preferences]:::tetra
+        Plat_DefaultEquip --> Sales_Complete[Sales Config Complete]:::tetra
         Plat_SaveEquip --> Sales_Complete
     end
 
@@ -88,7 +88,7 @@ flowchart TD
         Dec_JobSource{Receive Jobs From?}:::logic
         Dec_JobSource -- Single Sales Org --> Org_SelectSalesOrg[Select Sales Org]:::org
         Dec_JobSource -- Multiple Sales Orgs --> Org_SelectMultiOrgs[Select Sales Orgs]:::org
-        Dec_JobSource -- Any Org --> Plat_OpenMatching[Platform: Enable Open Matching]:::tetra
+        Dec_JobSource -- Any Org --> Plat_OpenMatching[Enable Open Matching]:::tetra
 
         Org_SelectSalesOrg --> Org_SkillSet
         Org_SelectMultiOrgs --> Org_SkillSet
@@ -102,7 +102,7 @@ flowchart TD
 
         %% --- EQUIPMENT ---
         Org_Pricing --> Dec_EquipInstall{Equipment Willing to Install?}:::logic
-        Dec_EquipInstall -- Any --> Plat_AnyEquip[Platform: Set Any Equipment]:::tetra
+        Dec_EquipInstall -- Any --> Plat_AnyEquip[Set Any Equipment]:::tetra
         Dec_EquipInstall -- Specific Brands --> Org_SelectInstallBrands[Select Brands]:::org
 
         Plat_AnyEquip --> Org_License
@@ -110,7 +110,7 @@ flowchart TD
 
         %% --- LICENSE ---
         Org_License[Enter License Number]:::org
-        Org_License --> Plat_SaveContractor[Platform: Save Contractor Profile]:::tetra
+        Org_License --> Plat_SaveContractor[Save Contractor Profile]:::tetra
     end
 
     %% =============================================
@@ -122,7 +122,7 @@ flowchart TD
         Dec_JobSource_Both{Receive Jobs From?}:::logic
         Dec_JobSource_Both -- Single Sales Org --> Org_SelectSalesOrg_Both[Select Sales Org]:::org
         Dec_JobSource_Both -- Multiple Sales Orgs --> Org_SelectMultiOrgs_Both[Select Sales Orgs]:::org
-        Dec_JobSource_Both -- Any Org --> Plat_OpenMatching_Both[Platform: Enable Open Matching]:::tetra
+        Dec_JobSource_Both -- Any Org --> Plat_OpenMatching_Both[Enable Open Matching]:::tetra
 
         Org_SelectSalesOrg_Both --> Org_SkillSet_Both
         Org_SelectMultiOrgs_Both --> Org_SkillSet_Both
@@ -133,14 +133,14 @@ flowchart TD
         Org_Skills_Note_Both --> Org_Pricing_Both[Enter Pricing]:::org
 
         Org_Pricing_Both --> Dec_EquipInstall_Both{Equipment Willing to Install?}:::logic
-        Dec_EquipInstall_Both -- Any --> Plat_AnyEquip_Both[Platform: Set Any Equipment]:::tetra
+        Dec_EquipInstall_Both -- Any --> Plat_AnyEquip_Both[Set Any Equipment]:::tetra
         Dec_EquipInstall_Both -- Specific Brands --> Org_SelectInstallBrands_Both[Select Brands]:::org
 
         Plat_AnyEquip_Both --> Org_License_Both
         Org_SelectInstallBrands_Both --> Org_License_Both
 
         Org_License_Both[Enter License Number]:::org
-        Org_License_Both --> Plat_SaveContractor_Both[Platform: Save Contractor Profile]:::tetra
+        Org_License_Both --> Plat_SaveContractor_Both[Save Contractor Profile]:::tetra
     end
 
     %% =============================================
@@ -151,6 +151,6 @@ flowchart TD
 
     subgraph Phase5_Complete[PHASE 5: ONBOARDING COMPLETE]
         direction TB
-        Onboarding_Complete[Platform: Activate Organization Account]:::tetra
+        Onboarding_Complete[Activate Organization Account]:::tetra
         Onboarding_Complete --> Org_Dashboard([Access Dashboard]):::terminator
     end
