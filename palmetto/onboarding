@@ -112,35 +112,6 @@ flowchart TD
     end
 
     %% =============================================
-    %% PHASE 4B: CONTRACTOR CONFIG FOR "BOTH" ORGS
-    %% =============================================
-    subgraph Phase4B_ContractorConfigBoth[PHASE 4: CONTRACTOR CONFIGURATION - BOTH]
-        direction TB
-
-        Dec_JobSource_Both{Receive Jobs From?}:::logic
-        Dec_JobSource_Both -- Single Sales Org --> Org_SelectSalesOrg_Both[Select Sales Org]:::org
-        Dec_JobSource_Both -- Multiple Sales Orgs --> Org_SelectMultiOrgs_Both[Select Sales Orgs]:::org
-        Dec_JobSource_Both -- Any Org --> Plat_OpenMatching_Both[Enable Open Matching]:::tetra
-
-        Org_SelectSalesOrg_Both --> Org_SkillSet_Both
-        Org_SelectMultiOrgs_Both --> Org_SkillSet_Both
-        Plat_OpenMatching_Both --> Org_SkillSet_Both
-
-        Org_SkillSet_Both[Select Skill Set]:::org
-        Org_SkillSet_Both --> Org_Pricing_Both[Enter Pricing]:::org
-
-        Org_Pricing_Both --> Dec_EquipInstall_Both{Equipment Willing to Install?}:::logic
-        Dec_EquipInstall_Both -- Any --> Plat_AnyEquip_Both[Set Any Equipment]:::tetra
-        Dec_EquipInstall_Both -- Specific Brands --> Org_SelectInstallBrands_Both[Select Brands]:::org
-
-        Plat_AnyEquip_Both --> Org_License_Both
-        Org_SelectInstallBrands_Both --> Org_License_Both
-
-        Org_License_Both[Enter License Number]:::org
-        Org_License_Both --> Plat_SaveContractor_Both[Save Contractor Profile]:::tetra
-    end
-
-    %% =============================================
     %% PHASE 5: COMPLETION
     %% =============================================
     Sales_Complete --> Onboarding_Complete
