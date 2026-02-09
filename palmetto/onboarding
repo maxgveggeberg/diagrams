@@ -1,0 +1,156 @@
+```mermaid
+
+%%{init: {'flowchart':{'defaultRenderer':'elk'}}}%%
+
+flowchart TD
+    classDef org fill:#e6f3ff,stroke:#08427b,color:#08427b,stroke-width:2px
+    classDef tetra fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
+    classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
+    classDef terminator fill:#333333,stroke:#333333,color:#ffffff
+    classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
+
+    %% =============================================
+    %% PHASE 1: ACCOUNT SETUP
+    %% =============================================
+    subgraph Phase1_AccountSetup[PHASE 1: ACCOUNT SETUP]
+        direction TB
+
+        Start([Org: Begin Onboarding]):::terminator --> Org_BusinessInfo[Org: Enter Business Info]:::org
+        Org_BusinessInfo --> Org_ContactInfo[Org: Enter Contact Info]:::org
+        Org_ContactInfo --> Dec_OrgType{Org: Organization Type?}:::logic
+        Dec_OrgType -- Sales Org --> Tag_Sales[Platform: Tag as Sales Org]:::tetra
+        Dec_OrgType -- Contractor --> Tag_Contractor[Platform: Tag as Contractor]:::tetra
+        Dec_OrgType -- Both --> Tag_Both[Platform: Tag as Sales + Contractor]:::tetra
+    end
+
+    Tag_Sales --> Org_SelectStates
+    Tag_Contractor --> Org_SelectStates
+    Tag_Both --> Org_SelectStates
+
+    %% =============================================
+    %% PHASE 2: LOCATION SETUP
+    %% =============================================
+    subgraph Phase2_Location[PHASE 2: LOCATION SETUP]
+        direction TB
+
+        Org_SelectStates[Org: Select States / Markets]:::org
+        Org_SelectStates --> Org_SelectCounties[Org: Select Counties]:::org
+        Org_SelectCounties --> Dec_AdjustZips{Org: Adjust Zip Codes?}:::logic
+        Dec_AdjustZips -- Yes --> Org_AdjustZips[Org: Add / Remove Zip Codes]:::org
+        Dec_AdjustZips -- No --> Location_Complete[Platform: Save Service Area]:::tetra
+        Org_AdjustZips --> Location_Complete
+    end
+
+    Location_Complete --> Dec_RouteByType
+
+    %% =============================================
+    %% ROUTING BY ORG TYPE
+    %% =============================================
+    Dec_RouteByType{Platform: Org Type?}:::logic
+    Dec_RouteByType -- Sales Org --> Dec_ContractorPrefs
+    Dec_RouteByType -- Contractor --> Dec_JobSource
+    %% =============================================
+    %% PHASE 3: SALES ORG CONFIGURATION
+    %% =============================================
+    subgraph Phase3_SalesConfig[PHASE 3: SALES ORG CONFIGURATION]
+        direction TB
+
+        %% --- CONTRACTOR PREFERENCES ---
+        Dec_ContractorPrefs{Org: Contractor Preferences?}:::logic
+        Dec_ContractorPrefs -- No --> Plat_DefaultContractors[Platform: Use Default Contractor Matching]:::tetra
+        Dec_ContractorPrefs -- Yes --> Org_SelectRegions[Org: Select Regions for Preferences]:::org
+        Org_SelectRegions --> Org_SelectContractor[Org: Select Preferred Contractor]:::org
+        Org_SelectContractor --> Dec_ContractorExists{Platform: Contractor Account Exists?}:::logic
+        Dec_ContractorExists -- Yes --> Plat_LinkContractor[Platform: Link Contractor to Sales Org]:::tetra
+        Dec_ContractorExists -- No --> Org_CreateContractor[Org: Create Contractor Account]:::org
+        Org_CreateContractor --> Plat_LinkContractor
+
+        Plat_DefaultContractors --> Dec_EquipPrefs
+        Plat_LinkContractor --> Dec_EquipPrefs
+
+        %% --- EQUIPMENT PREFERENCES ---
+        Dec_EquipPrefs{Org: Equipment Preferences?}:::logic
+        Dec_EquipPrefs -- Default --> Plat_DefaultEquip[Platform: Set Default Equipment - Carrier]:::tetra
+        Dec_EquipPrefs -- Custom --> Org_SelectBrands[Org: Select Preferred Brands]:::org
+        Org_SelectBrands --> Org_SelectModels[Org: Select Preferred Models]:::org
+        Org_SelectModels --> Plat_SaveEquip[Platform: Save Equipment Preferences]:::tetra
+        Plat_DefaultEquip --> Sales_Complete[Platform: Sales Config Complete]:::tetra
+        Plat_SaveEquip --> Sales_Complete
+    end
+
+    %% =============================================
+    %% PHASE 4: CONTRACTOR CONFIGURATION
+    %% =============================================
+    subgraph Phase4_ContractorConfig[PHASE 4: CONTRACTOR CONFIGURATION]
+        direction TB
+
+        %% --- JOB SOURCE ---
+        Dec_JobSource{Org: Receive Jobs From?}:::logic
+        Dec_JobSource -- Single Sales Org --> Org_SelectSalesOrg[Org: Select Sales Org]:::org
+        Dec_JobSource -- Multiple Sales Orgs --> Org_SelectMultiOrgs[Org: Select Sales Orgs]:::org
+        Dec_JobSource -- Any Org --> Plat_OpenMatching[Platform: Enable Open Matching]:::tetra
+
+        Org_SelectSalesOrg --> Org_SkillSet
+        Org_SelectMultiOrgs --> Org_SkillSet
+        Plat_OpenMatching --> Org_SkillSet
+
+        %% --- SKILL SET ---
+        Org_SkillSet[Org: Select Skill Set]:::org
+        Org_SkillSet --> Org_Skills_Note["HVAC · Plumbing · Ductless Mini Splits · Electrical · Smart Home"]:::org
+
+        Org_Skills_Note --> Org_Pricing[Org: Enter Pricing]:::org
+
+        %% --- EQUIPMENT ---
+        Org_Pricing --> Dec_EquipInstall{Org: Equipment Willing to Install?}:::logic
+        Dec_EquipInstall -- Any --> Plat_AnyEquip[Platform: Set Any Equipment]:::tetra
+        Dec_EquipInstall -- Specific Brands --> Org_SelectInstallBrands[Org: Select Brands]:::org
+
+        Plat_AnyEquip --> Org_License
+        Org_SelectInstallBrands --> Org_License
+
+        %% --- LICENSE ---
+        Org_License[Org: Enter License Number]:::org
+        Org_License --> Plat_SaveContractor[Platform: Save Contractor Profile]:::tetra
+    end
+
+    %% =============================================
+    %% PHASE 4B: CONTRACTOR CONFIG FOR "BOTH" ORGS
+    %% =============================================
+    subgraph Phase4B_ContractorConfigBoth[PHASE 4: CONTRACTOR CONFIGURATION - BOTH]
+        direction TB
+
+        Dec_JobSource_Both{Org: Receive Jobs From?}:::logic
+        Dec_JobSource_Both -- Single Sales Org --> Org_SelectSalesOrg_Both[Org: Select Sales Org]:::org
+        Dec_JobSource_Both -- Multiple Sales Orgs --> Org_SelectMultiOrgs_Both[Org: Select Sales Orgs]:::org
+        Dec_JobSource_Both -- Any Org --> Plat_OpenMatching_Both[Platform: Enable Open Matching]:::tetra
+
+        Org_SelectSalesOrg_Both --> Org_SkillSet_Both
+        Org_SelectMultiOrgs_Both --> Org_SkillSet_Both
+        Plat_OpenMatching_Both --> Org_SkillSet_Both
+
+        Org_SkillSet_Both[Org: Select Skill Set]:::org
+        Org_SkillSet_Both --> Org_Skills_Note_Both["HVAC · Plumbing · Ductless Mini Splits · Electrical · Smart Home"]:::org
+        Org_Skills_Note_Both --> Org_Pricing_Both[Org: Enter Pricing]:::org
+
+        Org_Pricing_Both --> Dec_EquipInstall_Both{Org: Equipment Willing to Install?}:::logic
+        Dec_EquipInstall_Both -- Any --> Plat_AnyEquip_Both[Platform: Set Any Equipment]:::tetra
+        Dec_EquipInstall_Both -- Specific Brands --> Org_SelectInstallBrands_Both[Org: Select Brands]:::org
+
+        Plat_AnyEquip_Both --> Org_License_Both
+        Org_SelectInstallBrands_Both --> Org_License_Both
+
+        Org_License_Both[Org: Enter License Number]:::org
+        Org_License_Both --> Plat_SaveContractor_Both[Platform: Save Contractor Profile]:::tetra
+    end
+
+    %% =============================================
+    %% PHASE 5: COMPLETION
+    %% =============================================
+    Sales_Complete --> Onboarding_Complete
+    Plat_SaveContractor --> Onboarding_Complete
+
+    subgraph Phase5_Complete[PHASE 5: ONBOARDING COMPLETE]
+        direction TB
+        Onboarding_Complete[Platform: Activate Organization Account]:::tetra
+        Onboarding_Complete --> Org_Dashboard([Org: Access Dashboard]):::terminator
+    end
