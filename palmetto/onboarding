@@ -96,9 +96,7 @@ flowchart TD
 
         %% --- SKILL SET ---
         Org_SkillSet[Select Skill Set]:::org
-        Org_SkillSet --> Org_Skills_Note["HVAC · Plumbing · Ductless Mini Splits · Electrical · Smart Home"]:::org
-
-        Org_Skills_Note --> Org_Pricing[Enter Pricing]:::org
+        Org_SkillSet --> Org_Pricing[Enter Pricing]:::org
 
         %% --- EQUIPMENT ---
         Org_Pricing --> Dec_EquipInstall{Equipment Willing to Install?}:::logic
@@ -129,8 +127,7 @@ flowchart TD
         Plat_OpenMatching_Both --> Org_SkillSet_Both
 
         Org_SkillSet_Both[Select Skill Set]:::org
-        Org_SkillSet_Both --> Org_Skills_Note_Both["HVAC · Plumbing · Ductless Mini Splits · Electrical · Smart Home"]:::org
-        Org_Skills_Note_Both --> Org_Pricing_Both[Enter Pricing]:::org
+        Org_SkillSet_Both --> Org_Pricing_Both[Enter Pricing]:::org
 
         Org_Pricing_Both --> Dec_EquipInstall_Both{Equipment Willing to Install?}:::logic
         Dec_EquipInstall_Both -- Any --> Plat_AnyEquip_Both[Set Any Equipment]:::tetra
