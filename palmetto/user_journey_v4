@@ -715,7 +715,7 @@ flowchart TD
         S6_Created["[S][F][T] Case Created<br/>case_status = created<br/>case_id = GENERATED"]:::tetra
         S6_CreatedTask["[T] Contact customer"]:::co
         S6_CreatedNotif["[N] #49 Case Created (HO + Sales + CO + Ops)"]:::ho
-        S6_PayPaused["[N] #43 Payment Paused (if applicable)"]:::solar
+        S6_PayPaused["[N] #43 Payment Paused (Sales + Ops + CO)"]:::solar
 
         S6_InProgress["[S][T] In Progress<br/>case_status = in_progress"]:::co
         S6_InProgressTask["[T] Resolve case"]:::co
@@ -725,7 +725,7 @@ flowchart TD
         S6_Escalate7d["[N] #52 Case Escalation (Ops, 7d)"]:::tetra
 
         S6_Resolved["[S] Case Resolved<br/>case_status = resolved"]:::co
-        S6_ResolvedNotif["[N] #53 Case Resolved (all)"]:::ho
+        S6_ResolvedNotif["[N] #53 Case Resolved (HO + Sales + CO + Ops)"]:::ho
         S6_PayResumed["[N] #44 Payment Resumed (Sales + Ops + CO)"]:::solar
 
         S6_Closed["[S] Case Closed<br/>case_closed_timestamp"]:::tetra
