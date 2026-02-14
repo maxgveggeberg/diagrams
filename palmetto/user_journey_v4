@@ -108,9 +108,10 @@ flowchart TD
         S1_PalVerifSubmit --> S1_PalVerifNotif
         S1_PalVerifNotif --> S1_PalVerifDec
 
-        %% Verification approved
+        %% Verification approved → Financing Fully Approved (unblocks Stage 4/5 gates)
         S1_PalVerifDec -- Approved --> S1_PalVerifApproved
         S1_PalVerifApproved --> S1_PalVerifApprovedNotif
+        S1_PalVerifApprovedNotif -->|Unblocks financing gates| S1_Ref_FinGateUnlock["✓ Financing Gate Unlocked<br/>(Stage 4 + Stage 5)"]:::monitor
 
         %% Verification rejected
         S1_PalVerifDec -- Rejected --> S1_PalVerifRejected
@@ -431,6 +432,14 @@ flowchart TD
         %% Entry
         S4_Backref_Install(["↩ Stage 5: Install Date Confirmed"]):::subprocess
 
+        %% === FINANCING GATE ===
+        S4_FinGate{"Financing<br/>Fully Approved?"}:::logic
+        S4_FinBlocked["⛔ Blocked: Awaiting Full Financing Approval"]:::terminator
+
+        S4_Backref_Install --> S4_FinGate
+        S4_FinGate -- "Yes / Cash" --> S4_Pending
+        S4_FinGate -- "No (non-cash)" --> S4_FinBlocked
+
         %% #1: Order Pending
         S4_Pending["[S][F] Order Pending<br/>material_ordering_status = order_pending"]:::sibi
         S4_PendingExpiry{"Days > 3<br/>still pending?"}:::logic
@@ -481,7 +490,7 @@ flowchart TD
         S4_Ref_InstallReady[["→ Stage 5: Installation Ready"]]:::subprocess
 
         %% --- FLOW ---
-        S4_Backref_Install --> S4_Pending
+        %% (Entry routing handled by Financing Gate above)
         S4_Pending --> S4_PendingExpiry
         S4_PendingExpiry -- Yes --> S4_PendingRemind
 
@@ -529,6 +538,14 @@ flowchart TD
 
         %% Entry
         S5_Backref_SiteVisit(["↩ Stage 2/3: Site Visit or Change Order"]):::subprocess
+
+        %% === FINANCING GATE ===
+        S5_FinGate{"Financing<br/>Fully Approved?"}:::logic
+        S5_FinBlocked["⛔ Blocked: Awaiting Full Financing Approval"]:::terminator
+
+        S5_Backref_SiteVisit --> S5_FinGate
+        S5_FinGate -- "Yes / Cash" --> S5_SelectDates
+        S5_FinGate -- "No (non-cash)" --> S5_FinBlocked
 
         %% === 1.x SCHEDULING ===
         S5_SelectDates["[S][T] Select Preferred Install Dates"]:::ho
@@ -602,7 +619,7 @@ flowchart TD
         S5_Ref_MaterialGate[["← Stage 4: Material Ready"]]:::subprocess
 
         %% --- 1.x SCHEDULING FLOW ---
-        S5_Backref_SiteVisit --> S5_SelectDates
+        %% (Entry routing handled by Financing Gate above)
         S5_SelectDates --> S5_SelectDatesNotif
         S5_SelectDates --> S5_SelectExpiry
         S5_SelectExpiry -- Yes --> S5_SelectRemind
