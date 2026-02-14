@@ -55,6 +55,7 @@ flowchart TD
 
         %% --- LEASE PATH (Palmetto) ---
         subgraph S1_Palmetto["Palmetto (Lease)"]
+            S1_PalInputApplicants["[T] Input Applicants"]:::ho
             S1_PalSubmit["[S] Financing Submitted<br/>payment_method_status = submitted"]:::palmetto
             S1_PalTask_ID["[T] Submit identity verification"]:::ho
             S1_PalTask_HO["[T] Submit homeownership verification"]:::ho
@@ -87,7 +88,8 @@ flowchart TD
             S1_PalParallelNotif["[N] #8 Select Site Visit Times (⏱ 10min delay)"]:::comms
         end
 
-        S1_Dec_Payment -- Palmetto --> S1_PalSubmit
+        S1_Dec_Payment -- Palmetto --> S1_PalInputApplicants
+        S1_PalInputApplicants --> S1_PalSubmit
         S1_PalSubmit --> S1_PalTask_ID
         S1_PalSubmit --> S1_PalTask_HO
         S1_PalSubmit --> S1_PalDec
