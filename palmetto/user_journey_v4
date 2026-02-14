@@ -56,7 +56,7 @@ flowchart TD
         subgraph S1_Palmetto["Palmetto (Lease)"]
             S1_PalInputApplicants["Input Applicants"]:::ho
             S1_PalSubmit["[S] Financing Submitted<br/>payment_method_status = submitted"]:::palmetto
-            S1_PalDec{"Financing<br/>Partner<br/>Response?"}:::logic
+            S1_PalDec["Financing<br/>Partner<br/>Response"]:::logic
 
             %% Conditional Approval
             S1_PalConditional["[S] Conditionally Approved<br/>payment_method_status = conditional"]:::palmetto
