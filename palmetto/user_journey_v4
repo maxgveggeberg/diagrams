@@ -192,7 +192,7 @@ flowchart TD
         %% #5a/5b: Site Visit Confirmed
         S2_Confirmed["✓ [S] Site Visit Confirmed<br/>site_visit_status = confirmed"]:::monitor
         S2_ConfirmedTask["[T] Conduct site visit"]:::co
-        S2_ConfirmedNotif["[N] #12 Site Visit Confirmed"]:::ho
+        S2_ConfirmedNotif["[N] #12 Site Visit Confirmed"]:::co
 
         %% #6: Sales Escalation
         S2_SalesEscalation["[S][T] Sales Escalation<br/>sales_escalation = true"]:::solar
@@ -205,7 +205,8 @@ flowchart TD
         S2_SalesMediated["[S] Sales Mediated<br/>sales_mediated = true"]:::solar
 
         %% Day-Before/Day-Of Reminders
-        S2_ReminderDayBefore["[N] #13/#14 Day Before (HO + CO)"]:::ho
+        S2_ReminderDayBeforeHO["[N] #13 Day Before (HO)"]:::ho
+        S2_ReminderDayBeforeCO["[N] #14 Day Before (CO)"]:::co
         S2_ReminderDayOf["[N] #15 Day Of (CO)"]:::co
 
         %% #8: Site Visit Complete
@@ -268,7 +269,8 @@ flowchart TD
         S2_SalesMediated -->|Confirmed date| S2_Confirmed
 
         %% Reminders
-        S2_Confirmed --> S2_ReminderDayBefore
+        S2_Confirmed --> S2_ReminderDayBeforeHO
+        S2_Confirmed --> S2_ReminderDayBeforeCO
         S2_Confirmed --> S2_ReminderDayOf
 
         %% Complete
@@ -299,7 +301,7 @@ flowchart TD
         %% #1: CO creates change order
         S3_Created["[S] Change Order Created<br/>change_order_status = created"]:::co
         S3_CreatedTask["[T] Review change order"]:::sibi
-        S3_CreatedNotif["[N] #17 Change Order Created"]:::sibi
+        S3_CreatedNotif["[N] #17 Change Order Created"]:::solar
         S3_CreatedExpiry{"Hours > 24<br/>not reviewed?"}:::logic
         S3_CreatedRemind["[N] Remind Sibi"]:::sibi
 
@@ -324,6 +326,7 @@ flowchart TD
         S3_DeclinedRemind["[N] Remind Sales"]:::solar
 
         %% #5-8: Cash payment path
+        S3_PayMethodNotif["[N] #21 Payment Method Needed"]:::ho
         S3_SelectPayment{"Payment<br/>Method?"}:::logic
         S3_CCRequired["[S][T] CC Required<br/>change_order_status = cc_required"]:::ho
         S3_CCRequiredNotif["[N] #22 CC Required"]:::ho
@@ -336,7 +339,7 @@ flowchart TD
 
         S3_CCDenied["[S] Payment Denied<br/>change_order_status = financing_denied"]:::tetra
         S3_CCDeniedTask["[T] Contact customer"]:::solar
-        S3_CCDeniedNotif["[N] #24 Payment Denied"]:::solar
+        S3_CCDeniedNotif["[N] #24 Payment Denied"]:::ho
         S3_Dec_CCRetry{"HO Retries?"}:::logic
 
         %% #9: Lease payment
@@ -388,7 +391,8 @@ flowchart TD
         S3_ZeroCompleteNotif --> S3_ToInstall
 
         %% Amount > 0 → payment method
-        S3_Dec_Amount -- "> $0" --> S3_SelectPayment
+        S3_Dec_Amount -- "> $0" --> S3_PayMethodNotif
+        S3_PayMethodNotif --> S3_SelectPayment
         S3_SelectPayment --> S3_CCRequired
         S3_SelectPayment -- "Cash + no CC" --> S3_CCRequired
         S3_CCRequired --> S3_CCRequiredNotif
@@ -459,7 +463,8 @@ flowchart TD
         S4_InTransit["[S] In Transit"]:::sibi
 
         %% #7: Ready for Pickup
-        S4_ReadyPickup["[S][N] Ready for Pickup<br/>#27 Material Ready (CO)"]:::sibi
+        S4_ReadyPickup["[S] Ready for Pickup"]:::sibi
+        S4_ReadyPickupNotif["[N] #27 Material Ready (CO)"]:::co
         S4_PickupExpiry{"Days until install < 2<br/>not picked up?"}:::logic
         S4_PickupRemind["[N] Remind CO: Pickup"]:::co
 
@@ -474,7 +479,9 @@ flowchart TD
         S4_CancelledExit(["[S] Job Cancelled / Rescheduled"]):::terminator
 
         %% #13: Order Delayed
-        S4_Delayed["[S][N] Order Delayed<br/>#25 Delay (CO+HO)<br/>#26 Reschedule (Sales)"]:::sibi
+        S4_Delayed["[S] Order Delayed"]:::sibi
+        S4_DelayedNotif25["[N] #25 Delay (CO + HO)"]:::co
+        S4_DelayedNotif26["[N] #26 Reschedule (Sales)"]:::solar
         S4_DelayedTask["[T] Reschedule installation"]:::tetra
 
         %% Thermostat sub-flow
@@ -501,6 +508,7 @@ flowchart TD
 
         %% Pickup path
         S4_Dec_DeliveryMethod -- Pickup --> S4_ReadyPickup
+        S4_ReadyPickup --> S4_ReadyPickupNotif
         S4_ReadyPickup --> S4_PickupExpiry
         S4_PickupExpiry -- Yes --> S4_PickupRemind
         S4_ReadyPickup -->|CO pickup / delivery confirmed| S4_MaterialReady
@@ -516,6 +524,8 @@ flowchart TD
 
         %% Delay
         S4_Processing -->|Sibi reports delay| S4_Delayed
+        S4_Delayed --> S4_DelayedNotif25
+        S4_Delayed --> S4_DelayedNotif26
         S4_Delayed --> S4_DelayedTask
         S4_Delayed -->|Delay resolved| S4_Confirmed
 
@@ -567,7 +577,7 @@ flowchart TD
         S5_COContactExpiry{"Hours > 48<br/>no date?"}:::logic
 
         S5_DateConfirmed["✓ [S][F] Install Date Confirmed<br/>install_date = AGREED_DATE"]:::monitor
-        S5_DateConfirmedNotif["[N] #32 Install Date Confirmed"]:::ho
+        S5_DateConfirmedNotif["[N] #32 Install Date Confirmed"]:::co
 
         S5_Unresponsive["[S][T] Unresponsive<br/>unresponsive_flag = true"]:::tetra
         S5_UnrespNotif["[N] #54 HO Unresponsive"]:::solar
@@ -580,13 +590,15 @@ flowchart TD
         S5_ReadyTask["[T] Complete installation"]:::co
         S5_ReadyNotif["[N] #35 Material Check (2d before)"]:::co
 
-        S5_ReminderDayBefore["[N] #33/#34 Day Before (HO + CO)"]:::ho
+        S5_ReminderDayBeforeHO["[N] #33 Day Before (HO)"]:::ho
+        S5_ReminderDayBeforeCO["[N] #34 Day Before (CO)"]:::co
 
         %% === 2.x EXECUTION ===
         S5_Complete["[S][F] Installation Complete<br/>qc_photos + qc_verified"]:::co
 
         S5_QCDec{"QC Photos<br/>Verified?"}:::logic
-        S5_QCRejected["[S][N] QC Rejected<br/>qc_rejection_count += 1<br/>#37 Resubmit (CO)"]:::tetra
+        S5_QCRejected["[S] QC Rejected<br/>qc_rejection_count += 1"]:::tetra
+        S5_QCRejNotif37["[N] #37 Resubmit (CO)"]:::co
         S5_QCRejExpiry{"Hours > 24<br/>no resubmit?"}:::logic
         S5_QCRejRemind["[N] Remind CO: Resubmit"]:::co
 
@@ -599,15 +611,16 @@ flowchart TD
         S5_Dec_HOApproval{"HO Approves<br/>Installation?"}:::logic
 
         S5_Approved["[S] Installation Approved<br/>payment_status = processing"]:::solar
-        S5_ApprovedNotif["[N] #39 Installation Approved"]:::ho
+        S5_ApprovedNotif["[N] #39 Installation Approved (Sales + Ops)"]:::solar
         S5_Survey["[N] #41 Survey (3d after)"]:::ho
 
         S5_Declined["[S] Declined<br/>case_status = created<br/>payment_status = paused"]:::ho
         S5_DeclinedTask["[T] Contact customer (CO via case)"]:::co
         S5_DeclinedNotif1["[N] #40 Issue Reported"]:::co
-        S5_DeclinedNotif2["[N] #43 Payment Paused"]:::solar
+        S5_DeclinedNotif2["[N] #43 Payment Paused (Sales + Ops + CO)"]:::solar
 
-        S5_InstUnresponsive["[S][N] CO Unresponsive<br/>#36 Reminder: Complete Install"]:::tetra
+        S5_InstUnresponsive["[S] CO Unresponsive"]:::tetra
+        S5_InstUnrespNotif36["[N] #36 Reminder: Complete Install"]:::co
         S5_InstUnrespExpiry{"Days > 3?"}:::logic
         S5_InstUnrespEsc["[N] Escalate to Ops"]:::tetra
 
@@ -654,12 +667,14 @@ flowchart TD
         S5_Dec_Gate -- "Both ready" --> S5_Ready
         S5_Ready --> S5_ReadyTask --> S5_ReadyNotif
 
-        S5_DateConfirmed --> S5_ReminderDayBefore
+        S5_DateConfirmed --> S5_ReminderDayBeforeHO
+        S5_DateConfirmed --> S5_ReminderDayBeforeCO
 
         %% --- 2.x EXECUTION FLOW ---
         S5_Ready -->|CO completes install| S5_Complete
         S5_Complete --> S5_QCDec
         S5_QCDec -- No --> S5_QCRejected
+        S5_QCRejected --> S5_QCRejNotif37
         S5_QCRejected --> S5_QCRejExpiry
         S5_QCRejExpiry -- Yes --> S5_QCRejRemind
         S5_QCRejected -->|CO resubmits| S5_Complete
@@ -683,6 +698,7 @@ flowchart TD
         S5_DeclinedNotif2 --> S5_Ref_Case
 
         S5_DateConfirmed -->|Install date passed + not complete| S5_InstUnresponsive
+        S5_InstUnresponsive --> S5_InstUnrespNotif36
         S5_InstUnresponsive --> S5_InstUnrespExpiry
         S5_InstUnrespExpiry -- Yes --> S5_InstUnrespEsc
     end
@@ -698,7 +714,7 @@ flowchart TD
 
         S6_Created["[S][F][T] Case Created<br/>case_status = created<br/>case_id = GENERATED"]:::tetra
         S6_CreatedTask["[T] Contact customer"]:::co
-        S6_CreatedNotif["[N] #49 Case Created (all parties)"]:::co
+        S6_CreatedNotif["[N] #49 Case Created (HO + Sales + CO + Ops)"]:::ho
         S6_PayPaused["[N] #43 Payment Paused (if applicable)"]:::solar
 
         S6_InProgress["[S][T] In Progress<br/>case_status = in_progress"]:::co
@@ -710,7 +726,7 @@ flowchart TD
 
         S6_Resolved["[S] Case Resolved<br/>case_status = resolved"]:::co
         S6_ResolvedNotif["[N] #53 Case Resolved (all)"]:::ho
-        S6_PayResumed["[N] #44 Payment Resumed (if paused)"]:::solar
+        S6_PayResumed["[N] #44 Payment Resumed (Sales + Ops + CO)"]:::solar
 
         S6_Closed["[S] Case Closed<br/>case_closed_timestamp"]:::tetra
 
@@ -762,7 +778,8 @@ flowchart TD
         S7_Dec_CashResult{"CC Charge<br/>Successful?"}:::logic
         S7_CashReceived["[S] Payment Received<br/>payment_status = payment_received"]:::tetra
 
-        S7_CashFailed["[S][T][N] Payment Failed<br/>payment_status = payment_failed<br/>#42 (HO + Sales)"]:::tetra
+        S7_CashFailed["[S][T] Payment Failed<br/>payment_status = payment_failed"]:::tetra
+        S7_CashFailedNotif["[N] #42 Payment Failed (HO + Sales)"]:::ho
         S7_FailedTask1["[T] Contact customer"]:::solar
         S7_FailedTask2["[T] Update payment method"]:::ho
         S7_FailedExpiry{"Hours > 24<br/>no retry?"}:::logic
@@ -770,20 +787,24 @@ flowchart TD
 
         S7_Dec_Retry{"HO Updates<br/>CC?"}:::logic
 
-        S7_Overdue["[S][N] Payment Overdue<br/>payment_status = payment_overdue<br/>#45 (HO + Sales)"]:::tetra
+        S7_Overdue["[S] Payment Overdue<br/>payment_status = payment_overdue"]:::tetra
+        S7_OverdueNotif["[N] #45 Payment Overdue (HO + Sales)"]:::ho
         S7_OverdueExpiry{"Days > 7<br/>no payment?"}:::logic
         S7_OverdueRemind["[N] Escalate to Collections"]:::tetra
 
         S7_Dec_OverdueRetry{"HO Updates<br/>CC?"}:::logic
 
-        S7_Collections["[S][T][N] Sent to Collections<br/>payment_status = sent_to_collections<br/>#46 Ops; #47 HO"]:::tetra
+        S7_Collections["[S][T] Sent to Collections<br/>payment_status = sent_to_collections"]:::tetra
+        S7_CollectionsNotif46["[N] #46 Payment Escalation (Ops)"]:::tetra
+        S7_CollectionsNotif47["[N] #47 Sent to Collections (HO)"]:::ho
         S7_CollectionsTask["[T] Send to collections"]:::tetra
 
         %% === LEASE PATH ===
         S7_LeaseRelease["[S] Lease Fund Released<br/>payment_status = lease_fund_released"]:::palmetto
 
         %% === CONVERGENCE ===
-        S7_Distributed["[S][N] Funds Distributed<br/>payment_status = funds_distributed<br/>#48 Payment Complete"]:::tetra
+        S7_Distributed["[S] Funds Distributed<br/>payment_status = funds_distributed"]:::tetra
+        S7_DistributedNotif["[N] #48 Payment Complete (HO)"]:::ho
         S7_DistCO["[F] Contractor Payout"]:::co
         S7_DistSibi["[F] Equipment Payout"]:::sibi
         S7_DistSales["[F] Sales Payout"]:::solar
@@ -812,6 +833,7 @@ flowchart TD
         S7_CashCharge --> S7_Dec_CashResult
         S7_Dec_CashResult -- Yes --> S7_CashReceived
         S7_Dec_CashResult -- No --> S7_CashFailed
+        S7_CashFailed --> S7_CashFailedNotif
         S7_CashFailed --> S7_FailedTask1
         S7_CashFailed --> S7_FailedTask2
         S7_CashFailed --> S7_FailedExpiry
@@ -819,11 +841,14 @@ flowchart TD
         S7_CashFailed --> S7_Dec_Retry
         S7_Dec_Retry -- Yes --> S7_CashCharge
         S7_Dec_Retry -- "No (7d+)" --> S7_Overdue
+        S7_Overdue --> S7_OverdueNotif
         S7_Overdue --> S7_OverdueExpiry
         S7_OverdueExpiry -- Yes --> S7_OverdueRemind
         S7_Overdue --> S7_Dec_OverdueRetry
         S7_Dec_OverdueRetry -- Yes --> S7_CashCharge
         S7_Dec_OverdueRetry -- "No (14d+)" --> S7_Collections
+        S7_Collections --> S7_CollectionsNotif46
+        S7_Collections --> S7_CollectionsNotif47
         S7_Collections --> S7_CollectionsTask
 
         %% Lease path
@@ -832,6 +857,7 @@ flowchart TD
         %% Convergence to Funds Distributed
         S7_CashReceived --> S7_Distributed
         S7_LeaseRelease --> S7_Distributed
+        S7_Distributed --> S7_DistributedNotif
         S7_Distributed --> S7_DistCO
         S7_Distributed --> S7_DistSibi
         S7_Distributed --> S7_DistSales
