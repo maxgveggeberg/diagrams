@@ -1,0 +1,861 @@
+```mermaid
+
+%%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
+
+flowchart TD
+    %% --- STYLING ---
+    classDef ho fill:#f3e5f5,stroke:#7b1fa2,color:#6a1b9a,stroke-width:2px
+    classDef solar fill:#f5f5f5,stroke:#616161,color:#424242,stroke-width:2px
+    classDef tetra fill:#fff9c4,stroke:#f9a825,color:#e65100,stroke-width:2px
+    classDef palmetto fill:#fff3e0,stroke:#ef6c00,color:#e65100,stroke-width:2px
+    classDef sibi fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
+    classDef co fill:#e0f2f1,stroke:#00796b,color:#004d40,stroke-width:2px
+    classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
+    classDef terminator fill:#333333,stroke:#333333,color:#ffffff
+    classDef subprocess fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
+    classDef monitor fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px
+    classDef comms fill:#e8f5e9,stroke:#388e3c,color:#1b5e20,stroke-width:2px
+
+    %% --- KEY/LEGEND ---
+    subgraph Key["COLOR KEY"]
+        direction LR
+        Key_HO["Homeowner"]:::ho
+        Key_Solar["Solar Sales"]:::solar
+        Key_Tetra["Tetra"]:::tetra
+        Key_Palmetto["Palmetto"]:::palmetto
+        Key_Sibi["Sibi"]:::sibi
+        Key_CO["CO"]:::co
+        Key_Comms["📧📱 Notification"]:::comms
+    end
+
+    %% =============================================================
+    %% STAGE 1: SALES
+    %% =============================================================
+    subgraph Stage1_Sales["STAGE 1: SALES"]
+        direction TB
+
+        %% --- Entry ---
+        S1_Entry["[S][F] Quote Created<br/>sale_status = quoted"]:::solar
+        S1_Entry --> S1_Dec_Payment
+
+        %% --- Payment Method Decision ---
+        S1_Dec_Payment{"[S] Select Payment<br/>Method?"}:::logic
+
+        %% --- CASH PATH ---
+        subgraph S1_Cash["Cash"]
+            S1_CashCC{"CC on file?"}:::logic
+            S1_CashDeposit{"[F] Equipment<br/>Available?"}:::logic
+            S1_Collect30["[T] Collect 30% Deposit"]:::ho
+        end
+        S1_Dec_Payment -- Cash --> S1_CashCC
+        S1_CashCC -- Yes --> S1_CashClosedWon
+        S1_CashCC -- No --> S1_CashCC
+        S1_CashDeposit -- No --> S1_Collect30
+        S1_Collect30 --> S1_CashClosedWon
+        S1_CashDeposit -- Yes --> S1_CashClosedWon
+
+        S1_CashClosedWon["[S][F] Closed Won<br/>sale_status = closed_won"]:::solar
+        S1_CashTask["[T] Select preferred times"]:::ho
+        S1_CashNotif["[N] 📧📱 #8 Select Site Visit Times"]:::comms
+        S1_CashClosedWon --> S1_CashTask --> S1_CashNotif
+
+        %% --- LEASE PATH (Palmetto) ---
+        subgraph S1_Palmetto["Palmetto (Lease)"]
+            S1_PalSubmit["[S][F] Financing Submitted<br/>payment_method_status = submitted"]:::palmetto
+            S1_PalTask_ID["[T] Submit identity verification"]:::ho
+            S1_PalTask_HO["[T] Submit homeownership verification"]:::ho
+            S1_PalDec{"Financing<br/>Partner<br/>Response?"}:::logic
+
+            %% Conditional Approval
+            S1_PalConditional["[S][F] Conditionally Approved<br/>payment_method_status = conditional"]:::palmetto
+            S1_PalCondNotif1["[N] 📧📱 #1 Conditionally Approved"]:::comms
+            S1_PalCondNotif2["[N] 📧📱 #2 Submit Verification Docs"]:::comms
+
+            %% Verification flow
+            S1_PalVerifSubmit["[S][F] Verification Submitted<br/>verification_status = submitted"]:::ho
+            S1_PalVerifNotif["[N] 📧📱 #3 Documents Received"]:::comms
+            S1_PalVerifDec{"Verification<br/>Result?"}:::logic
+            S1_PalVerifApproved["[S][F] Financing Approved<br/>payment_method_status = approved"]:::palmetto
+            S1_PalVerifApprovedNotif["[N] 📧📱 #5 Financing Approved"]:::comms
+            S1_PalVerifRejected["[S][F] Verification Rejected<br/>verification_status = rejected"]:::palmetto
+            S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
+            S1_PalVerifRejNotif["[N] 📧📱 #4 Documents Rejected"]:::comms
+            S1_PalVerifRejDec{"Resubmit<br/>within 7d?"}:::logic
+
+            %% Denied
+            S1_PalDenied["[S][F] Financing Denied<br/>payment_method_status = denied"]:::palmetto
+            S1_PalDeniedNotif1["[N] 📧📱 #6 Financing Denied"]:::comms
+            S1_PalDeniedNotif2["[N] 📧📱 #7 Follow Up (Sales)"]:::comms
+            S1_PalDeniedDec{"Alternative<br/>Payment?"}:::logic
+
+            %% Parallel site visit for conditional
+            S1_PalParallel["[S][F] Select Site Visit Times<br/>(parallel path)"]:::ho
+            S1_PalParallelNotif["[N] 📧📱 #8 Select Site Visit Times"]:::comms
+        end
+
+        S1_Dec_Payment -- Palmetto --> S1_PalSubmit
+        S1_PalSubmit --> S1_PalTask_ID
+        S1_PalSubmit --> S1_PalTask_HO
+        S1_PalSubmit --> S1_PalDec
+
+        %% Conditional
+        S1_PalDec -- Conditional --> S1_PalConditional
+        S1_PalConditional --> S1_PalCondNotif1
+        S1_PalConditional --> S1_PalCondNotif2
+
+        %% Upload docs
+        S1_PalConditional -->|HO uploads docs| S1_PalVerifSubmit
+        S1_PalVerifSubmit --> S1_PalVerifNotif
+        S1_PalVerifNotif --> S1_PalVerifDec
+
+        %% Verification approved
+        S1_PalVerifDec -- Approved --> S1_PalVerifApproved
+        S1_PalVerifApproved --> S1_PalVerifApprovedNotif
+
+        %% Verification rejected
+        S1_PalVerifDec -- Rejected --> S1_PalVerifRejected
+        S1_PalVerifRejected --> S1_PalVerifRejTask
+        S1_PalVerifRejected --> S1_PalVerifRejNotif
+        S1_PalVerifRejNotif --> S1_PalVerifRejDec
+
+        %% Resubmit loop
+        S1_PalVerifRejDec -- Yes --> S1_PalVerifSubmit
+        %% Reject → Denied
+        S1_PalVerifRejDec -- "No (7d+ / denied)" --> S1_PalDenied
+
+        %% Denied
+        S1_PalDec -- Denied --> S1_PalDenied
+        S1_PalDenied --> S1_PalDeniedNotif1
+        S1_PalDenied --> S1_PalDeniedNotif2
+        S1_PalDeniedNotif2 --> S1_PalDeniedDec
+        S1_PalDeniedDec -- "Try another method" --> S1_Dec_Payment
+
+        %% Parallel site visit
+        S1_PalConditional -->|HO selects times| S1_PalParallel
+        S1_PalParallel --> S1_PalParallelNotif
+
+        %% --- CONVERGENCE ---
+        %% Financing Approved → Closed Won
+        S1_ClosedWon["[S][F] Closed Won<br/>sale_status = closed_won"]:::solar
+        S1_ClosedWonTask["[T] Select preferred times"]:::ho
+        S1_ClosedWonNotif["[N] 📧📱 #8 Select Site Visit Times"]:::comms
+
+        S1_PalVerifApprovedNotif --> S1_ClosedWon
+        S1_ClosedWon --> S1_ClosedWonTask --> S1_ClosedWonNotif
+
+        %% Denied → Closed Lost
+        S1_PalDeniedDec -- "No alternative (168h+)" --> S1_ClosedLost
+
+        %% Unresponsive → Closed Lost
+        S1_UnrespNotif["[N] 📧📱 #54 HO Unresponsive"]:::comms
+        S1_UnrespNotif --> S1_ClosedLost
+
+        S1_ClosedLost(["[S] Closed Lost"]):::terminator
+
+        %% --- SUBPROCESS EXIT ---
+        S1_Ref_SiteVisit[["→ Stage 2: Site Visit"]]:::subprocess
+        S1_CashNotif --> S1_Ref_SiteVisit
+        S1_ClosedWonNotif --> S1_Ref_SiteVisit
+        S1_PalParallelNotif --> S1_Ref_SiteVisit
+    end
+
+    %% =============================================================
+    %% STAGE 2: SITE VISIT
+    %% =============================================================
+    subgraph Stage2_SiteVisit["STAGE 2: SITE VISIT"]
+        direction TB
+
+        %% --- Entry ---
+        S2_Backref_Sales(["↩ Stage 1: Closed Won"]):::subprocess
+
+        %% #1: Select Preferred Times
+        S2_SelectTimes["[S][T] Select Preferred Site Visit Times"]:::ho
+        S2_SelectNotif["[N] 📧📱 #8 Select Site Visit Times"]:::comms
+        S2_SelectExpiry{"Days > 7<br/>no times?"}:::logic
+        S2_SelectRemind["[N] 📧📱 Remind HO: Select Times"]:::comms
+
+        %% #2: Awaiting CO Confirmation
+        S2_AwaitCO["[S][F] Awaiting CO Confirmation<br/>ho_preferred_times submitted"]:::monitor
+        S2_AwaitCOTask["[T] Confirm site visit time"]:::co
+        S2_AwaitCONotif["[N] 📧📱 #9 CO Task: Confirm Time"]:::comms
+        S2_AwaitCOExpiry{"Hours > 24<br/>no CO selection?"}:::logic
+        S2_AwaitCORemind["[N] 📧📱 Remind CO: Confirm"]:::comms
+
+        %% #3: Confirm Site Visit Time
+        S2_ConfirmTime["[S][F] Confirm Site Visit Time<br/>co_selected_time = SELECTED"]:::ho
+        S2_ConfirmTask["[T] Confirm site visit time"]:::ho
+        S2_ConfirmNotif["[N] 📧📱 #10 Confirm Appointment"]:::comms
+        S2_ConfirmExpiry{"Hours > 48<br/>no HO confirm?"}:::logic
+        S2_ConfirmRemind["[N] 📧📱 Remind HO: Confirm"]:::comms
+
+        %% #4a/4b: CO to Contact Directly
+        S2_COContact["[S][T] CO to Contact Directly<br/>co_fallback_initiated"]:::co
+        S2_COContactTask["[T] Contact HO to schedule"]:::co
+        S2_COContactNotif["[N] 📧📱 #11 CO Task: Contact to Schedule"]:::comms
+        S2_COContactExpiry{"Hours > 48<br/>no date + attempts >= 2?"}:::logic
+
+        %% #5a/5b: Site Visit Confirmed
+        S2_Confirmed["✓ [S] Site Visit Confirmed<br/>site_visit_status = confirmed"]:::monitor
+        S2_ConfirmedTask["[T] Conduct site visit"]:::co
+        S2_ConfirmedNotif["[N] 📧📱 #12 Site Visit Confirmed"]:::comms
+
+        %% #6: Sales Escalation
+        S2_SalesEscalation["[S][T] Sales Escalation<br/>sales_escalation = true"]:::solar
+        S2_SalesEscNotif["[N] 📧📱 #54/#56 Unresponsive"]:::comms
+        S2_SalesEscExpiry{"Days > 5<br/>no date?"}:::logic
+        S2_OpsEscalation["[N] 📧📱 Escalate to Ops"]:::tetra
+
+        %% #7: Sales mediates → Confirmed
+        S2_SalesMediated["[S] Sales Mediated<br/>sales_mediated = true"]:::solar
+
+        %% Day-Before/Day-Of Reminders
+        S2_ReminderDayBefore["[N] 📧📱 #13/#14 Day Before (HO + CO)"]:::comms
+        S2_ReminderDayOf["[N] 📧📱 #15 Day Of (CO)"]:::comms
+
+        %% #8: Site Visit Complete
+        S2_Complete["[S][F] Site Visit Complete<br/>site_visit_status = complete"]:::co
+        S2_CompleteDec{"Change Order<br/>Required?"}:::logic
+
+        %% #9: 30% Deposit
+        S2_DepositDec{"Cash + Factory<br/>Direct?"}:::logic
+        S2_Deposit["[S][F][N] 30% Deposit Required<br/>deposit_amount = 30%<br/>#16 Deposit Reminder"]:::ho
+        S2_DepositExpiry{"Days > 7<br/>not paid?"}:::logic
+        S2_DepositRemind["[N] 📧📱 Remind HO: Deposit"]:::comms
+
+        %% Cross-stage exits
+        S2_Ref_ChangeOrder[["→ Stage 3: Change Order"]]:::subprocess
+        S2_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
+
+        %% --- FLOW ---
+        S2_Backref_Sales --> S2_SelectTimes
+        S2_SelectTimes --> S2_SelectNotif
+        S2_SelectTimes --> S2_SelectExpiry
+        S2_SelectExpiry -- Yes --> S2_SelectRemind
+        S2_SelectRemind --> S2_SelectTimes
+
+        S2_SelectTimes -->|HO submits 3 times| S2_AwaitCO
+        S2_AwaitCO --> S2_AwaitCOTask --> S2_AwaitCONotif
+        S2_AwaitCO --> S2_AwaitCOExpiry
+        S2_AwaitCOExpiry -- Yes --> S2_AwaitCORemind
+
+        %% CO selects time
+        S2_AwaitCO -->|CO selects from HO times| S2_ConfirmTime
+        S2_ConfirmTime --> S2_ConfirmTask --> S2_ConfirmNotif
+        S2_ConfirmTime --> S2_ConfirmExpiry
+        S2_ConfirmExpiry -- Yes --> S2_ConfirmRemind
+
+        %% CO declines or timeout → fallback
+        S2_AwaitCO -->|CO declines all / 24h timeout| S2_COContact
+        S2_COContact --> S2_COContactTask --> S2_COContactNotif
+        S2_COContact --> S2_COContactExpiry
+
+        %% HO declines confirmed time → fallback
+        S2_ConfirmTime -->|HO declines| S2_COContact
+
+        %% HO confirms → Confirmed
+        S2_ConfirmTime -->|HO confirms| S2_Confirmed
+        S2_Confirmed --> S2_ConfirmedTask --> S2_ConfirmedNotif
+
+        %% CO schedules directly → Confirmed
+        S2_COContact -->|CO schedules directly| S2_Confirmed
+
+        %% Escalation
+        S2_COContactExpiry -- Yes --> S2_SalesEscalation
+        S2_SalesEscalation --> S2_SalesEscNotif
+        S2_SalesEscNotif --> S2_SalesEscExpiry
+        S2_SalesEscExpiry -- Yes --> S2_OpsEscalation
+
+        %% Sales mediates
+        S2_SalesEscalation --> S2_SalesMediated
+        S2_SalesMediated -->|Confirmed date| S2_Confirmed
+
+        %% Reminders
+        S2_Confirmed --> S2_ReminderDayBefore
+        S2_Confirmed --> S2_ReminderDayOf
+
+        %% Complete
+        S2_Confirmed -->|CO marks complete| S2_Complete
+        S2_Complete --> S2_CompleteDec
+        S2_Complete --> S2_DepositDec
+
+        %% Branch: Change Order or Installation
+        S2_CompleteDec -- "Yes: scope change" --> S2_Ref_ChangeOrder
+        S2_CompleteDec -- "No: proceed to install" --> S2_Ref_Installation
+
+        %% Deposit logic
+        S2_DepositDec -- Yes --> S2_Deposit
+        S2_Deposit --> S2_DepositExpiry
+        S2_DepositExpiry -- Yes --> S2_DepositRemind
+    end
+
+    %% =============================================================
+    %% STAGE 3: CHANGE ORDER
+    %% =============================================================
+    subgraph Stage3_ChangeOrder["STAGE 3: CHANGE ORDER"]
+        direction TB
+
+        %% Entry
+        S3_Backref_SiteVisit(["↩ Stage 2: Site Visit Complete"]):::subprocess
+
+        %% #1: CO creates change order
+        S3_Created["[S][F] Change Order Created<br/>change_order_status = created"]:::co
+        S3_CreatedTask["[T] Review change order"]:::sibi
+        S3_CreatedNotif["[N] 📧📱 #17 Change Order Created"]:::comms
+        S3_CreatedExpiry{"Hours > 24<br/>not reviewed?"}:::logic
+        S3_CreatedRemind["[N] 📧📱 Remind Sibi"]:::comms
+
+        %% #2: Sibi reviews → Sent to HO
+        S3_Sent["[S] Change Order Sent<br/>change_order_status = sent"]:::solar
+        S3_SentTask["[T] Review change order"]:::ho
+        S3_SentNotif["[N] 📧📱 #18 Sent for Review"]:::comms
+        S3_SentExpiry{"Days > 3<br/>no HO response?"}:::logic
+        S3_SentRemind["[N] 📧📱 Remind HO"]:::comms
+
+        %% #3: HO Approves
+        S3_Dec_HO{"HO Response?"}:::logic
+        S3_Approved["[S] Change Order Approved<br/>change_order_status = approved"]:::ho
+        S3_ApprovedNotif["[N] 📧📱 #19 Approved by HO"]:::comms
+        S3_Dec_Amount{"Amount > 0?"}:::logic
+
+        %% #4: HO Declines
+        S3_Declined["[S] Change Order Declined<br/>change_order_status = declined"]:::ho
+        S3_DeclinedNotif["[N] 📧📱 #20 Declined by HO"]:::comms
+        S3_Dec_HOAction{"HO Decision?"}:::logic
+        S3_DeclinedExpiry{"Days > 7<br/>no action?"}:::logic
+        S3_DeclinedRemind["[N] 📧📱 Remind Sales"]:::comms
+
+        %% #5-8: Cash payment path
+        S3_SelectPayment{"[S] Payment<br/>Method?"}:::logic
+        S3_CCRequired["[S][T] CC Required<br/>change_order_status = cc_required"]:::ho
+        S3_CCRequiredNotif["[N] 📧📱 #22 CC Required"]:::comms
+        S3_CCRequiredExpiry{"Days > 3<br/>no CC?"}:::logic
+        S3_CCRequiredRemind["[N] 📧📱 Remind HO: CC"]:::comms
+
+        S3_Dec_CCResult{"CC Payment<br/>Result?"}:::logic
+        S3_CCComplete["[S][F] Change Order Complete<br/>payment_status = completed"]:::tetra
+        S3_CCCompleteNotif["[N] 📧📱 #23 Change Order Complete"]:::comms
+
+        S3_CCDenied["[S] Payment Denied<br/>change_order_status = financing_denied"]:::tetra
+        S3_CCDeniedTask["[T] Contact customer"]:::solar
+        S3_CCDeniedNotif["[N] 📧📱 #24 Payment Denied"]:::comms
+        S3_Dec_CCRetry{"HO Retries?"}:::logic
+
+        %% #9: Lease payment
+        S3_LeaseComplete["[S] Change Order Complete<br/>(lease approved)"]:::tetra
+        S3_LeaseCompleteNotif["[N] 📧📱 #23 Change Order Complete"]:::comms
+
+        %% #10: Zero-dollar change order
+        S3_ZeroComplete["[S] Change Order Complete<br/>(amount = $0)"]:::tetra
+        S3_ZeroCompleteNotif["[N] 📧📱 #23 Change Order Complete"]:::comms
+
+        %% #11: Exit to Installation
+        S3_ToInstall["[S][T] Select Preferred Install Dates<br/>installation_status = select_preferred"]:::ho
+        S3_ToInstallNotif["[N] 📧📱 #28 Select Install Dates"]:::comms
+        S3_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
+
+        %% Exits
+        S3_Cancelled(["[S] Job Cancelled"]):::terminator
+        S3_RevisedScope(["↩ Revise Scope"]):::subprocess
+
+        %% --- FLOW ---
+        S3_Backref_SiteVisit --> S3_Created
+        S3_Created --> S3_CreatedTask --> S3_CreatedNotif
+        S3_Created --> S3_CreatedExpiry
+        S3_CreatedExpiry -- Yes --> S3_CreatedRemind
+
+        %% Sibi approves → send to HO
+        S3_CreatedTask -->|Sibi approves| S3_Sent
+        S3_Sent --> S3_SentTask --> S3_SentNotif
+        S3_Sent --> S3_SentExpiry
+        S3_SentExpiry -- Yes --> S3_SentRemind
+
+        %% HO decides
+        S3_SentTask --> S3_Dec_HO
+        S3_Dec_HO -- Approved --> S3_Approved
+        S3_Approved --> S3_ApprovedNotif
+        S3_ApprovedNotif --> S3_Dec_Amount
+
+        S3_Dec_HO -- Declined --> S3_Declined
+        S3_Declined --> S3_DeclinedNotif
+        S3_DeclinedNotif --> S3_Dec_HOAction
+        S3_Dec_HOAction -- "Cancel job" --> S3_Cancelled
+        S3_Dec_HOAction -- "Revise scope" --> S3_RevisedScope
+        S3_Dec_HOAction --> S3_DeclinedExpiry
+        S3_DeclinedExpiry -- Yes --> S3_DeclinedRemind
+
+        %% Amount = 0 → skip payment
+        S3_Dec_Amount -- "$0" --> S3_ZeroComplete
+        S3_ZeroComplete --> S3_ZeroCompleteNotif
+        S3_ZeroCompleteNotif --> S3_ToInstall
+
+        %% Amount > 0 → payment method
+        S3_Dec_Amount -- "> $0" --> S3_SelectPayment
+        S3_SelectPayment --> S3_CCRequired
+        S3_SelectPayment -- "Cash + no CC" --> S3_CCRequired
+        S3_CCRequired --> S3_CCRequiredNotif
+        S3_CCRequired --> S3_CCRequiredExpiry
+        S3_CCRequiredExpiry -- Yes --> S3_CCRequiredRemind
+
+        %% CC result
+        S3_CCRequired --> S3_Dec_CCResult
+        S3_Dec_CCResult -- "Success" --> S3_CCComplete
+        S3_CCComplete --> S3_CCCompleteNotif
+        S3_CCCompleteNotif --> S3_ToInstall
+
+        %% CC declined
+        S3_Dec_CCResult -- "Declined" --> S3_CCDenied
+        S3_CCDenied --> S3_CCDeniedTask
+        S3_CCDenied --> S3_CCDeniedNotif
+        S3_CCDeniedNotif --> S3_Dec_CCRetry
+
+        %% Retry
+        S3_Dec_CCRetry -- Yes --> S3_CCRequired
+        S3_Dec_CCRetry -- No --> S3_Cancelled
+
+        %% Lease approved
+        S3_SelectPayment -- "Lease" --> S3_LeaseComplete
+        S3_LeaseComplete --> S3_LeaseCompleteNotif
+        S3_LeaseCompleteNotif --> S3_ToInstall
+
+        %% Complete → Install
+        S3_ToInstall --> S3_ToInstallNotif
+        S3_ToInstallNotif --> S3_Ref_Installation
+    end
+
+    %% =============================================================
+    %% STAGE 4: MATERIAL ORDERING
+    %% =============================================================
+    subgraph Stage4_MaterialOrdering["STAGE 4: MATERIAL ORDERING"]
+        direction TB
+
+        %% Entry
+        S4_Backref_Install(["↩ Stage 5: Install Date Confirmed"]):::subprocess
+
+        %% #1: Order Pending
+        S4_Pending["[S][F] Order Pending<br/>material_ordering_status = order_pending"]:::sibi
+        S4_PendingExpiry{"Days > 3<br/>still pending?"}:::logic
+        S4_PendingRemind["[N] 📧📱 Remind Ops"]:::comms
+
+        %% #2: Order Approved
+        S4_Approved["[S][F] Order Approved<br/>material_ordering_status = order_approved"]:::sibi
+
+        %% #3: Processing
+        S4_Processing["[S][F] Processing<br/>material_ordering_status = processing"]:::sibi
+
+        %% #4: Order Confirmed
+        S4_Confirmed["[S][F] Order Confirmed<br/>delivery_date + tracking"]:::sibi
+
+        %% #5: At Distribution Center
+        S4_AtDistCenter["[S][F] At Distribution Center"]:::sibi
+
+        %% #6: In Transit
+        S4_InTransit["[S][F] In Transit"]:::sibi
+
+        %% #7: Ready for Pickup
+        S4_ReadyPickup["[S][F][N] Ready for Pickup<br/>#27 Material Ready (CO)"]:::sibi
+        S4_PickupExpiry{"Days until install < 2<br/>not picked up?"}:::logic
+        S4_PickupRemind["[N] 📧📱 Remind CO: Pickup"]:::comms
+
+        %% #8: Material Ready (via pickup)
+        S4_MaterialReady["✓ [S] Material Ready<br/>material_ordering_status = material_ready"]:::monitor
+
+        %% #9: Material Ready (direct delivery)
+        S4_Dec_DeliveryMethod{"Delivery<br/>Method?"}:::logic
+
+        %% #10-12: Cancellation
+        S4_Cancelled["[S][F] Order Cancelled<br/>material_ordering_status = order_cancelled"]:::sibi
+        S4_CancelledExit(["[S] Job Cancelled / Rescheduled"]):::terminator
+
+        %% #13: Order Delayed
+        S4_Delayed["[S][F][N] Order Delayed<br/>#25 Delay (CO+HO)<br/>#26 Reschedule (Sales)"]:::sibi
+        S4_DelayedTask["[T] Reschedule installation"]:::tetra
+
+        %% Thermostat sub-flow
+        subgraph S4_Thermostat["Thermostat"]
+            S4_ThermoOrdered["[S] Thermostat Ordered"]:::sibi
+            S4_ThermoInTransit["[S][F] Thermostat In Transit"]:::sibi
+            S4_ThermoDelivered["[S][F] Thermostat Delivered"]:::sibi
+        end
+
+        %% Cross-stage exit
+        S4_Ref_InstallReady[["→ Stage 5: Installation Ready"]]:::subprocess
+
+        %% --- FLOW ---
+        S4_Backref_Install --> S4_Pending
+        S4_Pending --> S4_PendingExpiry
+        S4_PendingExpiry -- Yes --> S4_PendingRemind
+
+        S4_Pending -->|Sibi confirms| S4_Approved
+        S4_Approved -->|Sibi begins prep| S4_Processing
+        S4_Processing -->|Delivery date + tracking| S4_Confirmed
+        S4_Confirmed --> S4_AtDistCenter
+        S4_AtDistCenter --> S4_InTransit
+        S4_InTransit --> S4_Dec_DeliveryMethod
+
+        %% Pickup path
+        S4_Dec_DeliveryMethod -- Pickup --> S4_ReadyPickup
+        S4_ReadyPickup --> S4_PickupExpiry
+        S4_PickupExpiry -- Yes --> S4_PickupRemind
+        S4_ReadyPickup -->|CO pickup / delivery confirmed| S4_MaterialReady
+
+        %% Direct delivery path
+        S4_Dec_DeliveryMethod -- "Direct delivery" --> S4_MaterialReady
+
+        %% Cancellation
+        S4_Pending -->|Ops cancels| S4_Cancelled
+        S4_Approved -->|Ops cancels| S4_Cancelled
+        S4_Processing -->|Ops cancels| S4_Cancelled
+        S4_Cancelled --> S4_CancelledExit
+
+        %% Delay
+        S4_Processing -->|Sibi reports delay| S4_Delayed
+        S4_Delayed --> S4_DelayedTask
+        S4_Delayed -->|Delay resolved| S4_Confirmed
+
+        %% Thermostat
+        S4_ThermoOrdered --> S4_ThermoInTransit
+        S4_ThermoInTransit --> S4_ThermoDelivered
+        S4_ThermoOrdered -->|Skip transit| S4_ThermoDelivered
+
+        %% Exit
+        S4_MaterialReady --> S4_Ref_InstallReady
+    end
+
+    %% =============================================================
+    %% STAGE 5: INSTALLATION
+    %% =============================================================
+    subgraph Stage5_Installation["STAGE 5: INSTALLATION"]
+        direction TB
+
+        %% Entry
+        S5_Backref_SiteVisit(["↩ Stage 2/3: Site Visit or Change Order"]):::subprocess
+
+        %% === 1.x SCHEDULING ===
+        S5_SelectDates["[S][T] Select Preferred Install Dates"]:::ho
+        S5_SelectDatesNotif["[N] 📧📱 #28 Select Install Dates"]:::comms
+        S5_SelectExpiry{"Days > 7<br/>no dates?"}:::logic
+        S5_SelectRemind["[N] 📧📱 Remind HO"]:::comms
+
+        S5_AwaitCO["[S][F] Awaiting CO Confirmation"]:::monitor
+        S5_AwaitCOTask["[T] Confirm install date"]:::co
+        S5_AwaitCONotif["[N] 📧📱 #29 CO Task: Confirm Date"]:::comms
+        S5_AwaitCOExpiry{"Hours > 24<br/>no selection?"}:::logic
+        S5_AwaitCORemind["[N] 📧📱 Remind CO"]:::comms
+
+        S5_ConfirmDate["[S][F][T] Confirm Install Date"]:::ho
+        S5_ConfirmDateNotif["[N] 📧📱 #30 Confirm Your Install Date"]:::comms
+        S5_ConfirmExpiry{"Hours > 48<br/>no confirm?"}:::logic
+        S5_ConfirmRemind["[N] 📧📱 Remind HO"]:::comms
+
+        S5_COContact["[S][T] CO to Contact Directly"]:::co
+        S5_COContactNotif["[N] 📧📱 #31 CO Task: Contact to Schedule"]:::comms
+        S5_COContactExpiry{"Hours > 48<br/>no date?"}:::logic
+
+        S5_DateConfirmed["✓ [S][F] Install Date Confirmed<br/>install_date = AGREED_DATE"]:::monitor
+        S5_DateConfirmedNotif["[N] 📧📱 #32 Install Date Confirmed"]:::comms
+
+        S5_Unresponsive["[S][T] Unresponsive<br/>unresponsive_flag = true"]:::tetra
+        S5_UnrespNotif["[N] 📧📱 #54 HO Unresponsive"]:::comms
+        S5_UnrespExpiry{"Days > 5?"}:::logic
+        S5_UnrespEscalate["[N] 📧📱 #55 Escalation to Ops"]:::tetra
+
+        %% 1.8: Installation Ready (GATE)
+        S5_Dec_Gate{"Install Date +<br/>Material Ready?"}:::logic
+        S5_Ready["✓ [S][T] Installation Ready"]:::monitor
+        S5_ReadyTask["[T] Complete installation"]:::co
+        S5_ReadyNotif["[N] 📧📱 #35 Material Check (2d before)"]:::comms
+
+        S5_ReminderDayBefore["[N] 📧📱 #33/#34 Day Before (HO + CO)"]:::comms
+
+        %% === 2.x EXECUTION ===
+        S5_Complete["[S][F] Installation Complete<br/>qc_photos + qc_verified"]:::co
+
+        S5_QCDec{"QC Photos<br/>Verified?"}:::logic
+        S5_QCRejected["[S][N] QC Rejected<br/>qc_rejection_count += 1<br/>#37 Resubmit (CO)"]:::tetra
+        S5_QCRejExpiry{"Hours > 24<br/>no resubmit?"}:::logic
+        S5_QCRejRemind["[N] 📧📱 Remind CO: Resubmit"]:::comms
+
+        S5_Approve["[S][T] Approve Installation<br/>pending_ho_approval = true"]:::ho
+        S5_ApproveNotif["[N] 📧📱 #38 Approve Installation"]:::comms
+        S5_ApproveExpiry{"Hours > 24<br/>no response?"}:::logic
+        S5_ApproveRemind["[N] 📧📱 Remind HO: Approve"]:::comms
+
+        %% === 3.x POST-INSTALL ===
+        S5_Dec_HOApproval{"HO Approves<br/>Installation?"}:::logic
+
+        S5_Approved["[S][F] Installation Approved<br/>payment_status = processing"]:::solar
+        S5_ApprovedNotif["[N] 📧📱 #39 Installation Approved"]:::comms
+        S5_Survey["[N] 📧📱 #41 Survey (3d after)"]:::comms
+
+        S5_Declined["[S] Declined<br/>case_status = created<br/>payment_status = paused"]:::ho
+        S5_DeclinedTask["[T] Contact customer (CO via case)"]:::co
+        S5_DeclinedNotif1["[N] 📧📱 #40 Issue Reported"]:::comms
+        S5_DeclinedNotif2["[N] 📧📱 #43 Payment Paused"]:::comms
+
+        S5_InstUnresponsive["[S][N] CO Unresponsive<br/>#36 Reminder: Complete Install"]:::tetra
+        S5_InstUnrespExpiry{"Days > 3?"}:::logic
+        S5_InstUnrespEsc["[N] 📧📱 Escalate to Ops"]:::tetra
+
+        %% Cross-stage exits
+        S5_Ref_Payment[["→ Stage 7: Payment"]]:::subprocess
+        S5_Ref_Case[["→ Stage 6: Case"]]:::subprocess
+        S5_Ref_MaterialGate[["← Stage 4: Material Ready"]]:::subprocess
+
+        %% --- 1.x SCHEDULING FLOW ---
+        S5_Backref_SiteVisit --> S5_SelectDates
+        S5_SelectDates --> S5_SelectDatesNotif
+        S5_SelectDates --> S5_SelectExpiry
+        S5_SelectExpiry -- Yes --> S5_SelectRemind
+
+        S5_SelectDates -->|HO submits dates| S5_AwaitCO
+        S5_AwaitCO --> S5_AwaitCOTask --> S5_AwaitCONotif
+        S5_AwaitCO --> S5_AwaitCOExpiry
+        S5_AwaitCOExpiry -- Yes --> S5_AwaitCORemind
+
+        S5_AwaitCO -->|CO selects from HO dates| S5_ConfirmDate
+        S5_ConfirmDate --> S5_ConfirmDateNotif
+        S5_ConfirmDate --> S5_ConfirmExpiry
+        S5_ConfirmExpiry -- Yes --> S5_ConfirmRemind
+
+        S5_AwaitCO -->|CO declines / 24h timeout| S5_COContact
+        S5_COContact --> S5_COContactNotif
+        S5_COContact --> S5_COContactExpiry
+
+        S5_ConfirmDate -->|HO confirms| S5_DateConfirmed
+        S5_DateConfirmed --> S5_DateConfirmedNotif
+
+        S5_ConfirmDate -->|HO declines / 48h timeout| S5_COContact
+
+        S5_COContact -->|CO schedules directly| S5_DateConfirmed
+
+        S5_COContactExpiry -- Yes --> S5_Unresponsive
+        S5_Unresponsive --> S5_UnrespNotif
+        S5_UnrespNotif --> S5_UnrespExpiry
+        S5_UnrespExpiry -- Yes --> S5_UnrespEscalate
+
+        %% Gate
+        S5_DateConfirmed --> S5_Dec_Gate
+        S5_Ref_MaterialGate --> S5_Dec_Gate
+        S5_Dec_Gate -- "Both ready" --> S5_Ready
+        S5_Ready --> S5_ReadyTask --> S5_ReadyNotif
+
+        S5_DateConfirmed --> S5_ReminderDayBefore
+
+        %% --- 2.x EXECUTION FLOW ---
+        S5_Ready -->|CO completes install| S5_Complete
+        S5_Complete --> S5_QCDec
+        S5_QCDec -- No --> S5_QCRejected
+        S5_QCRejected --> S5_QCRejExpiry
+        S5_QCRejExpiry -- Yes --> S5_QCRejRemind
+        S5_QCRejected -->|CO resubmits| S5_Complete
+        S5_QCDec -- Yes --> S5_Approve
+        S5_Approve --> S5_ApproveNotif
+        S5_Approve --> S5_ApproveExpiry
+        S5_ApproveExpiry -- Yes --> S5_ApproveRemind
+
+        %% --- 3.x POST-INSTALL FLOW ---
+        S5_Approve --> S5_Dec_HOApproval
+
+        S5_Dec_HOApproval -- Yes --> S5_Approved
+        S5_Approved --> S5_ApprovedNotif
+        S5_Approved -->|3 days later| S5_Survey
+        S5_ApprovedNotif --> S5_Ref_Payment
+
+        S5_Dec_HOApproval -- No --> S5_Declined
+        S5_Declined --> S5_DeclinedTask
+        S5_Declined --> S5_DeclinedNotif1
+        S5_Declined --> S5_DeclinedNotif2
+        S5_DeclinedNotif2 --> S5_Ref_Case
+
+        S5_DateConfirmed -->|Install date passed + not complete| S5_InstUnresponsive
+        S5_InstUnresponsive --> S5_InstUnrespExpiry
+        S5_InstUnrespExpiry -- Yes --> S5_InstUnrespEsc
+    end
+
+    %% =============================================================
+    %% STAGE 6: CASE
+    %% =============================================================
+    subgraph Stage6_Case["STAGE 6: CASE"]
+        direction TB
+
+        %% Entry
+        S6_Backref_Install(["↩ Stage 5: Installation Declined"]):::subprocess
+
+        S6_Created["[S][F][T] Case Created<br/>case_status = created<br/>case_id = GENERATED"]:::tetra
+        S6_CreatedTask["[T] Contact customer"]:::co
+        S6_CreatedNotif["[N] 📧📱 #49 Case Created (all parties)"]:::comms
+        S6_PayPaused["[N] 📧📱 #43 Payment Paused (if applicable)"]:::comms
+
+        S6_InProgress["[S][F][T] In Progress<br/>case_status = in_progress"]:::co
+        S6_InProgressTask["[T] Resolve case"]:::co
+
+        S6_Remind3d["[N] 📧📱 #50 Case Progress Reminder (CO, 3d)"]:::comms
+        S6_Remind5d["[N] 📧📱 #51 Case Progress Reminder (HO, 5d)"]:::comms
+        S6_Escalate7d["[N] 📧📱 #52 Case Escalation (Ops, 7d)"]:::comms
+
+        S6_Resolved["[S][F] Case Resolved<br/>case_status = resolved"]:::co
+        S6_ResolvedNotif["[N] 📧📱 #53 Case Resolved (all)"]:::comms
+        S6_PayResumed["[N] 📧📱 #44 Payment Resumed (if paused)"]:::comms
+
+        S6_Closed["[S] Case Closed<br/>case_closed_timestamp"]:::tetra
+
+        %% Cross-stage
+        S6_Ref_PaymentPause[["→ Stage 7: Payment Paused"]]:::subprocess
+        S6_Ref_PaymentResume[["→ Stage 7: Payment Resumed"]]:::subprocess
+
+        %% --- FLOW ---
+        S6_Backref_Install --> S6_Created
+        S6_Created --> S6_CreatedTask
+        S6_Created --> S6_CreatedNotif
+        S6_Created --> S6_PayPaused
+        S6_PayPaused --> S6_Ref_PaymentPause
+
+        S6_CreatedTask --> S6_InProgress
+        S6_InProgress --> S6_InProgressTask
+
+        S6_InProgress -->|3 days| S6_Remind3d
+        S6_InProgress -->|5 days| S6_Remind5d
+        S6_InProgress -->|7 days| S6_Escalate7d
+
+        S6_InProgress -->|CO + HO confirm resolution| S6_Resolved
+        S6_Resolved --> S6_ResolvedNotif
+        S6_Resolved --> S6_PayResumed
+        S6_PayResumed --> S6_Ref_PaymentResume
+
+        S6_Resolved --> S6_Closed
+    end
+
+    %% =============================================================
+    %% STAGE 7: PAYMENT
+    %% =============================================================
+    subgraph Stage7_Payment["STAGE 7: PAYMENT"]
+        direction TB
+
+        %% Entry
+        S7_Backref_Install(["↩ Stage 5: Installation Approved"]):::subprocess
+
+        %% Processing
+        S7_Processing["[S][F] Processing<br/>payment_status = processing"]:::tetra
+        S7_ProcessExpiry{"Hours > 48<br/>still processing?"}:::logic
+        S7_ProcessAlert["[N] 📧📱 Alert Ops"]:::comms
+
+        %% Payment method decision
+        S7_Dec_Method{"Payment<br/>Method?"}:::logic
+
+        %% === CASH PATH ===
+        S7_CashCharge["[S] CC Charge Attempted"]:::tetra
+        S7_Dec_CashResult{"CC Charge<br/>Successful?"}:::logic
+        S7_CashReceived["[S][F] Payment Received<br/>payment_status = payment_received"]:::tetra
+
+        S7_CashFailed["[S][F][T][N] Payment Failed<br/>payment_status = payment_failed<br/>#42 (HO + Sales)"]:::tetra
+        S7_FailedTask1["[T] Contact customer"]:::solar
+        S7_FailedTask2["[T] Update payment method"]:::ho
+        S7_FailedExpiry{"Hours > 24<br/>no retry?"}:::logic
+        S7_FailedRemind["[N] 📧📱 Remind HO + Sales"]:::comms
+
+        S7_Dec_Retry{"HO Updates<br/>CC?"}:::logic
+
+        S7_Overdue["[S][F][N] Payment Overdue<br/>payment_status = payment_overdue<br/>#45 (HO + Sales)"]:::tetra
+        S7_OverdueExpiry{"Days > 7<br/>no payment?"}:::logic
+        S7_OverdueRemind["[N] 📧📱 Escalate to Collections"]:::comms
+
+        S7_Dec_OverdueRetry{"HO Updates<br/>CC?"}:::logic
+
+        S7_Collections["[S][F][T][N] Sent to Collections<br/>payment_status = sent_to_collections<br/>#46 Ops; #47 HO"]:::tetra
+        S7_CollectionsTask["[T] Send to collections"]:::tetra
+
+        %% === LEASE PATH ===
+        S7_LeaseRelease["[S][F] Lease Fund Released<br/>payment_status = lease_fund_released"]:::palmetto
+
+        %% === CONVERGENCE ===
+        S7_Distributed["[S][F][N] Funds Distributed<br/>payment_status = funds_distributed<br/>#48 Payment Complete"]:::tetra
+        S7_DistCO["[F] Contractor Payout"]:::co
+        S7_DistSibi["[F] Equipment Payout"]:::sibi
+        S7_DistSales["[F] Sales Payout"]:::solar
+
+        %% Payment Paused (from Case)
+        S7_Paused["[S][F][N] Payment Paused<br/>payment_status = paused<br/>#43 (Sales + Ops + CO)"]:::tetra
+        S7_PausedExpiry{"Days > 7<br/>case unresolved?"}:::logic
+        S7_PausedRemind["[N] 📧📱 Remind Ops"]:::comms
+        S7_Backref_CasePause(["↩ Stage 6: Case Created"]):::subprocess
+
+        %% Payment Resumed (from Case)
+        S7_Backref_CaseResume(["↩ Stage 6: Case Resolved"]):::subprocess
+        S7_Resumed["[S][F][N] Payment Resumed<br/>payment_status = processing<br/>#44 (Sales + Ops + CO)"]:::comms
+
+        %% Exit
+        S7_Complete(["[S] Complete"]):::terminator
+
+        %% --- FLOW ---
+        S7_Backref_Install --> S7_Processing
+        S7_Processing --> S7_ProcessExpiry
+        S7_ProcessExpiry -- Yes --> S7_ProcessAlert
+        S7_Processing --> S7_Dec_Method
+
+        %% Cash path
+        S7_Dec_Method -- Cash --> S7_CashCharge
+        S7_CashCharge --> S7_Dec_CashResult
+        S7_Dec_CashResult -- Yes --> S7_CashReceived
+        S7_Dec_CashResult -- No --> S7_CashFailed
+        S7_CashFailed --> S7_FailedTask1
+        S7_CashFailed --> S7_FailedTask2
+        S7_CashFailed --> S7_FailedExpiry
+        S7_FailedExpiry -- Yes --> S7_FailedRemind
+        S7_CashFailed --> S7_Dec_Retry
+        S7_Dec_Retry -- Yes --> S7_CashCharge
+        S7_Dec_Retry -- "No (7d+)" --> S7_Overdue
+        S7_Overdue --> S7_OverdueExpiry
+        S7_OverdueExpiry -- Yes --> S7_OverdueRemind
+        S7_Overdue --> S7_Dec_OverdueRetry
+        S7_Dec_OverdueRetry -- Yes --> S7_CashCharge
+        S7_Dec_OverdueRetry -- "No (14d+)" --> S7_Collections
+        S7_Collections --> S7_CollectionsTask
+
+        %% Lease path
+        S7_Dec_Method -- Lease --> S7_LeaseRelease
+
+        %% Convergence to Funds Distributed
+        S7_CashReceived --> S7_Distributed
+        S7_LeaseRelease --> S7_Distributed
+        S7_Distributed --> S7_DistCO
+        S7_Distributed --> S7_DistSibi
+        S7_Distributed --> S7_DistSales
+        S7_Distributed --> S7_Complete
+
+        %% Pause/Resume
+        S7_Backref_CasePause --> S7_Paused
+        S7_Paused --> S7_PausedExpiry
+        S7_PausedExpiry -- Yes --> S7_PausedRemind
+        S7_Backref_CaseResume --> S7_Resumed
+        S7_Resumed --> S7_Processing
+    end
+
+    %% =============================================================
+    %% CROSS-STAGE CONNECTIONS
+    %% =============================================================
+
+    %% Stage 1 → Stage 2
+    S1_Ref_SiteVisit --> S2_Backref_Sales
+
+    %% Stage 2 → Stage 3 (Change Order)
+    S2_Ref_ChangeOrder --> S3_Backref_SiteVisit
+
+    %% Stage 2 → Stage 5 (Installation, no change order)
+    S2_Ref_Installation --> S5_Backref_SiteVisit
+
+    %% Stage 3 → Stage 5 (Installation, after change order)
+    S3_Ref_Installation --> S5_Backref_SiteVisit
+
+    %% Stage 5 ↔ Stage 4 (Material ordering)
+    S5_DateConfirmed -.-> S4_Backref_Install
+    S4_Ref_InstallReady -.-> S5_Ref_MaterialGate
+
+    %% Stage 5 → Stage 6 (Case on decline)
+    S5_Ref_Case --> S6_Backref_Install
+
+    %% Stage 5 → Stage 7 (Payment on approval)
+    S5_Ref_Payment --> S7_Backref_Install
+
+    %% Stage 6 ↔ Stage 7 (Payment pause/resume)
+    S6_Ref_PaymentPause --> S7_Backref_CasePause
+    S6_Ref_PaymentResume --> S7_Backref_CaseResume
