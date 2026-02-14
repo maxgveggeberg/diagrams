@@ -796,7 +796,7 @@ flowchart TD
 
         %% Payment Resumed (from Case)
         S7_Backref_CaseResume(["↩ Stage 6: Case Resolved"]):::subprocess
-        S7_Resumed["[S][N] Payment Resumed<br/>payment_status = processing<br/>#44 (Sales + Ops + CO)"]:::comms
+        S7_Resumed["[S][N] Payment Resumed<br/>payment_status = processing<br/>#44 (Sales + Ops + CO)"]:::solar
 
         %% Exit
         S7_Complete(["[S] Complete"]):::terminator
