@@ -57,8 +57,6 @@ flowchart TD
         subgraph S1_Palmetto["Palmetto (Lease)"]
             S1_PalInputApplicants["[T] Input Applicants"]:::ho
             S1_PalSubmit["[S] Financing Submitted<br/>payment_method_status = submitted"]:::palmetto
-            S1_PalTask_ID["[T] Submit identity verification"]:::ho
-            S1_PalTask_HO["[T] Submit homeownership verification"]:::ho
             S1_PalDec{"Financing<br/>Partner<br/>Response?"}:::logic
 
             %% Conditional Approval
@@ -90,8 +88,6 @@ flowchart TD
 
         S1_Dec_Payment -- Palmetto --> S1_PalInputApplicants
         S1_PalInputApplicants --> S1_PalSubmit
-        S1_PalSubmit --> S1_PalTask_ID
-        S1_PalSubmit --> S1_PalTask_HO
         S1_PalSubmit --> S1_PalDec
 
         %% Conditional
