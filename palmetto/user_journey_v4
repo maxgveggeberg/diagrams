@@ -34,26 +34,27 @@ flowchart TD
 
         %% --- Entry ---
         S1_Entry["[S] Quote Created"]:::solar
-        S1_Entry --> S1_Dec_Payment
+        S1_SelectEquip["Select Equipment"]:::solar
+        S1_Entry --> S1_SelectEquip --> S1_Dec_Payment
 
         %% --- Payment Method Decision ---
-        S1_Dec_Payment{"Select Payment<br/>Method?"}:::logic
+        S1_Dec_Payment["Select Payment<br/>Method"]:::logic
 
         %% --- CASH PATH ---
         subgraph S1_Cash["Cash"]
-            S1_CashInputCC["[T] Input Credit Card Info"]:::ho
+            S1_CashInputCC["Input Credit Card Info"]:::ho
         end
         S1_Dec_Payment -- Cash --> S1_CashInputCC
         S1_CashInputCC --> S1_CashClosedWon
 
-        S1_CashClosedWon["[AUTO][S] Closed Won"]:::solar
+        S1_CashClosedWon["[S] Closed Won"]:::solar
         S1_CashTask["[T] Select preferred times"]:::ho
         S1_CashNotif["[N] #8 Select Site Visit Times (⏱ 10min delay)"]:::ho
         S1_CashClosedWon --> S1_CashTask --> S1_CashNotif
 
         %% --- LEASE PATH (Palmetto) ---
         subgraph S1_Palmetto["Palmetto (Lease)"]
-            S1_PalInputApplicants["[T] Input Applicants"]:::ho
+            S1_PalInputApplicants["Input Applicants"]:::ho
             S1_PalSubmit["[S] Financing Submitted<br/>payment_method_status = submitted"]:::palmetto
             S1_PalDec{"Financing<br/>Partner<br/>Response?"}:::logic
 
@@ -119,7 +120,7 @@ flowchart TD
         S1_PalDenied --> S1_PalDeniedNotif1
         S1_PalDenied --> S1_PalDeniedNotif2
         S1_PalDeniedNotif2 --> S1_PalDeniedDec
-        S1_PalDeniedDec -- "Try another method" --> S1_Dec_Payment
+        S1_PalDeniedDec -- "Try another method" --> S1_CashInputCC
 
         %% Parallel site visit
         S1_PalConditional -->|HO selects times| S1_PalParallel
@@ -127,7 +128,7 @@ flowchart TD
 
         %% --- CONVERGENCE ---
         %% Conditional Approval → AUTO Closed Won
-        S1_ClosedWon["[AUTO][S] Closed Won"]:::solar
+        S1_ClosedWon["[S] Closed Won"]:::solar
         S1_ClosedWonTask["[T] Select preferred times"]:::ho
         S1_ClosedWonNotif["[N] #8 Select Site Visit Times (⏱ 10min delay)"]:::ho
 
