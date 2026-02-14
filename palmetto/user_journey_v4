@@ -35,7 +35,7 @@ flowchart TD
         direction TB
 
         %% --- Entry ---
-        S1_Entry["[S][F] Quote Created<br/>sale_status = quoted"]:::solar
+        S1_Entry["[S][F] Quote Created"]:::solar
         S1_Entry --> S1_Dec_Payment
 
         %% --- Payment Method Decision ---
@@ -54,9 +54,9 @@ flowchart TD
         S1_Collect30 --> S1_CashClosedWon
         S1_CashDeposit -- Yes --> S1_CashClosedWon
 
-        S1_CashClosedWon["[S][F] Closed Won<br/>sale_status = closed_won"]:::solar
+        S1_CashClosedWon["[AUTO][S] Closed Won"]:::solar
         S1_CashTask["[T] Select preferred times"]:::ho
-        S1_CashNotif["[N] 📧📱 #8 Select Site Visit Times"]:::comms
+        S1_CashNotif["[N] 📧📱 #8 Select Site Visit Times (⏱ 10min delay)"]:::comms
         S1_CashClosedWon --> S1_CashTask --> S1_CashNotif
 
         %% --- LEASE PATH (Palmetto) ---
@@ -75,8 +75,8 @@ flowchart TD
             S1_PalVerifSubmit["[S][F] Verification Submitted<br/>verification_status = submitted"]:::ho
             S1_PalVerifNotif["[N] 📧📱 #3 Documents Received"]:::comms
             S1_PalVerifDec{"Verification<br/>Result?"}:::logic
-            S1_PalVerifApproved["[S][F] Financing Approved<br/>payment_method_status = approved"]:::palmetto
-            S1_PalVerifApprovedNotif["[N] 📧📱 #5 Financing Approved"]:::comms
+            S1_PalVerifApproved["[S][F] Financing Fully Approved<br/>payment_method_status = approved"]:::palmetto
+            S1_PalVerifApprovedNotif["[N] 📧📱 #5 Financing Fully Approved"]:::comms
             S1_PalVerifRejected["[S][F] Verification Rejected<br/>verification_status = rejected"]:::palmetto
             S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
             S1_PalVerifRejNotif["[N] 📧📱 #4 Documents Rejected"]:::comms
@@ -90,7 +90,7 @@ flowchart TD
 
             %% Parallel site visit for conditional
             S1_PalParallel["[S][F] Select Site Visit Times<br/>(parallel path)"]:::ho
-            S1_PalParallelNotif["[N] 📧📱 #8 Select Site Visit Times"]:::comms
+            S1_PalParallelNotif["[N] 📧📱 #8 Select Site Visit Times (⏱ 10min delay)"]:::comms
         end
 
         S1_Dec_Payment -- Palmetto --> S1_PalSubmit
@@ -135,12 +135,12 @@ flowchart TD
         S1_PalParallel --> S1_PalParallelNotif
 
         %% --- CONVERGENCE ---
-        %% Financing Approved → Closed Won
-        S1_ClosedWon["[S][F] Closed Won<br/>sale_status = closed_won"]:::solar
+        %% Conditional Approval → AUTO Closed Won
+        S1_ClosedWon["[AUTO][S] Closed Won"]:::solar
         S1_ClosedWonTask["[T] Select preferred times"]:::ho
-        S1_ClosedWonNotif["[N] 📧📱 #8 Select Site Visit Times"]:::comms
+        S1_ClosedWonNotif["[N] 📧📱 #8 Select Site Visit Times (⏱ 10min delay)"]:::comms
 
-        S1_PalVerifApprovedNotif --> S1_ClosedWon
+        S1_PalConditional --> S1_ClosedWon
         S1_ClosedWon --> S1_ClosedWonTask --> S1_ClosedWonNotif
 
         %% Denied → Closed Lost
@@ -170,7 +170,7 @@ flowchart TD
 
         %% #1: Select Preferred Times
         S2_SelectTimes["[S][T] Select Preferred Site Visit Times"]:::ho
-        S2_SelectNotif["[N] 📧📱 #8 Select Site Visit Times"]:::comms
+        S2_SelectNotif["[N] 📧📱 #8 Select Site Visit Times (⏱ 10min delay)"]:::comms
         S2_SelectExpiry{"Days > 7<br/>no times?"}:::logic
         S2_SelectRemind["[N] 📧📱 Remind HO: Select Times"]:::comms
 
