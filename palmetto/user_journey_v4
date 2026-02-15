@@ -238,7 +238,6 @@ flowchart TD
 
         %% HO Declined → Required?
         S3_Dec_Required{"Required?"}:::logic
-        S3_NotRequiredUpdateProject["[N] Update Project"]:::tetra
 
         %% #4: HO Declines
         S3_Declined["[S] Change Order: Change Order Declined"]:::ho
@@ -297,7 +296,7 @@ flowchart TD
         S3_Dec_ProjectPayment -- "Cash" --> S3_UpdateProjectScope
 
         S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
-        S3_Dec_Required -- No --> S3_NotRequiredUpdateProject --> S3_Complete
+        S3_Dec_Required -- No --> S3_Complete
         S3_Dec_Required -- Yes --> S3_Declined
         S3_Declined --> S3_DeclinedNotif
         S3_DeclinedNotif --> S3_Cancelled
@@ -305,11 +304,14 @@ flowchart TD
         %% Credit card path
         S3_SelectPayment -- "Credit Card" --> S3_CCRequired
         S3_CCRequired --> S3_CCCharge
-        S3_CCCharge --> S3_Complete
+        S3_CCCharge --> S3_UpdateProjectScope
 
         %% Lease approved
         S3_SelectPayment -- "Lease" --> S3_NotifyPalmetto
-        S3_NotifyPalmetto --> S3_Complete
+        S3_NotifyPalmetto --> S3_UpdateProjectScope
+
+        %% Update scope → completion
+        S3_UpdateProjectScope --> S3_Complete
 
         %% Shared completion
         S3_Complete --> S3_CompleteNotif
