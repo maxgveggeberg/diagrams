@@ -163,19 +163,17 @@ flowchart TD
         S2_ConfirmedTask["[T] Conduct site visit"]:::co
         S2_ConfirmedNotif["[N] #12 Site Visit Confirmed"]:::co
 
-        %% Day-Before/Day-Of Reminders
-        S2_ReminderDayBeforeHO["[N] #13 Day Before (HO)"]:::ho
-        S2_ReminderDayBeforeCO["[N] #14 Day Before (CO)"]:::co
-        S2_ReminderDayOf["[N] #15 Day Of (CO)"]:::co
-
         %% #8: Site Visit Complete
         S2_Complete["[S] Site Visit: Site Visit Complete"]:::co
         S2_AutoSkip["[AUTO] Skip Open Scheduling Tasks<br/>(select times, confirm, CO contact)"]:::monitor
         S2_CompleteDec{"Change Order<br/>Required?"}:::logic
 
-        %% #9: 30% Deposit
-        S2_DepositDec{"Cash + Factory<br/>Direct?"}:::logic
-        S2_Deposit["[S][N] Site Visit: 30% Deposit Required<br/>#16 Deposit Reminder"]:::ho
+        %% #9: 30% Deposit (Cash projects)
+        S2_Deposit["[S] Site Visit: 30% Deposit"]:::ho
+        S2_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
+        S2_DepositFailed["[S] Site Visit: Deposit Payment Failed"]:::ho
+        S2_DepositFailedNotif["[N] #16 Update Payment Method"]:::ho
+        S2_DepositFailedTask["[T] Update payment method"]:::ho
 
         %% Cross-stage exits
         S2_Ref_ChangeOrder[["→ Stage 3: Change Order"]]:::subprocess
@@ -204,23 +202,23 @@ flowchart TD
         %% CO schedules directly → Confirmed
         S2_COContact --> S2_COSchedules --> S2_Confirmed
 
-        %% Reminders
-        S2_Confirmed --> S2_ReminderDayBeforeHO
-        S2_Confirmed --> S2_ReminderDayBeforeCO
-        S2_Confirmed --> S2_ReminderDayOf
-
         %% Complete
         S2_Confirmed -->|CO marks complete| S2_Complete
         S2_Complete --> S2_AutoSkip
         S2_AutoSkip --> S2_CompleteDec
-        S2_Complete --> S2_DepositDec
+        S2_Complete --> S2_Deposit
 
         %% Branch: Change Order or Installation
         S2_CompleteDec -- "Yes: scope change" --> S2_Ref_ChangeOrder
         S2_CompleteDec -- "No: proceed to install" --> S2_Ref_Installation
 
-        %% Deposit logic
-        S2_DepositDec -- Yes --> S2_Deposit
+        %% 30% Deposit flow (Cash projects)
+        S2_Deposit --> S2_DepositPayDec
+        S2_DepositPayDec -- Yes --> S2_CompleteDec
+        S2_DepositPayDec -- No --> S2_DepositFailed
+        S2_DepositFailed --> S2_DepositFailedNotif
+        S2_DepositFailed --> S2_DepositFailedTask
+        S2_DepositFailedTask -->|HO updates payment| S2_Deposit
     end
 
     %% =============================================================
