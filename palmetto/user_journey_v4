@@ -235,7 +235,6 @@ flowchart TD
         S3_HODeclined["HO Declined"]:::ho
         S3_Approved["[S] Change Order: Change Order Approved"]:::ho
         S3_ApprovedNotif["[N] #19 Approved by HO"]:::solar
-        S3_Dec_Amount{"Amount > 0?"}:::logic
 
         %% HO Declined → Required?
         S3_Dec_Required{"Required?"}:::logic
@@ -258,10 +257,6 @@ flowchart TD
         %% #9: Lease payment
         S3_LeaseComplete["[S] Change Order: Change Order Complete<br/>(lease approved)"]:::tetra
         S3_LeaseCompleteNotif["[N] #23 Change Order Complete"]:::ho
-
-        %% #10: Zero-dollar change order
-        S3_ZeroComplete["[S] Change Order: Change Order Complete<br/>(amount = $0)"]:::tetra
-        S3_ZeroCompleteNotif["[N] #23 Change Order Complete"]:::ho
 
         %% #11: Exit to Installation
         S3_ToInstall["[S][T] Installation: Select Preferred Install Dates"]:::ho
@@ -295,7 +290,7 @@ flowchart TD
         %% HO decides
         S3_SentNotif --> S3_HOApproved --> S3_Approved
         S3_Approved --> S3_ApprovedNotif
-        S3_ApprovedNotif --> S3_Dec_Amount
+        S3_ApprovedNotif --> S3_PayMethodNotif
 
         S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
         S3_Dec_Required -- No --> S3_NotRequiredComplete --> S3_NotRequiredUpdateProject --> S3_Ref_Installation
@@ -303,13 +298,7 @@ flowchart TD
         S3_Declined --> S3_DeclinedNotif
         S3_DeclinedNotif --> S3_Cancelled
 
-        %% Amount = 0 → skip payment
-        S3_Dec_Amount -- "$0" --> S3_ZeroComplete
-        S3_ZeroComplete --> S3_ZeroCompleteNotif
-        S3_ZeroCompleteNotif --> S3_ToInstall
-
-        %% Amount > 0 → payment method
-        S3_Dec_Amount -- "> $0" --> S3_PayMethodNotif
+        %% Payment method
         S3_PayMethodNotif --> S3_SelectPayment
         S3_SelectPayment --> S3_CCRequired
         S3_SelectPayment -- "Cash + no CC" --> S3_CCRequired
