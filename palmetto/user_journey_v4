@@ -102,7 +102,7 @@ flowchart TD
         S1_PalSubmit --> S1_PalDec
 
         %% Conditional
-        S1_PalDec -- Conditional --> S1_PalConditional
+        S1_PalDec -- "Conditional w/ verification docs" --> S1_PalConditional
         S1_PalConditional --> S1_PalCondNotif1
         S1_PalConditional --> S1_PalCondNotif2
 
