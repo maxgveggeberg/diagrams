@@ -26,6 +26,18 @@ flowchart TD
         Key_CO["CO"]:::co
     end
 
+    %% --- STATUSES ---
+    subgraph Statuses["STATUSES"]
+        direction LR
+        Status_Sales["Sales"]
+        Status_SiteVisit["Site Visit"]
+        Status_ChangeOrder["Change Order"]
+        Status_MaterialOrdering["Material Ordering"]
+        Status_Installation["Installation"]
+        Status_Case["Case"]
+        Status_Payment["Payment"]
+    end
+
     %% =============================================================
     %% STAGE 1: SALES
     %% =============================================================
