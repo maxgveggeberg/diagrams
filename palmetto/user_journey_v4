@@ -82,7 +82,7 @@ flowchart TD
             S1_PalVerifRejected["[S] Payment: Verification Rejected"]:::tetra
             S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
             S1_PalVerifRejNotif["[N] #4 Documents Rejected"]:::ho
-            S1_PalVerifRejDec{"Resubmit<br/>within 7d?"}:::logic
+            S1_PalVerifRejDec{"Resubmit<br/>within 24h?"}:::logic
 
             %% Denied
             S1_PalDenied["[S] Payment: Financing Denied"]:::tetra
