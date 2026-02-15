@@ -75,7 +75,7 @@ flowchart TD
             S1_PalCondIdle[["Idle Notifications"]]:::subprocess
 
             %% Verification flow
-            S1_PalVerifSubmit["[S] Payment: Verification Submitted"]:::ho
+            S1_PalVerifSubmit["[S] Payment: Verification Submitted"]:::tetra
             S1_PalVerifDec{"Verification<br/>Result?"}:::logic
             S1_PalVerifApproved["[S] Payment: Financing Approved"]:::tetra
             S1_PalVerifApprovedNotif["[N] #5 Financing Approved"]:::ho
@@ -91,6 +91,7 @@ flowchart TD
 
             %% Upload docs
             S1_PalUploadDocs["HO Uploads Docs"]:::ho
+            S1_PalUploadNotif["[N] Notify of Submission"]:::palmetto
 
         end
 
@@ -104,7 +105,7 @@ flowchart TD
         S1_PalConditional --> S1_PalCondTask
         S1_PalConditional --> S1_PalCondIdle
 
-        S1_PalCondTask --> S1_PalUploadDocs --> S1_PalVerifSubmit
+        S1_PalCondTask --> S1_PalUploadDocs --> S1_PalUploadNotif --> S1_PalVerifSubmit
         S1_PalVerifSubmit --> S1_PalVerifDec
 
         %% Verification approved → Financing Approved (unblocks Stage 4/5 gates)
