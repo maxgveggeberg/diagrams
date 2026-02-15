@@ -260,8 +260,6 @@ flowchart TD
         S3_CompleteNotif["[N] #19 Approved by HO"]:::solar
 
         %% #11: Exit to Installation
-        S3_ToInstall["[S][T] Installation: Select Preferred Install Dates"]:::ho
-        S3_ToInstallNotif["[N] #28 Select Install Dates"]:::ho
         S3_Ref_Installation[["→ Stage 4 / Stage 5: Material Ordering & Installation"]]:::subprocess
 
         %% CB Decision
@@ -319,11 +317,7 @@ flowchart TD
 
         %% Shared completion
         S3_Complete --> S3_CompleteNotif
-        S3_CompleteNotif --> S3_ToInstall
-
-        %% Complete → Install
-        S3_ToInstall --> S3_ToInstallNotif
-        S3_ToInstallNotif --> S3_Ref_Installation
+        S3_CompleteNotif --> S3_Ref_Installation
     end
 
     %% =============================================================
