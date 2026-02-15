@@ -148,7 +148,9 @@ flowchart TD
         S2_ConfirmTime["[S][F] Site Visit: Confirm Site Visit Time"]:::ho
         S2_ConfirmTask["[T] Confirm site visit time"]:::ho
         S2_ConfirmNotif["[N] #10 Confirm Appointment"]:::ho
-        S2_ConfirmIdle[["Idle Notifications"]]:::subprocess
+
+        %% CO Declines
+        S2_CODeclinesAll["CO Declines All"]:::co
 
         %% #4a/4b: CO to Contact Directly
         S2_COContact["[S][T] Site Visit: CO to Contact Directly"]:::co
@@ -160,14 +162,6 @@ flowchart TD
         S2_Confirmed["✓ [S] Site Visit: Site Visit Confirmed"]:::monitor
         S2_ConfirmedTask["[T] Conduct site visit"]:::co
         S2_ConfirmedNotif["[N] #12 Site Visit Confirmed"]:::co
-
-        %% #6: Sales Escalation
-        S2_SalesEscalation["[S][T] Site Visit: Sales Escalation"]:::solar
-        S2_SalesEscNotif["[N] #54/#56 Unresponsive"]:::solar
-        S2_SalesEscIdle[["Idle Notifications"]]:::subprocess
-
-        %% #7: Sales mediates → Confirmed
-        S2_SalesMediated["[S] Site Visit: Sales Mediated"]:::solar
 
         %% Day-Before/Day-Of Reminders
         S2_ReminderDayBeforeHO["[N] #13 Day Before (HO)"]:::ho
@@ -197,11 +191,11 @@ flowchart TD
 
         %% CO selects time
         S2_AwaitCO -->|CO selects from HO times| S2_ConfirmTime
-        S2_ConfirmTime --> S2_ConfirmTask --> S2_ConfirmNotif
-        S2_ConfirmTime --> S2_ConfirmIdle
+        S2_ConfirmTime --> S2_ConfirmNotif
+        S2_ConfirmTime --> S2_ConfirmTask
 
-        %% CO declines or timeout → fallback
-        S2_AwaitCO -->|CO declines all / 24h timeout| S2_COContact
+        %% CO declines → fallback
+        S2_AwaitCO --> S2_CODeclinesAll --> S2_COContact
         S2_COContact --> S2_COContactTask --> S2_COContactNotif
         S2_COContact --> S2_COContactIdle
 
@@ -214,15 +208,6 @@ flowchart TD
 
         %% CO schedules directly → Confirmed
         S2_COContact -->|CO schedules directly| S2_Confirmed
-
-        %% Escalation
-        S2_COContactIdle --> S2_SalesEscalation
-        S2_SalesEscalation --> S2_SalesEscNotif
-        S2_SalesEscNotif --> S2_SalesEscIdle
-
-        %% Sales mediates
-        S2_SalesEscalation --> S2_SalesMediated
-        S2_SalesMediated -->|Confirmed date| S2_Confirmed
 
         %% Reminders
         S2_Confirmed --> S2_ReminderDayBeforeHO
