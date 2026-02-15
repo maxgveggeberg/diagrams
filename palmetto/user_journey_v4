@@ -127,6 +127,13 @@ flowchart TD
         S1_MaterialOrderStatus --> S1_CreateDraftOrder
         S1_Dec_ChangeEquip{"Change<br/>Equipment?"}:::logic
 
+        S1_InvUnavailable["[S] Material Ordering: Unavailable"]:::sibi
+        S1_UnavailEquipTask["[T][N] Unavailable Equipment"]:::sibi
+
+        S1_Dec_Inventory -- "Unavailable" --> S1_InvUnavailable
+        S1_InvUnavailable --> S1_UnavailEquipTask
+        S1_UnavailEquipTask --> S1_Dec_ChangeEquip
+
         S1_CreateDraftOrder -- "Unknown" --> S1_Dec_ChangeEquip
         S1_CancelOrder["Cancel Order"]:::tetra
 
