@@ -118,10 +118,12 @@ flowchart TD
         S1_Dec_Inventory{"Inventory<br/>Status"}:::logic
 
         S1_CreateDraftOrder["Create Draft Order"]:::tetra
+        S1_UpdateInventory["Update Inventory Status"]:::sibi
+
         S1_ClosedWon --> S1_Dec_Inventory
-        S1_Dec_Inventory -- "Unknown" --> S1_CreateDraftOrder
-        S1_Dec_Inventory -- "Available" --> S1_CreateDraftOrder
-        S1_Dec_Inventory -- "Out of Stock" --> S1_CreateDraftOrder
+        S1_Dec_Inventory -- "Out of Stock / Available / Unknown" --> S1_CreateDraftOrder
+        S1_CreateDraftOrder -- "Unknown" --> S1_UpdateInventory
+        S1_UpdateInventory --> S1_Dec_Inventory
 
         %% Denied → Closed Lost
         S1_PalDeniedDec -- No --> S1_ClosedLost
