@@ -350,7 +350,8 @@ flowchart TD
         %% === INVENTORY CHECK ===
         S4_Dec_Inventory{"Inventory<br/>Status"}:::logic
         S4_ConvertOrder["Convert Draft Order to Order"]:::sibi
-        S4_InvUnavailable["Unavailable"]:::sibi
+        S4_InvUnavailable["[S] Material Ordering: Unavailable"]:::sibi
+        S4_FactoryDirect["[T][N] Factory Direct Order"]:::sibi
         S4_OosConvertOrder["Convert Draft Order to Order"]:::tetra
 
         %% Unknown path
@@ -415,6 +416,7 @@ flowchart TD
         S4_UnkConvertOrder --> S4_UnkUpdateStatus
         S4_UnkUpdateStatus --> S4_Dec_Inventory
         S4_Dec_Inventory -- "Unavailable" --> S4_InvUnavailable
+        S4_InvUnavailable --> S4_FactoryDirect
         S4_Dec_Inventory -- "Out of Stock" --> S4_OosConvertOrder
         S4_OosConvertOrder --> S4_Pending
         S4_ConvertOrder --> S4_Pending
