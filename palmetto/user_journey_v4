@@ -115,6 +115,9 @@ flowchart TD
 
         S1_PalConditional --> S1_ClosedWon
 
+        S1_CreateDraftOrder["Create Draft Order"]:::tetra
+        S1_ClosedWon --> S1_CreateDraftOrder
+
         %% Denied → Closed Lost
         S1_PalDeniedDec -- No --> S1_ClosedLost
 
