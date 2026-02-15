@@ -58,7 +58,6 @@ flowchart TD
             %% Conditional Approval
             S1_PalConditional["[S] Payment: Conditionally Approved"]:::tetra
             S1_PalCondTask["[T] Submit Verification Docs"]:::ho
-            S1_PalCondIdle[["Idle Notifications"]]:::subprocess
 
             %% Verification flow
             S1_PalVerifSubmit["[S] Payment: Verification Submitted"]:::tetra
@@ -68,7 +67,6 @@ flowchart TD
             S1_PalVerifRejected["[S] Payment: Need More Information"]:::tetra
             S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
             S1_PalVerifRejNotif["[N] #4 Need More Information"]:::ho
-            S1_PalVerifRejIdle[["Idle Notifications"]]:::subprocess
 
             %% Denied
             S1_PalDenied["[S] Payment: Financing Denied"]:::tetra
@@ -89,7 +87,6 @@ flowchart TD
         %% Conditional
         S1_PalDec -- "Conditional w/ verification docs" --> S1_PalConditional
         S1_PalConditional --> S1_PalCondTask
-        S1_PalConditional --> S1_PalCondIdle
 
         S1_PalCondTask --> S1_PalUploadDocs --> S1_PalUploadNotif --> S1_PalVerifSubmit
         S1_PalVerifSubmit --> S1_PalVerifDec
@@ -103,7 +100,6 @@ flowchart TD
         S1_PalVerifDec -- Rejected --> S1_PalVerifRejected
         S1_PalVerifRejected --> S1_PalVerifRejTask
         S1_PalVerifRejected --> S1_PalVerifRejNotif
-        S1_PalVerifRejected --> S1_PalVerifRejIdle
 
         %% Resubmit
         S1_PalVerifRejTask --> S1_PalVerifSubmit
@@ -136,16 +132,17 @@ flowchart TD
 
         %% #1: Select Preferred Times
         S2_SelectTimes["[S][T] Site Visit: Select Preferred Times"]:::ho
-        S2_SelectIdle[["Idle Notifications"]]:::subprocess
 
         %% #2: Awaiting CO Confirmation
-        S2_AwaitCO["[S][F] Site Visit: Awaiting CO Confirmation"]:::monitor
+        S2_AwaitCO["[S] Site Visit: Awaiting CO Confirmation"]:::monitor
         S2_AwaitCOTask["[T] Confirm site visit time"]:::co
         S2_AwaitCONotif["[N] #9 CO Task: Confirm Time"]:::co
-        S2_AwaitCOIdle[["Idle Notifications"]]:::subprocess
 
-        %% #3: Confirm Site Visit Time
-        S2_ConfirmTime["[S][F] Site Visit: Confirm Site Visit Time"]:::ho
+        %% CO Selects Time
+        S2_COSelectsTimes["CO Selects from HO Times"]:::co
+
+        %% #3: Confirm Time
+        S2_ConfirmTime["[S] Site Visit: Confirm Time"]:::ho
         S2_ConfirmTask["[T] Confirm site visit time"]:::ho
         S2_ConfirmNotif["[N] #10 Confirm Appointment"]:::ho
 
@@ -153,10 +150,8 @@ flowchart TD
         S2_CODeclinesAll["CO Declines All"]:::co
 
         %% #4a/4b: CO to Contact Directly
-        S2_COContact["[S][T] Site Visit: CO to Contact Directly"]:::co
-        S2_COContactTask["[T] Contact HO to schedule"]:::co
-        S2_COContactNotif["[N] #11 CO Task: Contact to Schedule"]:::co
-        S2_COContactIdle[["Idle Notifications"]]:::subprocess
+        S2_COContact["[S] Site Visit: CO to Contact Directly"]:::co
+        S2_COContactTaskNotif["[T][N] #11 Contact HO to Schedule"]:::co
 
         %% #5a/5b: Site Visit Confirmed
         S2_Confirmed["✓ [S] Site Visit: Site Visit Confirmed"]:::monitor
@@ -175,29 +170,25 @@ flowchart TD
 
         %% #9: 30% Deposit
         S2_DepositDec{"Cash + Factory<br/>Direct?"}:::logic
-        S2_Deposit["[S][F][N] Site Visit: 30% Deposit Required<br/>#16 Deposit Reminder"]:::ho
-        S2_DepositIdle[["Idle Notifications"]]:::subprocess
+        S2_Deposit["[S][N] Site Visit: 30% Deposit Required<br/>#16 Deposit Reminder"]:::ho
 
         %% Cross-stage exits
         S2_Ref_ChangeOrder[["→ Stage 3: Change Order"]]:::subprocess
         S2_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
 
         %% --- FLOW ---
-        S2_SelectTimes --> S2_SelectIdle
-
         S2_SelectTimes -->|HO submits 3 times| S2_AwaitCO
         S2_AwaitCO --> S2_AwaitCOTask --> S2_AwaitCONotif
-        S2_AwaitCO --> S2_AwaitCOIdle
 
         %% CO selects time
-        S2_AwaitCO -->|CO selects from HO times| S2_ConfirmTime
+        S2_AwaitCO --> S2_COSelectsTimes
+        S2_COSelectsTimes --> S2_ConfirmTime
         S2_ConfirmTime --> S2_ConfirmNotif
         S2_ConfirmTime --> S2_ConfirmTask
 
         %% CO declines → fallback
         S2_AwaitCO --> S2_CODeclinesAll --> S2_COContact
         S2_COContact --> S2_COContactTask --> S2_COContactNotif
-        S2_COContact --> S2_COContactIdle
 
         %% HO declines confirmed time → fallback
         S2_ConfirmTime -->|HO declines| S2_COContact
@@ -226,7 +217,6 @@ flowchart TD
 
         %% Deposit logic
         S2_DepositDec -- Yes --> S2_Deposit
-        S2_Deposit --> S2_DepositIdle
     end
 
     %% =============================================================
@@ -394,7 +384,7 @@ flowchart TD
         S4_Processing["[S] Material Ordering: Processing"]:::sibi
 
         %% #4: Order Confirmed
-        S4_Confirmed["[S][F] Material Ordering: Order Confirmed"]:::sibi
+        S4_Confirmed["[S] Material Ordering: Order Confirmed"]:::sibi
 
         %% #5: At Distribution Center
         S4_AtDistCenter["[S] Material Ordering: At Distribution Center"]:::sibi
@@ -516,7 +506,7 @@ flowchart TD
         S5_COContactNotif["[N] #31 CO Task: Contact to Schedule"]:::co
         S5_COContactExpiry{"Hours > 48<br/>no date?"}:::logic
 
-        S5_DateConfirmed["✓ [S][F] Installation: Install Date Confirmed"]:::monitor
+        S5_DateConfirmed["✓ [S] Installation: Install Date Confirmed"]:::monitor
         S5_DateConfirmedNotif["[N] #32 Install Date Confirmed"]:::co
 
         S5_Unresponsive["[S][T] Installation: Unresponsive"]:::tetra
@@ -534,7 +524,7 @@ flowchart TD
         S5_ReminderDayBeforeCO["[N] #34 Day Before (CO)"]:::co
 
         %% === 2.x EXECUTION ===
-        S5_Complete["[S][F] Installation: Installation Complete"]:::co
+        S5_Complete["[S] Installation: Installation Complete"]:::co
 
         S5_QCDec{"QC Photos<br/>Verified?"}:::logic
         S5_QCRejected["[S] Installation: QC Rejected"]:::tetra
@@ -652,7 +642,7 @@ flowchart TD
         %% Entry
         S6_Backref_Install(["↩ Stage 5: Installation Declined"]):::subprocess
 
-        S6_Created["[S][F][T] Case: Case Created"]:::tetra
+        S6_Created["[S][T] Case: Case Created"]:::tetra
         S6_CreatedTask["[T] Contact customer"]:::co
         S6_CreatedNotif["[N] #49 Case Created (HO + Sales + CO + Ops)"]:::ho
         S6_PayPaused["[N] #43 Payment Paused (Sales + Ops + CO)"]:::solar
@@ -745,9 +735,9 @@ flowchart TD
         %% === CONVERGENCE ===
         S7_Distributed["[S] Payment: Funds Distributed"]:::tetra
         S7_DistributedNotif["[N] #48 Payment Complete (HO)"]:::ho
-        S7_DistCO["[F] Contractor Payout"]:::co
-        S7_DistSibi["[F] Equipment Payout"]:::sibi
-        S7_DistSales["[F] Sales Payout"]:::solar
+        S7_DistCO["Contractor Payout"]:::co
+        S7_DistSibi["Equipment Payout"]:::sibi
+        S7_DistSales["Sales Payout"]:::solar
 
         %% Payment Paused (from Case)
         S7_Paused["[S][N] Payment: Payment Paused<br/>#43 (Sales + Ops + CO)"]:::tetra
