@@ -391,44 +391,6 @@ flowchart TD
         %% #1: Order Pending
         S4_Pending["[S] Material Ordering: Order Pending"]:::sibi
 
-        %% #2: Order Approved
-        S4_Approved["[S] Material Ordering: Order Approved"]:::sibi
-
-        %% #3: Processing
-        S4_Processing["[S] Material Ordering: Processing"]:::sibi
-
-        %% #4: Order Confirmed
-        S4_Confirmed["[S] Material Ordering: Order Confirmed"]:::sibi
-
-        %% #5: At Distribution Center
-        S4_AtDistCenter["[S] Material Ordering: At Distribution Center"]:::sibi
-
-        %% #6: In Transit
-        S4_InTransit["[S] Material Ordering: In Transit"]:::sibi
-
-        %% #7: Ready for Pickup
-        S4_ReadyPickup["[S] Material Ordering: Ready for Pickup"]:::sibi
-        S4_ReadyPickupNotif["[N] #27 Material Ready (CO)"]:::co
-        S4_PickupExpiry{"Days until install < 2<br/>not picked up?"}:::logic
-        S4_PickupRemind["[N] Remind CO: Pickup"]:::co
-
-        %% #8: Material Ready (via pickup)
-        S4_MaterialReady["✓ [S] Material Ordering: Material Ready"]:::monitor
-
-        %% #9: Material Ready (direct delivery)
-        S4_Dec_DeliveryMethod{"Delivery<br/>Method?"}:::logic
-
-        %% #10-12: Cancellation
-        S4_Cancelled["[S] Material Ordering: Order Cancelled"]:::sibi
-        S4_CancelledExit(["[S] Material Ordering: Job Cancelled / Rescheduled"]):::terminator
-
-        %% #13: Order Delayed
-        S4_Delayed["[S] Material Ordering: Order Delayed"]:::sibi
-        S4_DelayedNotif25["[N] #25 Delay (CO + HO)"]:::co
-        S4_DelayedNotif26["[N] #26 Reschedule (Sales)"]:::solar
-        S4_DelayedTask["[T] Reschedule installation"]:::tetra
-
-
         %% Cross-stage exit
         S4_Ref_InstallReady[["→ Stage 5: Installation Ready"]]:::subprocess
 
@@ -450,38 +412,8 @@ flowchart TD
         S4_OosUpdateStatus --> S4_Pending
         S4_Pending --> S4_ReadyForPickup
 
-        S4_Pending -->|Sibi confirms| S4_Approved
-        S4_Approved -->|Sibi begins prep| S4_Processing
-        S4_Processing -->|Delivery date + tracking| S4_Confirmed
-        S4_Confirmed --> S4_AtDistCenter
-        S4_AtDistCenter --> S4_InTransit
-        S4_InTransit --> S4_Dec_DeliveryMethod
-
-        %% Pickup path
-        S4_Dec_DeliveryMethod -- Pickup --> S4_ReadyPickup
-        S4_ReadyPickup --> S4_ReadyPickupNotif
-        S4_ReadyPickup --> S4_PickupExpiry
-        S4_PickupExpiry -- Yes --> S4_PickupRemind
-        S4_ReadyPickup -->|CO pickup / delivery confirmed| S4_MaterialReady
-
-        %% Direct delivery path
-        S4_Dec_DeliveryMethod -- "Direct delivery" --> S4_MaterialReady
-
-        %% Cancellation
-        S4_Pending -->|Ops cancels| S4_Cancelled
-        S4_Approved -->|Ops cancels| S4_Cancelled
-        S4_Processing -->|Ops cancels| S4_Cancelled
-        S4_Cancelled --> S4_CancelledExit
-
-        %% Delay
-        S4_Processing -->|Sibi reports delay| S4_Delayed
-        S4_Delayed --> S4_DelayedNotif25
-        S4_Delayed --> S4_DelayedNotif26
-        S4_Delayed --> S4_DelayedTask
-        S4_Delayed -->|Delay resolved| S4_Confirmed
-
         %% Exit
-        S4_MaterialReady --> S4_Ref_InstallReady
+        S4_ReadyForPickup --> S4_Ref_InstallReady
     end
 
     %% =============================================================
