@@ -71,7 +71,7 @@ flowchart TD
             S1_PalDec["Financing<br/>Partner<br/>Response"]:::palmetto
 
             %% Conditional Approval
-            S1_PalConditional["[S] Payment: Conditionally Approved<br/>payment_method_status = conditional"]:::palmetto
+            S1_PalConditional["[S] Payment: Conditionally Approved<br/>payment_method_status = conditional"]:::tetra
             S1_PalCondNotif1["[N] #1 Conditionally Approved"]:::ho
             S1_PalCondNotif2["[N] #2 Submit Verification Docs"]:::ho
 
@@ -79,15 +79,15 @@ flowchart TD
             S1_PalVerifSubmit["[S] Payment: Verification Submitted<br/>verification_status = submitted"]:::ho
             S1_PalVerifNotif["[N] #3 Documents Received"]:::ho
             S1_PalVerifDec{"Verification<br/>Result?"}:::logic
-            S1_PalVerifApproved["[S] Payment: Financing Fully Approved<br/>payment_method_status = approved"]:::palmetto
+            S1_PalVerifApproved["[S] Payment: Financing Fully Approved<br/>payment_method_status = approved"]:::tetra
             S1_PalVerifApprovedNotif["[N] #5 Financing Fully Approved"]:::ho
-            S1_PalVerifRejected["[S] Payment: Verification Rejected<br/>verification_status = rejected"]:::palmetto
+            S1_PalVerifRejected["[S] Payment: Verification Rejected<br/>verification_status = rejected"]:::tetra
             S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
             S1_PalVerifRejNotif["[N] #4 Documents Rejected"]:::ho
             S1_PalVerifRejDec{"Resubmit<br/>within 7d?"}:::logic
 
             %% Denied
-            S1_PalDenied["[S] Payment: Financing Denied<br/>payment_method_status = denied"]:::palmetto
+            S1_PalDenied["[S] Payment: Financing Denied<br/>payment_method_status = denied"]:::tetra
             S1_PalDeniedNotif1["[N] #6 Financing Denied"]:::ho
             S1_PalDeniedNotif2["[N] #7 Follow Up (Sales)"]:::solar
             S1_PalDeniedDec{"Alternative<br/>Payment?"}:::logic
