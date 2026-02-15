@@ -137,11 +137,7 @@ flowchart TD
         S1_ClosedWon --> S1_Ref_SiteVisit
 
         %% Denied → Closed Lost
-        S1_PalDeniedDec -- "No alternative (168h+)" --> S1_ClosedLost
-
-        %% Unresponsive → Closed Lost
-        S1_UnrespNotif["[N] #54 HO Unresponsive"]:::solar
-        S1_UnrespNotif --> S1_ClosedLost
+        S1_PalDeniedDec -- No --> S1_ClosedLost
 
         S1_ClosedLost(["[S] Sales: Closed Lost"]):::terminator
 
