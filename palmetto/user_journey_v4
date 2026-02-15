@@ -379,7 +379,6 @@ flowchart TD
 
         %% === INVENTORY CHECK ===
         S4_Dec_Inventory{"Inventory<br/>Status"}:::logic
-        S4_ConvertOrder["Convert Draft Order to Order"]:::sibi
         S4_FactoryDirect["[T][N] Factory Direct Order"]:::sibi
         S4_OosConvertOrder["Convert Draft Order to Order"]:::tetra
 
@@ -438,11 +437,9 @@ flowchart TD
         S4_HOUpdatePayment --> S4_Deposit
 
         %% Inventory check
-        S4_Dec_Inventory -- "Available" --> S4_ConvertOrder
         S4_Dec_Inventory -- "Factory Direct" --> S4_FactoryDirect
-        S4_Dec_Inventory -- "Out of Stock" --> S4_OosConvertOrder
+        S4_Dec_Inventory -- "Available / Out of Stock" --> S4_OosConvertOrder
         S4_OosConvertOrder --> S4_Pending
-        S4_ConvertOrder --> S4_Pending
 
         S4_Pending -->|Sibi confirms| S4_Approved
         S4_Approved -->|Sibi begins prep| S4_Processing
