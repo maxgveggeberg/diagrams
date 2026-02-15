@@ -71,9 +71,8 @@ flowchart TD
 
             %% Conditional Approval
             S1_PalConditional["[S] Payment: Conditionally Approved"]:::tetra
-            S1_PalCondDocsDec{"Docs submitted<br/>within 24h?"}:::logic
-            S1_PalCondDocsRemind[["[N] Remind HO: Submit Docs"]]:::subprocess
             S1_PalCondTask["[T] Submit Verification Docs"]:::ho
+            S1_PalCondIdle[["Idle Notifications"]]:::subprocess
 
             %% Verification flow
             S1_PalVerifSubmit["[S] Payment: Verification Submitted"]:::ho
@@ -83,7 +82,7 @@ flowchart TD
             S1_PalVerifRejected["[S] Payment: Need More Information"]:::tetra
             S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
             S1_PalVerifRejNotif["[N] #4 Need More Information"]:::ho
-            S1_PalVerifRejDec{"Resubmit<br/>within 24h?"}:::logic
+            S1_PalVerifRejIdle[["Idle Notifications"]]:::subprocess
 
             %% Denied
             S1_PalDenied["[S] Payment: Financing Denied"]:::tetra
@@ -103,10 +102,8 @@ flowchart TD
 
         %% Conditional
         S1_PalDec -- "Conditional w/ verification docs" --> S1_PalConditional
-        S1_PalConditional --> S1_PalCondDocsDec
-        S1_PalCondDocsDec -- Yes --> S1_PalCondTask
-        S1_PalCondDocsDec -- No --> S1_PalCondDocsRemind
-        S1_PalCondDocsRemind --> S1_PalCondDocsDec
+        S1_PalConditional --> S1_PalCondTask
+        S1_PalConditional --> S1_PalCondIdle
 
         S1_PalCondTask --> S1_PalUploadDocs --> S1_PalVerifSubmit
         S1_PalVerifSubmit --> S1_PalVerifDec
@@ -120,12 +117,10 @@ flowchart TD
         S1_PalVerifDec -- Rejected --> S1_PalVerifRejected
         S1_PalVerifRejected --> S1_PalVerifRejTask
         S1_PalVerifRejected --> S1_PalVerifRejNotif
-        S1_PalVerifRejNotif --> S1_PalVerifRejDec
+        S1_PalVerifRejected --> S1_PalVerifRejIdle
 
-        %% Resubmit loop
-        S1_PalVerifRejDec -- Yes --> S1_PalVerifSubmit
-        %% Reject → Denied
-        S1_PalVerifRejDec -- "No (7d+ / denied)" --> S1_PalDenied
+        %% Resubmit
+        S1_PalVerifRejTask --> S1_PalVerifSubmit
 
         %% Denied
         S1_PalDec -- Denied --> S1_PalDenied
