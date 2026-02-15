@@ -60,9 +60,7 @@ flowchart TD
         S1_CashInputCC --> S1_CashClosedWon
 
         S1_CashClosedWon["[S] Sales: Closed Won"]:::solar
-        S1_CashTask["[T] Select preferred times"]:::ho
-        S1_CashNotif["[N] #8 Select Site Visit Times (⏱ 10min delay)"]:::ho
-        S1_CashClosedWon --> S1_CashTask --> S1_CashNotif
+        S1_CashClosedWon --> S1_Ref_SiteVisit
 
         %% --- LEASE PATH (Palmetto) ---
         subgraph S1_Palmetto["Palmetto (Lease)"]
@@ -72,15 +70,14 @@ flowchart TD
 
             %% Conditional Approval
             S1_PalConditional["[S] Payment: Conditionally Approved<br/>payment_method_status = conditional"]:::tetra
-            S1_PalCondNotif1["[N] #1 Conditionally Approved"]:::ho
-            S1_PalCondNotif2["[N] #2 Submit Verification Docs"]:::ho
+            S1_PalCondTask["[T] Submit Verification Docs"]:::ho
 
             %% Verification flow
             S1_PalVerifSubmit["[S] Payment: Verification Submitted<br/>verification_status = submitted"]:::ho
             S1_PalVerifNotif["[N] #3 Documents Received"]:::ho
             S1_PalVerifDec{"Verification<br/>Result?"}:::logic
-            S1_PalVerifApproved["[S] Payment: Financing Fully Approved<br/>payment_method_status = approved"]:::tetra
-            S1_PalVerifApprovedNotif["[N] #5 Financing Fully Approved"]:::ho
+            S1_PalVerifApproved["[S] Payment: Financing Approved<br/>payment_method_status = approved"]:::tetra
+            S1_PalVerifApprovedNotif["[N] #5 Financing Approved"]:::ho
             S1_PalVerifRejected["[S] Payment: Verification Rejected<br/>verification_status = rejected"]:::tetra
             S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
             S1_PalVerifRejNotif["[N] #4 Documents Rejected"]:::ho
@@ -92,9 +89,6 @@ flowchart TD
             S1_PalDeniedNotif2["[N] #7 Follow Up (Sales)"]:::solar
             S1_PalDeniedDec{"Alternative<br/>Payment?"}:::logic
 
-            %% Parallel site visit for conditional
-            S1_PalParallel["[S] Site Visit: Select Site Visit Times<br/>(parallel path)"]:::ho
-            S1_PalParallelNotif["[N] #8 Select Site Visit Times (⏱ 10min delay)"]:::ho
         end
 
         S1_Dec_Payment -- Palmetto --> S1_PalInputApplicants
@@ -103,15 +97,15 @@ flowchart TD
 
         %% Conditional
         S1_PalDec -- "Conditional w/ verification docs" --> S1_PalConditional
-        S1_PalConditional --> S1_PalCondNotif1
-        S1_PalConditional --> S1_PalCondNotif2
+        S1_PalConditional --> S1_PalCondTask
 
         %% Upload docs
-        S1_PalConditional -->|HO uploads docs| S1_PalVerifSubmit
+        S1_PalUploadDocs["HO Uploads Docs"]:::ho
+        S1_PalCondTask --> S1_PalUploadDocs --> S1_PalVerifSubmit
         S1_PalVerifSubmit --> S1_PalVerifNotif
         S1_PalVerifNotif --> S1_PalVerifDec
 
-        %% Verification approved → Financing Fully Approved (unblocks Stage 4/5 gates)
+        %% Verification approved → Financing Approved (unblocks Stage 4/5 gates)
         S1_PalVerifDec -- Approved --> S1_PalVerifApproved
         S1_PalVerifApproved --> S1_PalVerifApprovedNotif
         S1_PalVerifApprovedNotif -->|Unblocks financing gates| S1_Ref_FinGateUnlock["✓ Financing Gate Unlocked<br/>(Stage 4 + Stage 5)"]:::monitor
@@ -134,18 +128,12 @@ flowchart TD
         S1_PalDeniedNotif2 --> S1_PalDeniedDec
         S1_PalDeniedDec -- "Try another method" --> S1_CashInputCC
 
-        %% Parallel site visit
-        S1_PalConditional -->|HO selects times| S1_PalParallel
-        S1_PalParallel --> S1_PalParallelNotif
-
         %% --- CONVERGENCE ---
         %% Conditional Approval → AUTO Closed Won
         S1_ClosedWon["[S] Sales: Closed Won"]:::solar
-        S1_ClosedWonTask["[T] Select preferred times"]:::ho
-        S1_ClosedWonNotif["[N] #8 Select Site Visit Times (⏱ 10min delay)"]:::ho
 
         S1_PalConditional --> S1_ClosedWon
-        S1_ClosedWon --> S1_ClosedWonTask --> S1_ClosedWonNotif
+        S1_ClosedWon --> S1_Ref_SiteVisit
 
         %% Denied → Closed Lost
         S1_PalDeniedDec -- "No alternative (168h+)" --> S1_ClosedLost
@@ -158,9 +146,6 @@ flowchart TD
 
         %% --- SUBPROCESS EXIT ---
         S1_Ref_SiteVisit[["→ Stage 2: Site Visit"]]:::subprocess
-        S1_CashNotif --> S1_Ref_SiteVisit
-        S1_ClosedWonNotif --> S1_Ref_SiteVisit
-        S1_PalParallelNotif --> S1_Ref_SiteVisit
     end
 
     %% =============================================================
@@ -448,8 +433,8 @@ flowchart TD
         S4_Backref_Install(["↩ Stage 5: Install Date Confirmed"]):::subprocess
 
         %% === FINANCING GATE ===
-        S4_FinGate{"Financing<br/>Fully Approved?"}:::logic
-        S4_FinBlocked["⛔ Blocked: Awaiting Full Financing Approval"]:::terminator
+        S4_FinGate{"Financing<br/>Approved?"}:::logic
+        S4_FinBlocked["⛔ Blocked: Awaiting Financing Approval"]:::terminator
 
         S4_Backref_Install --> S4_FinGate
         S4_FinGate -- "Yes / Cash" --> S4_Pending
@@ -561,8 +546,8 @@ flowchart TD
         S5_Backref_SiteVisit(["↩ Stage 2/3: Site Visit or Change Order"]):::subprocess
 
         %% === FINANCING GATE ===
-        S5_FinGate{"Financing<br/>Fully Approved?"}:::logic
-        S5_FinBlocked["⛔ Blocked: Awaiting Full Financing Approval"]:::terminator
+        S5_FinGate{"Financing<br/>Approved?"}:::logic
+        S5_FinBlocked["⛔ Blocked: Awaiting Financing Approval"]:::terminator
 
         S5_Backref_SiteVisit --> S5_FinGate
         S5_FinGate -- "Yes / Cash" --> S5_SelectDates
