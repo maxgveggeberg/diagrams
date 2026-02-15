@@ -345,7 +345,7 @@ flowchart TD
         S4_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
 
         %% === INVENTORY CHECK ===
-        S4_Dec_Inventory{"Inventory<br/>Unavailable / Unknown?"}:::logic
+        S4_Dec_Inventory{"Inventory<br/>Status"}:::logic
         S4_UpdateInvTask["[T][N] Update Inventory Status"]:::sibi
         S4_UpdateInvStatus["Update Inventory Status"]:::sibi
 
