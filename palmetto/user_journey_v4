@@ -240,6 +240,7 @@ flowchart TD
         %% HO Declined → Required?
         S3_Dec_Required{"Required?"}:::logic
         S3_NotRequiredComplete["[S] Change Order: Change Order Complete"]:::tetra
+        S3_NotRequiredUpdateProject["[N] Update Project"]:::tetra
 
         %% #4: HO Declines
         S3_Declined["[S] Change Order: Change Order Declined"]:::ho
@@ -305,7 +306,7 @@ flowchart TD
         S3_ApprovedNotif --> S3_Dec_Amount
 
         S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
-        S3_Dec_Required -- No --> S3_NotRequiredComplete --> S3_Ref_Installation
+        S3_Dec_Required -- No --> S3_NotRequiredComplete --> S3_NotRequiredUpdateProject --> S3_Ref_Installation
         S3_Dec_Required -- Yes --> S3_Declined
         S3_Declined --> S3_DeclinedNotif
         S3_DeclinedNotif --> S3_Dec_HOAction
