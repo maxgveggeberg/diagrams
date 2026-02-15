@@ -381,7 +381,7 @@ flowchart TD
         S4_Dec_Inventory{"Inventory<br/>Status"}:::logic
         S4_FactoryDirectStatus["[S] Material Ordering: Place Factory Direct Order"]:::sibi
         S4_FactoryDirect["[T][N] Place Factory Direct Order"]:::sibi
-        S4_FactoryDirectUpdate["Sibi Manually Update Status"]:::sibi
+        S4_FactoryDirectUpdate["[S] Material Ordering: Sibi Manually Update Status"]:::sibi
         S4_Dec_ReadyForPickup{"Material Ready<br/>for Pickup?"}:::logic
         S4_ReadyForPickup["[S] Material Ordering: Ready for Pickup"]:::sibi
         S4_OosConvertOrder["Convert Draft Order to Order"]:::tetra
