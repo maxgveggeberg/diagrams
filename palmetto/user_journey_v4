@@ -71,6 +71,8 @@ flowchart TD
 
             %% Conditional Approval
             S1_PalConditional["[S] Payment: Conditionally Approved"]:::tetra
+            S1_PalCondDocsDec{"Docs submitted<br/>within 24h?"}:::logic
+            S1_PalCondDocsRemind[["[N] Remind HO: Submit Docs"]]:::subprocess
             S1_PalCondTask["[T] Submit Verification Docs"]:::ho
 
             %% Verification flow
@@ -101,7 +103,10 @@ flowchart TD
 
         %% Conditional
         S1_PalDec -- "Conditional w/ verification docs" --> S1_PalConditional
-        S1_PalConditional --> S1_PalCondTask
+        S1_PalConditional --> S1_PalCondDocsDec
+        S1_PalCondDocsDec -- Yes --> S1_PalCondTask
+        S1_PalCondDocsDec -- No --> S1_PalCondDocsRemind
+        S1_PalCondDocsRemind --> S1_PalCondDocsDec
 
         S1_PalCondTask --> S1_PalUploadDocs --> S1_PalVerifSubmit
         S1_PalVerifSubmit --> S1_PalVerifDec
