@@ -1,96 +1,96 @@
 Stage,Phase,#,From,To,Trigger,Related Status Changes
-Sales,,1,[Entry],Sales: Closed Won,HO selects Cash payment method and enters credit card,"Payment → CC on File; Site Visit → Select Preferred Times"
-Sales,,2,[Entry],Sales: Pending Financing Approval,HO selects Lease/Loan payment method,Payment → Financing Submitted (Approval phase begins)
-Sales,,3,Sales: Pending Financing Approval,Sales: Closed Won,Payment stage returns: Financing Approved,Site Visit → Select Preferred Times
-Sales,,4,Sales: Pending Financing Approval,Sales: Closed Lost,Payment stage returns: Financing Denied,None
-Sales,,5,Sales: Pending Financing Approval,Sales: Closed Lost,HO inactive 7+ days or declines to proceed,Payment → Financing Cancelled
-Payment,Phase 1: Approval,1,(Sales Entry),Payment: Financing Submitted,HO selects Lease/Loan and completes financing application,Sales → Pending Financing Approval
-Payment,Phase 1: Approval,2,Payment: Financing Submitted,Payment: Financing Conditionally Approved,Financing partner returns conditional approval,None
-Payment,Phase 1: Approval,3,Payment: Financing Submitted,Payment: Financing Approved,Financing partner approves immediately,Sales → Closed Won
-Payment,Phase 1: Approval,4,Payment: Financing Submitted,Payment: Financing Denied,Financing partner denies application,Sales → Closed Lost
-Payment,Phase 1: Approval,5,Payment: Financing Conditionally Approved,Payment: Financing Verification Submitted,HO uploads required verification documents,None
-Payment,Phase 1: Approval,6,Payment: Financing Verification Submitted,Payment: Financing Verification Rejected,Financing partner rejects verification docs,None
-Payment,Phase 1: Approval,7,Payment: Financing Verification Submitted,Payment: Financing Approved,Financing partner approves after doc review,Sales → Closed Won
-Payment,Phase 1: Approval,8,Payment: Financing Verification Rejected,Payment: Financing Verification Submitted,HO resubmits corrected docs,None
-Payment,Phase 1: Approval,9,Payment: Financing Verification Rejected,Payment: Financing Denied,HO does not resubmit or partner denies after resubmission,Sales → Closed Lost
-Payment,Phase 1: Approval,10,Payment: Financing Conditionally Approved,Payment: Financing Denied,HO declines to provide docs after 7+ days,Sales → Closed Lost
-Payment,Phase 1: Approval,11,(Sales Entry),Payment: CC on File,HO selects Cash and enters credit card,Sales → Closed Won
-Payment,Phase 1: Approval,12,Payment: Financing Conditionally Approved,(no payment status change),HO selects site visit times while waiting for verification,Site Visit → Select Preferred Times
-Payment,Phase 2: Collection,13,Installation: Installation Approved,Payment: Processing,Installation approved AND payment method = Cash,Installation = Installation Approved
-Payment,Phase 2: Collection,14,Installation: Installation Approved,Payment: Processing,Installation approved AND payment method = Lease,Installation = Installation Approved
-Payment,Phase 2: Collection,15,Installation: Installation Approved,Payment: Loan Signoff Pending,Installation approved AND payment method = Loan,Installation = Installation Approved
-Payment,Phase 2: Collection,16,Payment: Processing,Payment: Payment Received,CC charge succeeds (using CC from Phase 1),—
-Payment,Phase 2: Collection,17,Payment: Processing,Payment: Payment Failed,CC charge fails (insufficient funds / expired / declined),—
-Payment,Phase 2: Collection,18,Payment: Payment Failed,Payment: Processing,HO updates CC and retries,—
-Payment,Phase 2: Collection,19,Payment: Payment Failed,Payment: Payment Overdue,HO unresponsive for 7+ days after failure,—
-Payment,Phase 2: Collection,20,Payment: Processing,Payment: Lease Fund Released,Palmetto approves and releases funds,—
-Payment,Phase 2: Collection,21,Payment: Loan Signoff Pending,Payment: Processing,HO signs off on work,—
-Payment,Phase 2: Collection,22,Payment: Processing,Payment: Loan Fund Released,Goodleap releases funds after signoff,—
-Payment,Phase 2: Collection,23,Payment: Processing,Payment: Payment Paused,Case created OR installation issue reported,Case status = Created
-Payment,Phase 2: Collection,24,Payment: Payment Paused,Payment: Processing,Case resolved AND HO confirms satisfaction,Case status = Resolved
-Payment,Phase 2: Collection,25,Payment: Payment Overdue,Payment: Processing,HO contacts and provides updated payment,—
-Payment,Phase 2: Collection,26,Payment: Payment Overdue,Payment: Sent to Collections,Payment overdue 14+ days AND no resolution,—
-Payment,Phase 2: Collection,27,Payment: Payment Received,Payment: Funds Distributed,Payouts processed to CO / Sibi / Sales,—
-Payment,Phase 2: Collection,28,Payment: Lease Fund Released,Payment: Funds Distributed,Payouts processed to CO / Sibi / Sales,—
-Payment,Phase 2: Collection,29,Payment: Loan Fund Released,Payment: Funds Distributed,Payouts processed to CO / Sibi / Sales,—
-Site Visit,,1,(Start),Site Visit: Select Preferred Times,Sale status = Closed Won,Sale → Closed Won
-Site Visit,,2,Site Visit: Select Preferred Times,Site Visit: Awaiting Contractor Confirmation,HO submits preferred times (up to 3 slots),—
-Site Visit,,3,Site Visit: Awaiting Contractor Confirmation,Site Visit: Confirm Site Visit Time,CO confirms availability for one time slot,—
-Site Visit,,4a,Site Visit: Awaiting Contractor Confirmation,Site Visit: Contractor to Contact Directly,CO declines all proposed times after 24h,—
-Site Visit,,4b,Site Visit: Confirm Site Visit Time,Site Visit: Contractor to Contact Directly,HO declines the CO-confirmed time,—
-Site Visit,,5a,Site Visit: Confirm Site Visit Time,Site Visit: Site Visit Confirmed,HO confirms the CO-proposed time,—
-Site Visit,,5b,Site Visit: Contractor to Contact Directly,Site Visit: Site Visit Confirmed,CO directly schedules with HO and both confirm,—
-Site Visit,,6,Site Visit: Contractor to Contact Directly,Site Visit: Contact customer,CO unable to schedule after 48+ hours and no response,—
-Site Visit,,7,Site Visit: Contact customer,Site Visit: Site Visit Confirmed,Sales mediates successfully,—
-Site Visit,,8,Site Visit: Site Visit Confirmed,Site Visit: Site Visit Complete,CO marks site visit complete (assessment finished),Material Ordering → Order Pending OR Change Order → Created
-Site Visit,,9,Site Visit: Site Visit Complete,(Payment Phase 2: 30% Deposit),Site visit complete AND payment_method = Cash AND factory_direct = true,Payment: reminder triggered
-Change Order,,1,(Site Visit Complete),Change Order: Change Order Created,CO identifies scope/cost adjustment and submits change order,None
-Change Order,,2,Change Order: Change Order Created,Change Order: Change Order Sent,Sibi approves change order; Sales sends to HO,None
-Change Order,,3,Change Order: Change Order Sent,Change Order: Change Order Approved,HO reviews and approves change order,"If amount > 0: → Select Payment Method; If amount = 0: → Change Order Complete"
-Change Order,,4,Change Order: Change Order Sent,Change Order: Change Order Declined,HO reviews and declines change order,None
-Change Order,,5,Change Order: Select Payment Method,Change Order: Credit Card Required,HO selects Cash AND CC not on file,None
-Change Order,,6,Change Order: Credit Card Required,Change Order: Change Order Complete,HO enters valid CC; payment processes successfully,None
-Change Order,,7,Change Order: Credit Card Required,Change Order: Financing Denied,CC payment declined or fails to process,None
-Change Order,,8,Change Order: Financing Denied,Change Order: Credit Card Required,HO retries with different CC,None
-Change Order,,9,Change Order: Select Payment Method,Change Order: Change Order Complete,HO selects Lease or Loan,None
-Change Order,,10,Change Order: Select Payment Method,Change Order: Change Order Complete,Change order amount = $0 (no payment needed),None
-Change Order,,11,Change Order: Change Order Complete,(Install Scheduling),Change order complete; job transitions to install scheduling,Installation → Select Preferred Install Dates
-Change Order,,12,Change Order: Change Order Declined,(Depends on HO decision),HO declines; job may be cancelled or revised,Depends on HO next action
-Installation,,1.1,Site Visit: Site Visit Complete,Installation: Select Preferred Install Dates,Site visit complete AND (no change order OR change order complete),Material ordering begins (if not already)
-Installation,,1.2,Installation: Select Preferred Install Dates,Installation: Awaiting Contractor Confirmation,HO submits up to 3 preferred install dates,—
-Installation,,1.3a,Installation: Awaiting Contractor Confirmation,Installation: Confirm Install Date,CO confirms availability for one of HO proposed dates,—
-Installation,,1.3b,Installation: Awaiting Contractor Confirmation,Installation: Contractor to Contact Directly,CO declines all dates OR no response within 24h,—
-Installation,,1.4,Installation: Confirm Install Date,Installation: Install Date Confirmed,HO confirms the date proposed by CO,—
-Installation,,1.5,Installation: Confirm Install Date,Installation: Contractor to Contact Directly,HO declines proposed date OR no response within 48h,—
-Installation,,1.6,Installation: Contractor to Contact Directly,Installation: Install Date Confirmed,CO contacts HO directly and mutually agrees on date,—
-Installation,,1.7,Installation: Contractor to Contact Directly,Installation: Unresponsive,CO unable to reach HO after 3+ attempts over 48+ hours,—
-Installation,,1.8,Installation: Install Date Confirmed,Installation: Installation Ready,Install date confirmed AND materials ready (Material Ready),Verify materials available for install
-Installation,,2.1,Installation: Installation Ready,Installation: Installation Complete,CO completes installation AND submits QC photos (legible),—
-Installation,,2.2,Installation: Installation Complete,Installation: Approve Installation,CO marks complete and QC photos pass AI verification,—
-Installation,,3.1,Installation: Approve Installation,Installation: Installation Approved,HO reviews QC photos and approves completed work,Triggers Payment Phase 2: payment_status = Processing
-Installation,,3.2,Installation: Approve Installation,Installation: Declined,HO reviews and declines (reports issue),Case status = Created; Payment Phase 2 = Paused
-Installation,,3.3,Installation: Install Date Confirmed,Installation: Unresponsive,Install date passed + 2-day grace period AND not complete,—
-Material Ordering,,1,Installation: Install Date Confirmed,Material Ordering: Order Pending,Install date confirmed; order submitted to Sibi,None
-Material Ordering,,2,Material Ordering: Order Pending,Material Ordering: Order Approved,Sibi confirms receipt and approves order,None
-Material Ordering,,3,Material Ordering: Order Approved,Material Ordering: Processing,Sibi begins material preparation and packing,None
-Material Ordering,,4,Material Ordering: Processing,Material Ordering: Order Confirmed,Sibi confirms final delivery date and provides tracking,None
-Material Ordering,,5,Material Ordering: Order Confirmed,Material Ordering: At Distribution Center,Materials arrive at regional distribution center,None
-Material Ordering,,6,Material Ordering: At Distribution Center,Material Ordering: In Transit,Materials in transit to job site or CO pickup location,None
-Material Ordering,,7,Material Ordering: In Transit,Material Ordering: Ready for Pickup,Materials ready for CO pickup at distribution center,None
-Material Ordering,,8,Material Ordering: Ready for Pickup,Material Ordering: Material Ready,All materials received and verified at job site,Install can proceed
-Material Ordering,,9,Material Ordering: In Transit,Material Ordering: Material Ready,Materials delivered directly to job site (bypass pickup),Install can proceed
-Material Ordering,,10,Material Ordering: Order Pending,Material Ordering: Order Cancelled,Order cancelled by Ops,Installation halted
-Material Ordering,,11,Material Ordering: Order Approved,Material Ordering: Order Cancelled,Order cancelled after supplier approval,Installation halted
-Material Ordering,,12,Material Ordering: Processing,Material Ordering: Order Cancelled,Order cancelled during supplier preparation,Installation halted
-Material Ordering,,13,Material Ordering: Processing,Material Ordering: Order Delayed,Sibi reports delay; original delivery date will be missed,Material Delayed flag (advisory)
-Material Ordering,,14,Material Ordering: Order Delayed,Material Ordering: Order Confirmed,Sibi resolves delay; confirms new delivery date,Material Delayed flag cleared
-Material Ordering,,15,Material Ordering: Thermostat Ordered,Material Ordering: Thermostat In Transit,Thermostat shipped from supplier; tracking available,None (parallel track)
-Material Ordering,,16,Material Ordering: Thermostat In Transit,Material Ordering: Thermostat Delivered,Thermostat delivered to homeowner,None (parallel track)
-Material Ordering,,17,Material Ordering: Thermostat Ordered,Material Ordering: Thermostat Delivered,Thermostat delivered without In Transit (direct shipping),None (parallel track)
-Case,,1,(Entry),Case: Created,HO submits case via form OR calls support,Payment Phase 2 → Payment Paused (if payment pending)
-Case,,2,Case: Created,Case: In Progress,Case assigned to CO AND CO begins investigation,None
-Case,,3,Case: In Progress,Case: In Progress (3-day reminder),3 days elapsed without resolution update,None
-Case,,4,Case: In Progress,Case: In Progress (5-day reminder),5 days elapsed since creation,None
-Case,,5,Case: In Progress,Case: In Progress (7-day escalation),7+ days without resolution,None
-Case,,6,Case: In Progress,Case: Resolved,CO completes resolution AND HO confirms satisfaction,Payment Phase 2 → Processing (if was Payment Paused)
-Case,,7,Case: Resolved,(Exit),Case archived and closed,Job resumes payment flow
+Sales,,1,[Entry],Closed Won,HO selects Cash payment method and enters credit card,"Payment → CC on File; Site Visit → Select Preferred Times"
+Sales,,2,[Entry],Pending Financing Approval,HO selects Lease/Loan payment method,Payment → Financing Submitted (Approval phase begins)
+Sales,,3,Pending Financing Approval,Closed Won,Payment stage returns: Financing Approved,Site Visit → Select Preferred Times
+Sales,,4,Pending Financing Approval,Closed Lost,Payment stage returns: Financing Denied,None
+Sales,,5,Pending Financing Approval,Closed Lost,HO inactive 7+ days or declines to proceed,Payment → Financing Cancelled
+Payment,Phase 1: Approval,1,(Sales Entry),Financing Submitted,HO selects Lease/Loan and completes financing application,Sales → Pending Financing Approval
+Payment,Phase 1: Approval,2,Financing Submitted,Financing Conditionally Approved,Financing partner returns conditional approval,None
+Payment,Phase 1: Approval,3,Financing Submitted,Financing Approved,Financing partner approves immediately,Sales → Closed Won
+Payment,Phase 1: Approval,4,Financing Submitted,Financing Denied,Financing partner denies application,Sales → Closed Lost
+Payment,Phase 1: Approval,5,Financing Conditionally Approved,Financing Verification Submitted,HO uploads required verification documents,None
+Payment,Phase 1: Approval,6,Financing Verification Submitted,Financing Verification Rejected,Financing partner rejects verification docs,None
+Payment,Phase 1: Approval,7,Financing Verification Submitted,Financing Approved,Financing partner approves after doc review,Sales → Closed Won
+Payment,Phase 1: Approval,8,Financing Verification Rejected,Financing Verification Submitted,HO resubmits corrected docs,None
+Payment,Phase 1: Approval,9,Financing Verification Rejected,Financing Denied,HO does not resubmit or partner denies after resubmission,Sales → Closed Lost
+Payment,Phase 1: Approval,10,Financing Conditionally Approved,Financing Denied,HO declines to provide docs after 7+ days,Sales → Closed Lost
+Payment,Phase 1: Approval,11,(Sales Entry),CC on File,HO selects Cash and enters credit card,Sales → Closed Won
+Payment,Phase 1: Approval,12,Financing Conditionally Approved,(no payment status change),HO selects site visit times while waiting for verification,Site Visit → Select Preferred Times
+Payment,Phase 2: Collection,13,Installation Approved,Processing,Installation approved AND payment method = Cash,Installation = Installation Approved
+Payment,Phase 2: Collection,14,Installation Approved,Processing,Installation approved AND payment method = Lease,Installation = Installation Approved
+Payment,Phase 2: Collection,15,Installation Approved,Loan Signoff Pending,Installation approved AND payment method = Loan,Installation = Installation Approved
+Payment,Phase 2: Collection,16,Processing,Payment Received,CC charge succeeds (using CC from Phase 1),—
+Payment,Phase 2: Collection,17,Processing,Payment Failed,CC charge fails (insufficient funds / expired / declined),—
+Payment,Phase 2: Collection,18,Payment Failed,Processing,HO updates CC and retries,—
+Payment,Phase 2: Collection,19,Payment Failed,Payment Overdue,HO unresponsive for 7+ days after failure,—
+Payment,Phase 2: Collection,20,Processing,Lease Fund Released,Palmetto approves and releases funds,—
+Payment,Phase 2: Collection,21,Loan Signoff Pending,Processing,HO signs off on work,—
+Payment,Phase 2: Collection,22,Processing,Loan Fund Released,Goodleap releases funds after signoff,—
+Payment,Phase 2: Collection,23,Processing,Payment Paused,Case created OR installation issue reported,Case status = Created
+Payment,Phase 2: Collection,24,Payment Paused,Processing,Case resolved AND HO confirms satisfaction,Case status = Resolved
+Payment,Phase 2: Collection,25,Payment Overdue,Processing,HO contacts and provides updated payment,—
+Payment,Phase 2: Collection,26,Payment Overdue,Sent to Collections,Payment overdue 14+ days AND no resolution,—
+Payment,Phase 2: Collection,27,Payment Received,Funds Distributed,Payouts processed to CO / Sibi / Sales,—
+Payment,Phase 2: Collection,28,Lease Fund Released,Funds Distributed,Payouts processed to CO / Sibi / Sales,—
+Payment,Phase 2: Collection,29,Loan Fund Released,Funds Distributed,Payouts processed to CO / Sibi / Sales,—
+Site Visit,,1,(Start),Select Preferred Times,Sale status = Closed Won,Sale → Closed Won
+Site Visit,,2,Select Preferred Times,Awaiting Contractor Confirmation,HO submits preferred times (up to 3 slots),—
+Site Visit,,3,Awaiting Contractor Confirmation,Confirm Site Visit Time,CO confirms availability for one time slot,—
+Site Visit,,4a,Awaiting Contractor Confirmation,Contractor to Contact Directly,CO declines all proposed times after 24h,—
+Site Visit,,4b,Confirm Site Visit Time,Contractor to Contact Directly,HO declines the CO-confirmed time,—
+Site Visit,,5a,Confirm Site Visit Time,Site Visit Confirmed,HO confirms the CO-proposed time,—
+Site Visit,,5b,Contractor to Contact Directly,Site Visit Confirmed,CO directly schedules with HO and both confirm,—
+Site Visit,,6,Contractor to Contact Directly,Contact customer,CO unable to schedule after 48+ hours and no response,—
+Site Visit,,7,Contact customer,Site Visit Confirmed,Sales mediates successfully,—
+Site Visit,,8,Site Visit Confirmed,Site Visit Complete,CO marks site visit complete (assessment finished),Material Ordering → Order Pending OR Change Order → Created
+Site Visit,,9,Site Visit Complete,(Payment Phase 2: 30% Deposit),Site visit complete AND payment_method = Cash AND factory_direct = true,Payment: reminder triggered
+Change Order,,1,(Site Visit Complete),Change Order Created,CO identifies scope/cost adjustment and submits change order,None
+Change Order,,2,Change Order Created,Change Order Sent,Sibi approves change order; Sales sends to HO,None
+Change Order,,3,Change Order Sent,Change Order Approved,HO reviews and approves change order,"If amount > 0: → Select Payment Method; If amount = 0: → Change Order Complete"
+Change Order,,4,Change Order Sent,Change Order Declined,HO reviews and declines change order,None
+Change Order,,5,Select Payment Method,Credit Card Required,HO selects Cash AND CC not on file,None
+Change Order,,6,Credit Card Required,Change Order Complete,HO enters valid CC; payment processes successfully,None
+Change Order,,7,Credit Card Required,Financing Denied,CC payment declined or fails to process,None
+Change Order,,8,Financing Denied,Credit Card Required,HO retries with different CC,None
+Change Order,,9,Select Payment Method,Change Order Complete,HO selects Lease or Loan,None
+Change Order,,10,Select Payment Method,Change Order Complete,Change order amount = $0 (no payment needed),None
+Change Order,,11,Change Order Complete,(Install Scheduling),Change order complete; job transitions to install scheduling,Installation → Select Preferred Install Dates
+Change Order,,12,Change Order Declined,(Depends on HO decision),HO declines; job may be cancelled or revised,Depends on HO next action
+Installation,,1.1,Site Visit Complete,Select Preferred Install Dates,Site visit complete AND (no change order OR change order complete),Material ordering begins (if not already)
+Installation,,1.2,Select Preferred Install Dates,Awaiting Contractor Confirmation,HO submits up to 3 preferred install dates,—
+Installation,,1.3a,Awaiting Contractor Confirmation,Confirm Install Date,CO confirms availability for one of HO proposed dates,—
+Installation,,1.3b,Awaiting Contractor Confirmation,Contractor to Contact Directly,CO declines all dates OR no response within 24h,—
+Installation,,1.4,Confirm Install Date,Install Date Confirmed,HO confirms the date proposed by CO,—
+Installation,,1.5,Confirm Install Date,Contractor to Contact Directly,HO declines proposed date OR no response within 48h,—
+Installation,,1.6,Contractor to Contact Directly,Install Date Confirmed,CO contacts HO directly and mutually agrees on date,—
+Installation,,1.7,Contractor to Contact Directly,Unresponsive,CO unable to reach HO after 3+ attempts over 48+ hours,—
+Installation,,1.8,Install Date Confirmed,Installation Ready,Install date confirmed AND materials ready (Material Ready),Verify materials available for install
+Installation,,2.1,Installation Ready,Installation Complete,CO completes installation AND submits QC photos (legible),—
+Installation,,2.2,Installation Complete,Approve Installation,CO marks complete and QC photos pass AI verification,—
+Installation,,3.1,Approve Installation,Installation Approved,HO reviews QC photos and approves completed work,Triggers Payment Phase 2: payment_status = Processing
+Installation,,3.2,Approve Installation,Declined,HO reviews and declines (reports issue),Case status = Created; Payment Phase 2 = Paused
+Installation,,3.3,Install Date Confirmed,Unresponsive,Install date passed + 2-day grace period AND not complete,—
+Material Ordering,,1,Install Date Confirmed,Order Pending,Install date confirmed; order submitted to Sibi,None
+Material Ordering,,2,Order Pending,Order Approved,Sibi confirms receipt and approves order,None
+Material Ordering,,3,Order Approved,Processing,Sibi begins material preparation and packing,None
+Material Ordering,,4,Processing,Order Confirmed,Sibi confirms final delivery date and provides tracking,None
+Material Ordering,,5,Order Confirmed,At Distribution Center,Materials arrive at regional distribution center,None
+Material Ordering,,6,At Distribution Center,In Transit,Materials in transit to job site or CO pickup location,None
+Material Ordering,,7,In Transit,Ready for Pickup,Materials ready for CO pickup at distribution center,None
+Material Ordering,,8,Ready for Pickup,Material Ready,All materials received and verified at job site,Install can proceed
+Material Ordering,,9,In Transit,Material Ready,Materials delivered directly to job site (bypass pickup),Install can proceed
+Material Ordering,,10,Order Pending,Order Cancelled,Order cancelled by Ops,Installation halted
+Material Ordering,,11,Order Approved,Order Cancelled,Order cancelled after supplier approval,Installation halted
+Material Ordering,,12,Processing,Order Cancelled,Order cancelled during supplier preparation,Installation halted
+Material Ordering,,13,Processing,Order Delayed,Sibi reports delay; original delivery date will be missed,Material Delayed flag (advisory)
+Material Ordering,,14,Order Delayed,Order Confirmed,Sibi resolves delay; confirms new delivery date,Material Delayed flag cleared
+Material Ordering,,15,Thermostat Ordered,Thermostat In Transit,Thermostat shipped from supplier; tracking available,None (parallel track)
+Material Ordering,,16,Thermostat In Transit,Thermostat Delivered,Thermostat delivered to homeowner,None (parallel track)
+Material Ordering,,17,Thermostat Ordered,Thermostat Delivered,Thermostat delivered without In Transit (direct shipping),None (parallel track)
+Case,,1,(Entry),Created,HO submits case via form OR calls support,Payment Phase 2 → Payment Paused (if payment pending)
+Case,,2,Created,In Progress,Case assigned to CO AND CO begins investigation,None
+Case,,3,In Progress,In Progress (3-day reminder),3 days elapsed without resolution update,None
+Case,,4,In Progress,In Progress (5-day reminder),5 days elapsed since creation,None
+Case,,5,In Progress,In Progress (7-day escalation),7+ days without resolution,None
+Case,,6,In Progress,Resolved,CO completes resolution AND HO confirms satisfaction,Payment Phase 2 → Processing (if was Payment Paused)
+Case,,7,Resolved,(Exit),Case archived and closed,Job resumes payment flow
