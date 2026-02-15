@@ -87,7 +87,7 @@ flowchart TD
             %% Denied
             S1_PalDenied["[S] Payment: Financing Denied"]:::tetra
             S1_PalDeniedNotif1["[N] #6 Financing Denied"]:::ho
-            S1_PalDeniedNotif2["[N] #7 Follow Up (Sales)"]:::solar
+            S1_PalDeniedNotif2["[N] #7 Follow Up (Sales)<br/>⏱ Only if 12h+ after proposal created"]:::solar
             S1_PalDeniedDec{"Alternative<br/>Payment?"}:::logic
 
             %% Upload docs
