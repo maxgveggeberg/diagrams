@@ -238,7 +238,6 @@ flowchart TD
 
         %% HO Declined → Required?
         S3_Dec_Required{"Required?"}:::logic
-        S3_NotRequiredComplete["[S] Change Order: Change Order Complete"]:::tetra
         S3_NotRequiredUpdateProject["[N] Update Project"]:::tetra
 
         %% #4: HO Declines
@@ -248,17 +247,15 @@ flowchart TD
         %% Project payment method decision
         S3_Dec_ProjectPayment{"Project<br/>Payment Method?"}:::logic
 
-        %% #5-8: Cash payment path
+        %% Payment paths
         S3_SelectPayment{"Change Order<br/>Payment Method?"}:::logic
         S3_CCRequired["Input Credit Card"]:::ho
         S3_CCCharge["Charge Credit Card"]:::tetra
-        S3_CCComplete["[S] Change Order: Change Order Complete"]:::tetra
-        S3_CCCompleteNotif["[N] #23 Change Order Complete"]:::ho
-
-        %% #9: Lease payment
         S3_NotifyPalmetto["Notify Palmetto"]:::palmetto
-        S3_LeaseComplete["[S] Change Order: Change Order Complete"]:::tetra
-        S3_LeaseCompleteNotif["[N] #23 Change Order Complete"]:::ho
+
+        %% Shared completion
+        S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
+        S3_CompleteNotif["[N] #23 Change Order Complete"]:::ho
 
         %% #11: Exit to Installation
         S3_ToInstall["[S][T] Installation: Select Preferred Install Dates"]:::ho
@@ -296,7 +293,7 @@ flowchart TD
         S3_Dec_ProjectPayment -- "Lease" --> S3_SelectPayment
 
         S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
-        S3_Dec_Required -- No --> S3_NotRequiredComplete --> S3_NotRequiredUpdateProject --> S3_Ref_Installation
+        S3_Dec_Required -- No --> S3_NotRequiredUpdateProject --> S3_Complete
         S3_Dec_Required -- Yes --> S3_Declined
         S3_Declined --> S3_DeclinedNotif
         S3_DeclinedNotif --> S3_Cancelled
@@ -304,15 +301,15 @@ flowchart TD
         %% Credit card path
         S3_SelectPayment -- "Credit Card" --> S3_CCRequired
         S3_CCRequired --> S3_CCCharge
-        S3_CCCharge --> S3_CCComplete
-        S3_CCComplete --> S3_CCCompleteNotif
-        S3_CCCompleteNotif --> S3_ToInstall
+        S3_CCCharge --> S3_Complete
 
         %% Lease approved
         S3_SelectPayment -- "Lease" --> S3_NotifyPalmetto
-        S3_NotifyPalmetto --> S3_LeaseComplete
-        S3_LeaseComplete --> S3_LeaseCompleteNotif
-        S3_LeaseCompleteNotif --> S3_ToInstall
+        S3_NotifyPalmetto --> S3_Complete
+
+        %% Shared completion
+        S3_Complete --> S3_CompleteNotif
+        S3_CompleteNotif --> S3_ToInstall
 
         %% Complete → Install
         S3_ToInstall --> S3_ToInstallNotif
