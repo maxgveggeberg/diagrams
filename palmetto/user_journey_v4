@@ -148,23 +148,22 @@ flowchart TD
 
         %% #1: Select Preferred Times
         S2_SelectTimes["[S][T] Site Visit: Select Preferred Times"]:::ho
-        S2_SelectNotif["[N] #8 Select Site Visit Times (⏱ 10min delay)"]:::ho
         S2_SelectIdle[["Idle Notifications"]]:::subprocess
 
         %% #2: Awaiting CO Confirmation
-        S2_AwaitCO["[S][F] Site Visit: Awaiting CO Confirmation<br/>ho_preferred_times submitted"]:::monitor
+        S2_AwaitCO["[S][F] Site Visit: Awaiting CO Confirmation"]:::monitor
         S2_AwaitCOTask["[T] Confirm site visit time"]:::co
         S2_AwaitCONotif["[N] #9 CO Task: Confirm Time"]:::co
         S2_AwaitCOIdle[["Idle Notifications"]]:::subprocess
 
         %% #3: Confirm Site Visit Time
-        S2_ConfirmTime["[S][F] Site Visit: Confirm Site Visit Time<br/>co_selected_time = SELECTED"]:::ho
+        S2_ConfirmTime["[S][F] Site Visit: Confirm Site Visit Time"]:::ho
         S2_ConfirmTask["[T] Confirm site visit time"]:::ho
         S2_ConfirmNotif["[N] #10 Confirm Appointment"]:::ho
         S2_ConfirmIdle[["Idle Notifications"]]:::subprocess
 
         %% #4a/4b: CO to Contact Directly
-        S2_COContact["[S][T] Site Visit: CO to Contact Directly<br/>co_fallback_initiated"]:::co
+        S2_COContact["[S][T] Site Visit: CO to Contact Directly"]:::co
         S2_COContactTask["[T] Contact HO to schedule"]:::co
         S2_COContactNotif["[N] #11 CO Task: Contact to Schedule"]:::co
         S2_COContactIdle[["Idle Notifications"]]:::subprocess
@@ -194,7 +193,7 @@ flowchart TD
 
         %% #9: 30% Deposit
         S2_DepositDec{"Cash + Factory<br/>Direct?"}:::logic
-        S2_Deposit["[S][F][N] Site Visit: 30% Deposit Required<br/>deposit_amount = 30%<br/>#16 Deposit Reminder"]:::ho
+        S2_Deposit["[S][F][N] Site Visit: 30% Deposit Required<br/>#16 Deposit Reminder"]:::ho
         S2_DepositIdle[["Idle Notifications"]]:::subprocess
 
         %% Cross-stage exits
@@ -202,7 +201,6 @@ flowchart TD
         S2_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
 
         %% --- FLOW ---
-        S2_SelectTimes --> S2_SelectNotif
         S2_SelectTimes --> S2_SelectIdle
 
         S2_SelectTimes -->|HO submits 3 times| S2_AwaitCO
@@ -303,7 +301,7 @@ flowchart TD
         S3_CCRequiredRemind["[N] Remind HO: CC"]:::ho
 
         S3_Dec_CCResult{"CC Payment<br/>Result?"}:::logic
-        S3_CCComplete["[S] Change Order: Change Order Complete<br/>payment_status = completed"]:::tetra
+        S3_CCComplete["[S] Change Order: Change Order Complete"]:::tetra
         S3_CCCompleteNotif["[N] #23 Change Order Complete"]:::ho
 
         S3_CCDenied["[S] Change Order: Payment Denied"]:::tetra
@@ -320,7 +318,7 @@ flowchart TD
         S3_ZeroCompleteNotif["[N] #23 Change Order Complete"]:::ho
 
         %% #11: Exit to Installation
-        S3_ToInstall["[S][T] Installation: Select Preferred Install Dates<br/>installation_status = select_preferred"]:::ho
+        S3_ToInstall["[S][T] Installation: Select Preferred Install Dates"]:::ho
         S3_ToInstallNotif["[N] #28 Select Install Dates"]:::ho
         S3_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
 
@@ -423,7 +421,7 @@ flowchart TD
         S4_Processing["[S] Material Ordering: Processing"]:::sibi
 
         %% #4: Order Confirmed
-        S4_Confirmed["[S][F] Material Ordering: Order Confirmed<br/>delivery_date + tracking"]:::sibi
+        S4_Confirmed["[S][F] Material Ordering: Order Confirmed"]:::sibi
 
         %% #5: At Distribution Center
         S4_AtDistCenter["[S] Material Ordering: At Distribution Center"]:::sibi
@@ -545,7 +543,7 @@ flowchart TD
         S5_COContactNotif["[N] #31 CO Task: Contact to Schedule"]:::co
         S5_COContactExpiry{"Hours > 48<br/>no date?"}:::logic
 
-        S5_DateConfirmed["✓ [S][F] Installation: Install Date Confirmed<br/>install_date = AGREED_DATE"]:::monitor
+        S5_DateConfirmed["✓ [S][F] Installation: Install Date Confirmed"]:::monitor
         S5_DateConfirmedNotif["[N] #32 Install Date Confirmed"]:::co
 
         S5_Unresponsive["[S][T] Installation: Unresponsive"]:::tetra
@@ -563,10 +561,10 @@ flowchart TD
         S5_ReminderDayBeforeCO["[N] #34 Day Before (CO)"]:::co
 
         %% === 2.x EXECUTION ===
-        S5_Complete["[S][F] Installation: Installation Complete<br/>qc_photos + qc_verified"]:::co
+        S5_Complete["[S][F] Installation: Installation Complete"]:::co
 
         S5_QCDec{"QC Photos<br/>Verified?"}:::logic
-        S5_QCRejected["[S] Installation: QC Rejected<br/>qc_rejection_count += 1"]:::tetra
+        S5_QCRejected["[S] Installation: QC Rejected"]:::tetra
         S5_QCRejNotif37["[N] #37 Resubmit (CO)"]:::co
         S5_QCRejExpiry{"Hours > 24<br/>no resubmit?"}:::logic
         S5_QCRejRemind["[N] Remind CO: Resubmit"]:::co
@@ -579,11 +577,11 @@ flowchart TD
         %% === 3.x POST-INSTALL ===
         S5_Dec_HOApproval{"HO Approves<br/>Installation?"}:::logic
 
-        S5_Approved["[S] Installation: Installation Approved<br/>payment_status = processing"]:::solar
+        S5_Approved["[S] Installation: Installation Approved"]:::solar
         S5_ApprovedNotif["[N] #39 Installation Approved (Sales + Ops)"]:::solar
         S5_Survey["[N] #41 Survey (3d after)"]:::ho
 
-        S5_Declined["[S] Installation: Declined<br/>case_status = created<br/>payment_status = paused"]:::ho
+        S5_Declined["[S] Installation: Declined"]:::ho
         S5_DeclinedTask["[T] Contact customer (CO via case)"]:::co
         S5_DeclinedNotif1["[N] #40 Issue Reported"]:::co
         S5_DeclinedNotif2["[N] #43 Payment Paused (Sales + Ops + CO)"]:::solar
@@ -681,7 +679,7 @@ flowchart TD
         %% Entry
         S6_Backref_Install(["↩ Stage 5: Installation Declined"]):::subprocess
 
-        S6_Created["[S][F][T] Case: Case Created<br/>case_status = created<br/>case_id = GENERATED"]:::tetra
+        S6_Created["[S][F][T] Case: Case Created"]:::tetra
         S6_CreatedTask["[T] Contact customer"]:::co
         S6_CreatedNotif["[N] #49 Case Created (HO + Sales + CO + Ops)"]:::ho
         S6_PayPaused["[N] #43 Payment Paused (Sales + Ops + CO)"]:::solar
@@ -697,7 +695,7 @@ flowchart TD
         S6_ResolvedNotif["[N] #53 Case Resolved (HO + Sales + CO + Ops)"]:::ho
         S6_PayResumed["[N] #44 Payment Resumed (Sales + Ops + CO)"]:::solar
 
-        S6_Closed["[S] Case: Case Closed<br/>case_closed_timestamp"]:::tetra
+        S6_Closed["[S] Case: Case Closed"]:::tetra
 
         %% Cross-stage
         S6_Ref_PaymentPause[["→ Stage 7: Payment Paused"]]:::subprocess
@@ -779,14 +777,14 @@ flowchart TD
         S7_DistSales["[F] Sales Payout"]:::solar
 
         %% Payment Paused (from Case)
-        S7_Paused["[S][N] Payment: Payment Paused<br/>payment_status = paused<br/>#43 (Sales + Ops + CO)"]:::tetra
+        S7_Paused["[S][N] Payment: Payment Paused<br/>#43 (Sales + Ops + CO)"]:::tetra
         S7_PausedExpiry{"Days > 7<br/>case unresolved?"}:::logic
         S7_PausedRemind["[N] Remind Ops"]:::tetra
         S7_Backref_CasePause(["↩ Stage 6: Case Created"]):::subprocess
 
         %% Payment Resumed (from Case)
         S7_Backref_CaseResume(["↩ Stage 6: Case Resolved"]):::subprocess
-        S7_Resumed["[S][N] Payment: Payment Resumed<br/>payment_status = processing<br/>#44 (Sales + Ops + CO)"]:::solar
+        S7_Resumed["[S][N] Payment: Payment Resumed<br/>#44 (Sales + Ops + CO)"]:::solar
 
         %% Exit
         S7_Complete(["[S] Payment: Complete"]):::terminator
