@@ -75,13 +75,12 @@ flowchart TD
 
             %% Verification flow
             S1_PalVerifSubmit["[S] Payment: Verification Submitted"]:::ho
-            S1_PalVerifNotif["[N] #3 Documents Received"]:::ho
             S1_PalVerifDec{"Verification<br/>Result?"}:::logic
             S1_PalVerifApproved["[S] Payment: Financing Approved"]:::tetra
             S1_PalVerifApprovedNotif["[N] #5 Financing Approved"]:::ho
-            S1_PalVerifRejected["[S] Payment: Verification Rejected"]:::tetra
+            S1_PalVerifRejected["[S] Payment: Need More Information"]:::tetra
             S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
-            S1_PalVerifRejNotif["[N] #4 Documents Rejected"]:::ho
+            S1_PalVerifRejNotif["[N] #4 Need More Information"]:::ho
             S1_PalVerifRejDec{"Resubmit<br/>within 24h?"}:::logic
 
             %% Denied
@@ -105,8 +104,7 @@ flowchart TD
         S1_PalConditional --> S1_PalCondTask
 
         S1_PalCondTask --> S1_PalUploadDocs --> S1_PalVerifSubmit
-        S1_PalVerifSubmit --> S1_PalVerifNotif
-        S1_PalVerifNotif --> S1_PalVerifDec
+        S1_PalVerifSubmit --> S1_PalVerifDec
 
         %% Verification approved → Financing Approved (unblocks Stage 4/5 gates)
         S1_PalVerifDec -- Approved --> S1_PalVerifApproved
