@@ -355,7 +355,7 @@ flowchart TD
 
         %% Unknown path
         S4_UnkConvertOrder["Convert Draft Order to Order"]:::tetra
-        S4_UnkUpdateStatus["Update Order Status"]:::tetra
+        S4_UnkUpdateStatus["Update Order Status"]:::sibi
 
         %% #1: Order Pending
         S4_Pending["[S] Material Ordering: Order Pending"]:::sibi
