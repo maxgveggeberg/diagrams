@@ -245,16 +245,12 @@ flowchart TD
         S3_Declined["[S] Change Order: Change Order Declined"]:::ho
         S3_DeclinedNotif["[N] #20 Declined by HO"]:::solar
         S3_Dec_HOAction{"HO Decision?"}:::logic
-        S3_DeclinedExpiry{"Days > 7<br/>no action?"}:::logic
-        S3_DeclinedRemind["[N] Remind Sales"]:::solar
 
         %% #5-8: Cash payment path
         S3_PayMethodNotif["[N] #21 Payment Method Needed"]:::ho
         S3_SelectPayment{"Payment<br/>Method?"}:::logic
         S3_CCRequired["[S][T] Change Order: CC Required"]:::ho
         S3_CCRequiredNotif["[N] #22 CC Required"]:::ho
-        S3_CCRequiredExpiry{"Days > 3<br/>no CC?"}:::logic
-        S3_CCRequiredRemind["[N] Remind HO: CC"]:::ho
 
         S3_Dec_CCResult{"CC Payment<br/>Result?"}:::logic
         S3_CCComplete["[S] Change Order: Change Order Complete"]:::tetra
@@ -276,7 +272,7 @@ flowchart TD
         %% #11: Exit to Installation
         S3_ToInstall["[S][T] Installation: Select Preferred Install Dates"]:::ho
         S3_ToInstallNotif["[N] #28 Select Install Dates"]:::ho
-        S3_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
+        S3_Ref_Installation[["→ Stage 4 / Stage 5: Material Ordering & Installation"]]:::subprocess
 
         %% CB Decision
         S3_CBApproves["Approves"]:::sibi
@@ -309,14 +305,12 @@ flowchart TD
         S3_ApprovedNotif --> S3_Dec_Amount
 
         S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
-        S3_Dec_Required -- No --> S3_NotRequiredComplete
+        S3_Dec_Required -- No --> S3_NotRequiredComplete --> S3_Ref_Installation
         S3_Dec_Required -- Yes --> S3_Declined
         S3_Declined --> S3_DeclinedNotif
         S3_DeclinedNotif --> S3_Dec_HOAction
         S3_Dec_HOAction -- "Cancel job" --> S3_Cancelled
         S3_Dec_HOAction -- "Revise scope" --> S3_RevisedScope
-        S3_Dec_HOAction --> S3_DeclinedExpiry
-        S3_DeclinedExpiry -- Yes --> S3_DeclinedRemind
 
         %% Amount = 0 → skip payment
         S3_Dec_Amount -- "$0" --> S3_ZeroComplete
@@ -329,8 +323,6 @@ flowchart TD
         S3_SelectPayment --> S3_CCRequired
         S3_SelectPayment -- "Cash + no CC" --> S3_CCRequired
         S3_CCRequired --> S3_CCRequiredNotif
-        S3_CCRequired --> S3_CCRequiredExpiry
-        S3_CCRequiredExpiry -- Yes --> S3_CCRequiredRemind
 
         %% CC result
         S3_CCRequired --> S3_Dec_CCResult
