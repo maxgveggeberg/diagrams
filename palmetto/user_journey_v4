@@ -29,13 +29,13 @@ flowchart TD
     %% --- STATUSES ---
     subgraph Statuses["STATUSES"]
         direction LR
-        Status_Sales["Sales"]
-        Status_SiteVisit["Site Visit"]
-        Status_ChangeOrder["Change Order"]
-        Status_MaterialOrdering["Material Ordering"]
-        Status_Installation["Installation"]
-        Status_Case["Case"]
-        Status_Payment["Payment"]
+        Status_Sales["Sales"]:::tetra
+        Status_SiteVisit["Site Visit"]:::tetra
+        Status_ChangeOrder["Change Order"]:::tetra
+        Status_MaterialOrdering["Material Ordering"]:::tetra
+        Status_Installation["Installation"]:::tetra
+        Status_Case["Case"]:::tetra
+        Status_Payment["Payment"]:::tetra
     end
 
     %% =============================================================
