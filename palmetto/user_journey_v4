@@ -46,7 +46,6 @@ flowchart TD
         end
         S1_Dec_Payment -- Cash --> S1_CashInputCC
         S1_CashInputCC --> S1_ClosedWon
-        S1_CashInputCC --> S1_Ref_FinGateUnlock
 
         %% --- LEASE PATH (Palmetto) ---
         subgraph S1_Palmetto["Palmetto (Lease)"]
@@ -94,7 +93,7 @@ flowchart TD
         %% Verification approved → Financing Approved (unblocks Stage 4/5 gates)
         S1_PalVerifDec -- Approved --> S1_PalVerifApproved
         S1_PalVerifApproved --> S1_PalVerifApprovedNotif
-        S1_PalVerifApprovedNotif -->|Unblocks financing gates| S1_Ref_FinGateUnlock["✓ Financing Gate Unlocked<br/>(Stage 4 + Stage 5)"]:::monitor
+        S1_PalVerifApprovedNotif
 
         %% Verification rejected
         S1_PalVerifDec -- Rejected --> S1_PalVerifRejected
@@ -121,9 +120,7 @@ flowchart TD
 
         S1_ClosedLost(["[S] Sales: Closed Lost"]):::terminator
 
-        %% --- SUBPROCESS EXIT ---
-        S1_Ref_SiteVisit[["Stage 2: Site Visit"]]:::subprocess
-        S1_ClosedWon --> S1_Ref_SiteVisit
+        %% --- STAGE 1 END ---
     end
 
     %% =============================================================
