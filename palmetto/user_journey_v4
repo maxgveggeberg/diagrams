@@ -164,6 +164,7 @@ flowchart TD
         S2_ConfirmedNotif["[N] #12 Site Visit Confirmed"]:::co
 
         %% #8: Site Visit Complete
+        S2_COMarksComplete["[S] Site Visit: Site Visit Confirmed<br/>CO Marks Complete"]:::co
         S2_Complete["[S] Site Visit: Site Visit Complete"]:::co
         S2_AutoSkip["[AUTO] Skip Open Scheduling Tasks<br/>(select times, confirm, CO contact)"]:::monitor
         S2_CompleteDec{"Change Order<br/>Required?"}:::logic
@@ -172,8 +173,7 @@ flowchart TD
         S2_Deposit["[S] Site Visit: 30% Deposit"]:::ho
         S2_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
         S2_DepositFailed["[S] Site Visit: Deposit Payment Failed"]:::ho
-        S2_DepositFailedNotif["[N] #16 Update Payment Method"]:::ho
-        S2_DepositFailedTask["[T] Update payment method"]:::ho
+        S2_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
 
         %% Cross-stage exits
         S2_Ref_ChangeOrder[["→ Stage 3: Change Order"]]:::subprocess
@@ -203,10 +203,10 @@ flowchart TD
         S2_COContact --> S2_COSchedules --> S2_Confirmed
 
         %% Complete
-        S2_Confirmed -->|CO marks complete| S2_Complete
-        S2_Complete --> S2_AutoSkip
+        S2_Confirmed --> S2_COMarksComplete --> S2_Complete
+        S2_Complete -->|Financing| S2_AutoSkip
         S2_AutoSkip --> S2_CompleteDec
-        S2_Complete --> S2_Deposit
+        S2_Complete -->|Cash| S2_Deposit
 
         %% Branch: Change Order or Installation
         S2_CompleteDec -- "Yes: scope change" --> S2_Ref_ChangeOrder
@@ -216,9 +216,8 @@ flowchart TD
         S2_Deposit --> S2_DepositPayDec
         S2_DepositPayDec -- Yes --> S2_CompleteDec
         S2_DepositPayDec -- No --> S2_DepositFailed
-        S2_DepositFailed --> S2_DepositFailedNotif
-        S2_DepositFailed --> S2_DepositFailedTask
-        S2_DepositFailedTask -->|HO updates payment| S2_Deposit
+        S2_DepositFailed --> S2_HOUpdatePayment
+        S2_HOUpdatePayment --> S2_Deposit
     end
 
     %% =============================================================
