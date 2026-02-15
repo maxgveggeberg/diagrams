@@ -166,13 +166,12 @@ flowchart TD
         %% #8: Site Visit Complete
         S2_COMarksComplete["[S] Site Visit: Site Visit Confirmed<br/>CO Marks Complete"]:::co
         S2_Complete["[S] Site Visit: Site Visit Complete"]:::co
-        S2_AutoSkip["[AUTO] Skip Open Scheduling Tasks<br/>(select times, confirm, CO contact)"]:::monitor
         S2_CompleteDec{"Change Order<br/>Required?"}:::logic
 
         %% #9: 30% Deposit (Cash projects)
-        S2_Deposit["[S] Site Visit: 30% Deposit"]:::ho
+        S2_Deposit["[S] Payment: 30% Deposit"]:::ho
         S2_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
-        S2_DepositFailed["[S] Site Visit: Deposit Payment Failed"]:::ho
+        S2_DepositFailed["[S] Payment: Deposit Payment Failed"]:::ho
         S2_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
 
         %% Cross-stage exits
@@ -204,17 +203,16 @@ flowchart TD
 
         %% Complete
         S2_Confirmed --> S2_COMarksComplete --> S2_Complete
-        S2_Complete -->|Financing| S2_AutoSkip
-        S2_AutoSkip --> S2_CompleteDec
-        S2_Complete -->|Cash| S2_Deposit
+        S2_Complete --> S2_CompleteDec
 
         %% Branch: Change Order or Installation
         S2_CompleteDec -- "Yes: scope change" --> S2_Ref_ChangeOrder
-        S2_CompleteDec -- "No: proceed to install" --> S2_Ref_Installation
+        S2_CompleteDec -- "No" --> S2_Ref_Installation
+        S2_CompleteDec -- "No, Cash" --> S2_Deposit
 
         %% 30% Deposit flow (Cash projects)
         S2_Deposit --> S2_DepositPayDec
-        S2_DepositPayDec -- Yes --> S2_CompleteDec
+        S2_DepositPayDec -- Yes --> S2_Ref_Installation
         S2_DepositPayDec -- No --> S2_DepositFailed
         S2_DepositFailed --> S2_HOUpdatePayment
         S2_HOUpdatePayment --> S2_Deposit
