@@ -149,32 +149,25 @@ flowchart TD
         %% #1: Select Preferred Times
         S2_SelectTimes["[S][T] Site Visit: Select Preferred Times"]:::ho
         S2_SelectNotif["[N] #8 Select Site Visit Times (⏱ 10min delay)"]:::ho
-        %% EXPIRATION
-        S2_SelectExpiry{"[EXP] Days > 7<br/>no times?"}:::logic
-        S2_SelectRemind["[N] Remind HO: Select Times"]:::ho
+        S2_SelectIdle[["Idle Notifications"]]:::subprocess
 
         %% #2: Awaiting CO Confirmation
         S2_AwaitCO["[S][F] Site Visit: Awaiting CO Confirmation<br/>ho_preferred_times submitted"]:::monitor
         S2_AwaitCOTask["[T] Confirm site visit time"]:::co
         S2_AwaitCONotif["[N] #9 CO Task: Confirm Time"]:::co
-        %% EXPIRATION
-        S2_AwaitCOExpiry{"[EXP] Hours > 24<br/>no CO selection?"}:::logic
-        S2_AwaitCORemind["[N] Remind CO: Confirm"]:::co
+        S2_AwaitCOIdle[["Idle Notifications"]]:::subprocess
 
         %% #3: Confirm Site Visit Time
         S2_ConfirmTime["[S][F] Site Visit: Confirm Site Visit Time<br/>co_selected_time = SELECTED"]:::ho
         S2_ConfirmTask["[T] Confirm site visit time"]:::ho
         S2_ConfirmNotif["[N] #10 Confirm Appointment"]:::ho
-        %% EXPIRATION
-        S2_ConfirmExpiry{"[EXP] Hours > 48<br/>no HO confirm?"}:::logic
-        S2_ConfirmRemind["[N] Remind HO: Confirm"]:::ho
+        S2_ConfirmIdle[["Idle Notifications"]]:::subprocess
 
         %% #4a/4b: CO to Contact Directly
         S2_COContact["[S][T] Site Visit: CO to Contact Directly<br/>co_fallback_initiated"]:::co
         S2_COContactTask["[T] Contact HO to schedule"]:::co
         S2_COContactNotif["[N] #11 CO Task: Contact to Schedule"]:::co
-        %% EXPIRATION
-        S2_COContactExpiry{"[EXP] Hours > 48<br/>no date + attempts >= 2?"}:::logic
+        S2_COContactIdle[["Idle Notifications"]]:::subprocess
 
         %% #5a/5b: Site Visit Confirmed
         S2_Confirmed["✓ [S] Site Visit: Site Visit Confirmed"]:::monitor
@@ -184,9 +177,7 @@ flowchart TD
         %% #6: Sales Escalation
         S2_SalesEscalation["[S][T] Site Visit: Sales Escalation"]:::solar
         S2_SalesEscNotif["[N] #54/#56 Unresponsive"]:::solar
-        %% EXPIRATION
-        S2_SalesEscExpiry{"[EXP] Days > 5<br/>no date?"}:::logic
-        S2_OpsEscalation["[N] Escalate to Ops"]:::tetra
+        S2_SalesEscIdle[["Idle Notifications"]]:::subprocess
 
         %% #7: Sales mediates → Confirmed
         S2_SalesMediated["[S] Site Visit: Sales Mediated"]:::solar
@@ -204,9 +195,7 @@ flowchart TD
         %% #9: 30% Deposit
         S2_DepositDec{"Cash + Factory<br/>Direct?"}:::logic
         S2_Deposit["[S][F][N] Site Visit: 30% Deposit Required<br/>deposit_amount = 30%<br/>#16 Deposit Reminder"]:::ho
-        %% EXPIRATION
-        S2_DepositExpiry{"[EXP] Days > 7<br/>not paid?"}:::logic
-        S2_DepositRemind["[N] Remind HO: Deposit"]:::ho
+        S2_DepositIdle[["Idle Notifications"]]:::subprocess
 
         %% Cross-stage exits
         S2_Ref_ChangeOrder[["→ Stage 3: Change Order"]]:::subprocess
@@ -214,25 +203,21 @@ flowchart TD
 
         %% --- FLOW ---
         S2_SelectTimes --> S2_SelectNotif
-        S2_SelectTimes -.-> S2_SelectExpiry
-        S2_SelectExpiry -. Yes .-> S2_SelectRemind
-        S2_SelectRemind --> S2_SelectTimes
+        S2_SelectTimes --> S2_SelectIdle
 
         S2_SelectTimes -->|HO submits 3 times| S2_AwaitCO
         S2_AwaitCO --> S2_AwaitCOTask --> S2_AwaitCONotif
-        S2_AwaitCO -.-> S2_AwaitCOExpiry
-        S2_AwaitCOExpiry -. Yes .-> S2_AwaitCORemind
+        S2_AwaitCO --> S2_AwaitCOIdle
 
         %% CO selects time
         S2_AwaitCO -->|CO selects from HO times| S2_ConfirmTime
         S2_ConfirmTime --> S2_ConfirmTask --> S2_ConfirmNotif
-        S2_ConfirmTime -.-> S2_ConfirmExpiry
-        S2_ConfirmExpiry -. Yes .-> S2_ConfirmRemind
+        S2_ConfirmTime --> S2_ConfirmIdle
 
         %% CO declines or timeout → fallback
         S2_AwaitCO -->|CO declines all / 24h timeout| S2_COContact
         S2_COContact --> S2_COContactTask --> S2_COContactNotif
-        S2_COContact -.-> S2_COContactExpiry
+        S2_COContact --> S2_COContactIdle
 
         %% HO declines confirmed time → fallback
         S2_ConfirmTime -->|HO declines| S2_COContact
@@ -245,10 +230,9 @@ flowchart TD
         S2_COContact -->|CO schedules directly| S2_Confirmed
 
         %% Escalation
-        S2_COContactExpiry -. Yes .-> S2_SalesEscalation
+        S2_COContactIdle --> S2_SalesEscalation
         S2_SalesEscalation --> S2_SalesEscNotif
-        S2_SalesEscNotif -.-> S2_SalesEscExpiry
-        S2_SalesEscExpiry -. Yes .-> S2_OpsEscalation
+        S2_SalesEscNotif --> S2_SalesEscIdle
 
         %% Sales mediates
         S2_SalesEscalation --> S2_SalesMediated
@@ -271,8 +255,7 @@ flowchart TD
 
         %% Deposit logic
         S2_DepositDec -- Yes --> S2_Deposit
-        S2_Deposit -.-> S2_DepositExpiry
-        S2_DepositExpiry -. Yes .-> S2_DepositRemind
+        S2_Deposit --> S2_DepositIdle
     end
 
     %% =============================================================
