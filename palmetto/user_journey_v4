@@ -247,6 +247,9 @@ flowchart TD
         %% Project payment method decision
         S3_Dec_ProjectPayment{"Project<br/>Payment Method?"}:::logic
 
+        %% Cash path
+        S3_UpdateProjectScope["Update Project Scope"]:::tetra
+
         %% Payment paths
         S3_SelectPayment{"Change Order<br/>Payment Method?"}:::logic
         S3_CCRequired["Input Credit Card"]:::ho
@@ -291,6 +294,7 @@ flowchart TD
         S3_Approved --> S3_ApprovedNotif
         S3_ApprovedNotif --> S3_Dec_ProjectPayment
         S3_Dec_ProjectPayment -- "Lease" --> S3_SelectPayment
+        S3_Dec_ProjectPayment -- "Cash" --> S3_UpdateProjectScope
 
         S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
         S3_Dec_Required -- No --> S3_NotRequiredUpdateProject --> S3_Complete
