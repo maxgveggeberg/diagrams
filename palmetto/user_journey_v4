@@ -245,6 +245,9 @@ flowchart TD
         S3_Declined["[S] Change Order: Change Order Declined"]:::ho
         S3_DeclinedNotif["[N] #20 Declined by HO"]:::solar
 
+        %% Project payment method decision
+        S3_Dec_ProjectPayment{"Project<br/>Payment Method?"}:::logic
+
         %% #5-8: Cash payment path
         S3_SelectPayment{"Change Order<br/>Payment Method?"}:::logic
         S3_Dec_CCOnFile{"Credit Card<br/>on File?"}:::logic
@@ -289,7 +292,8 @@ flowchart TD
         %% HO decides
         S3_SentNotif --> S3_HOApproved --> S3_Approved
         S3_Approved --> S3_ApprovedNotif
-        S3_ApprovedNotif --> S3_SelectPayment
+        S3_ApprovedNotif --> S3_Dec_ProjectPayment
+        S3_Dec_ProjectPayment -- "Lease" --> S3_SelectPayment
 
         S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
         S3_Dec_Required -- No --> S3_NotRequiredComplete --> S3_NotRequiredUpdateProject --> S3_Ref_Installation
