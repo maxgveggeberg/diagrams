@@ -372,12 +372,13 @@ flowchart TD
             S4_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
             S4_DepositFailed["[S] Payment: Deposit Payment Failed"]:::ho
             S4_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
+            S4_PaymentApproved["[S] Payment: Approved"]:::tetra
         end
         style S4_PaymentCollection fill:none,stroke:none
 
         S4_Dec_PayMethod -- "Lease" --> S4_FinGate
         S4_Dec_PayMethod -- "Cash" --> S4_Deposit
-        S4_FinGate -- "Yes" --> S4_Dec_Inventory
+        S4_FinGate -- "Yes" --> S4_PaymentApproved
         S4_FinGate -- "No" --> S4_FinBlocked
 
         %% === INVENTORY CHECK ===
@@ -403,7 +404,8 @@ flowchart TD
         %% --- FLOW ---
         %% 30% Deposit flow (Cash projects)
         S4_Deposit --> S4_DepositPayDec
-        S4_DepositPayDec -- Yes --> S4_Dec_Inventory
+        S4_DepositPayDec -- Yes --> S4_PaymentApproved
+        S4_PaymentApproved --> S4_Dec_Inventory
         S4_DepositPayDec -- No --> S4_DepositFailed
         S4_DepositFailed --> S4_HOUpdatePayment
         S4_HOUpdatePayment --> S4_Deposit
