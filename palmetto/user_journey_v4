@@ -251,15 +251,9 @@ flowchart TD
         S3_SelectPayment{"Payment<br/>Method?"}:::logic
         S3_CCRequired["[S][T] Change Order: CC Required"]:::ho
         S3_CCRequiredNotif["[N] #22 CC Required"]:::ho
-
-        S3_Dec_CCResult{"CC Payment<br/>Result?"}:::logic
+        S3_CCCharge["Charge Credit Card"]:::tetra
         S3_CCComplete["[S] Change Order: Change Order Complete"]:::tetra
         S3_CCCompleteNotif["[N] #23 Change Order Complete"]:::ho
-
-        S3_CCDenied["[S] Change Order: Payment Denied"]:::tetra
-        S3_CCDeniedTask["[T] Contact customer"]:::solar
-        S3_CCDeniedNotif["[N] #24 Payment Denied"]:::ho
-        S3_Dec_CCRetry{"HO Retries?"}:::logic
 
         %% #9: Lease payment
         S3_LeaseComplete["[S] Change Order: Change Order Complete<br/>(lease approved)"]:::tetra
@@ -321,21 +315,11 @@ flowchart TD
         S3_SelectPayment -- "Cash + no CC" --> S3_CCRequired
         S3_CCRequired --> S3_CCRequiredNotif
 
-        %% CC result
-        S3_CCRequired --> S3_Dec_CCResult
-        S3_Dec_CCResult -- "Success" --> S3_CCComplete
+        %% CC payment (no declined path)
+        S3_CCRequired --> S3_CCCharge
+        S3_CCCharge --> S3_CCComplete
         S3_CCComplete --> S3_CCCompleteNotif
         S3_CCCompleteNotif --> S3_ToInstall
-
-        %% CC declined
-        S3_Dec_CCResult -- "Declined" --> S3_CCDenied
-        S3_CCDenied --> S3_CCDeniedTask
-        S3_CCDenied --> S3_CCDeniedNotif
-        S3_CCDeniedNotif --> S3_Dec_CCRetry
-
-        %% Retry
-        S3_Dec_CCRetry -- Yes --> S3_CCRequired
-        S3_Dec_CCRetry -- No --> S3_Cancelled
 
         %% Lease approved
         S3_SelectPayment -- "Lease" --> S3_LeaseComplete
