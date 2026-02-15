@@ -122,6 +122,8 @@ flowchart TD
         S1_ClosedLost(["[S] Sales: Closed Lost"]):::terminator
 
         %% --- SUBPROCESS EXIT ---
+        S1_Ref_SiteVisit[["Stage 2: Site Visit"]]:::subprocess
+        S1_ClosedWon --> S1_Ref_SiteVisit
     end
 
     %% =============================================================
@@ -175,6 +177,8 @@ flowchart TD
         S2_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
 
         %% Cross-stage exits
+        S2_Ref_ChangeOrder[["Stage 3: Change Order"]]:::subprocess
+        S2_Ref_Installation[["Stage 4 / Stage 5: Order Material & Install"]]:::subprocess
 
         %% --- FLOW ---
         S2_SelectTimes --> S2_HOSubmits3 --> S2_AwaitCO
@@ -204,13 +208,13 @@ flowchart TD
         S2_Complete --> S2_CompleteDec
 
         %% Branch: Change Order or Installation
-        S2_CompleteDec -- "Yes: scope change" --> S3_Created
-        S2_CompleteDec -- "No, Financing" --> S5_Backref_SiteVisit
+        S2_CompleteDec -- "Yes: scope change" --> S2_Ref_ChangeOrder
+        S2_CompleteDec -- "No, Financing" --> S2_Ref_Installation
         S2_CompleteDec -- "No, Cash" --> S2_Deposit
 
         %% 30% Deposit flow (Cash projects)
         S2_Deposit --> S2_DepositPayDec
-        S2_DepositPayDec -- Yes --> S5_Backref_SiteVisit
+        S2_DepositPayDec -- Yes --> S2_Ref_Installation
         S2_DepositPayDec -- No --> S2_DepositFailed
         S2_DepositFailed --> S2_HOUpdatePayment
         S2_HOUpdatePayment --> S2_Deposit
@@ -550,6 +554,7 @@ flowchart TD
         %% Cross-stage exits
         S5_Ref_Payment[["→ Stage 7: Payment"]]:::subprocess
         S5_Ref_Case[["→ Stage 6: Case"]]:::subprocess
+        S5_Ref_MaterialOrder[["→ Stage 4: Material Ordering"]]:::subprocess
         S5_Ref_MaterialGate[["← Stage 4: Material Ready"]]:::subprocess
 
         %% --- 1.x SCHEDULING FLOW ---
@@ -590,6 +595,7 @@ flowchart TD
         S5_Dec_Gate -- "Both ready" --> S5_Ready
         S5_Ready --> S5_ReadyTask --> S5_ReadyNotif
 
+        S5_DateConfirmed -.-> S5_Ref_MaterialOrder
         S5_DateConfirmed --> S5_ReminderDayBeforeHO
         S5_DateConfirmed --> S5_ReminderDayBeforeCO
 
@@ -795,28 +801,12 @@ flowchart TD
     end
 
     %% =============================================================
-    %% CROSS-STAGE CONNECTIONS
+    %% CROSS-STAGE CONNECTIONS (subgraph-level edges)
     %% =============================================================
 
-    %% Stage 1 → Stage 2 (Closed Won → Select Preferred Times)
-    S1_ClosedWon --> S2_SelectTimes
-
-    %% Stage 2 → Stage 3 (Change Order) — direct edge in Stage 2 flow
-    %% Stage 2 → Stage 5 (Installation) — direct edges in Stage 2 flow
-
-    %% Stage 3 → Stage 5 (Installation, after change order)
-    S3_Ref_Installation --> S5_Backref_SiteVisit
-
-    %% Stage 5 ↔ Stage 4 (Material ordering)
-    S5_DateConfirmed -.-> S4_Backref_Install
-    S4_Ref_InstallReady -.-> S5_Ref_MaterialGate
-
-    %% Stage 5 → Stage 6 (Case on decline)
-    S5_Ref_Case --> S6_Backref_Install
-
-    %% Stage 5 → Stage 7 (Payment on approval)
-    S5_Ref_Payment --> S7_Backref_Install
-
-    %% Stage 6 ↔ Stage 7 (Payment pause/resume)
-    S6_Ref_PaymentPause --> S7_Backref_CasePause
-    S6_Ref_PaymentResume --> S7_Backref_CaseResume
+    Stage1_Sales --> Stage2_SiteVisit
+    Stage2_SiteVisit --> Stage3_ChangeOrder
+    Stage3_ChangeOrder --> Stage4_MaterialOrdering
+    Stage4_MaterialOrdering --> Stage5_Installation
+    Stage5_Installation --> Stage6_Case
+    Stage6_Case --> Stage7_Payment
