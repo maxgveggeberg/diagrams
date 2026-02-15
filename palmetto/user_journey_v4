@@ -224,15 +224,15 @@ flowchart TD
 
         %% #1: CO creates change order
         S3_Created["[S] Change Order: Change Order Created"]:::co
-        S3_CreatedNotif["[TN] #17 Change Order Created"]:::solar
+        S3_CreatedNotif["[T][N] #17 Change Order Created"]:::solar
 
         %% #2: Sibi reviews → Sent to HO
         S3_Sent["[S] Change Order: Change Order Sent"]:::solar
-        S3_SentTask["[T] Review change order"]:::ho
-        S3_SentNotif["[N] #18 Sent for Review"]:::ho
+        S3_SentNotif["[T][N] #18 Sent for Review"]:::ho
 
         %% #3: HO Approves
-        S3_Dec_HO{"HO Response?"}:::logic
+        S3_HOApproved["Approved"]:::ho
+        S3_HODeclined["HO Declined"]:::ho
         S3_Approved["[S] Change Order: Change Order Approved"]:::ho
         S3_ApprovedNotif["[N] #19 Approved by HO"]:::solar
         S3_Dec_Amount{"Amount > 0?"}:::logic
@@ -275,8 +275,8 @@ flowchart TD
         S3_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
 
         %% CB Decision
-        S3_CBApproves["CB Approves"]:::sibi
-        S3_CBDeclines["CB Declines"]:::sibi
+        S3_CBApproves["Approves"]:::sibi
+        S3_CBDeclines["Declines"]:::sibi
         S3_Ref_OrderMatInstall[["→ Stage 4 / Stage 5: Order Material & Installation"]]:::subprocess
 
         %% Exits
@@ -289,15 +289,14 @@ flowchart TD
         %% Sibi approves → send to HO
         S3_CreatedNotif --> S3_CBApproves --> S3_Sent
         S3_CreatedNotif --> S3_CBDeclines --> S3_Ref_OrderMatInstall
-        S3_Sent --> S3_SentTask --> S3_SentNotif
+        S3_Sent --> S3_SentNotif
 
         %% HO decides
-        S3_SentTask --> S3_Dec_HO
-        S3_Dec_HO -- Approved --> S3_Approved
+        S3_SentNotif --> S3_HOApproved --> S3_Approved
         S3_Approved --> S3_ApprovedNotif
         S3_ApprovedNotif --> S3_Dec_Amount
 
-        S3_Dec_HO -- Declined --> S3_Declined
+        S3_SentNotif --> S3_HODeclined --> S3_Declined
         S3_Declined --> S3_DeclinedNotif
         S3_DeclinedNotif --> S3_Dec_HOAction
         S3_Dec_HOAction -- "Cancel job" --> S3_Cancelled
