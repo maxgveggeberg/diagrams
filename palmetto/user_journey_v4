@@ -359,23 +359,26 @@ flowchart TD
     subgraph Stage4_MaterialOrdering["STAGE 4: MATERIAL ORDERING"]
         direction TB
 
-        %% === PROJECT PAYMENT METHOD ===
-        S4_Dec_PayMethod{"Project<br/>Payment Method?"}:::logic
+        %% === PAYMENT COLLECTION (invisible subgraph) ===
+        subgraph S4_PaymentCollection[" "]
+            S4_Dec_PayMethod{"Project<br/>Payment Method?"}:::logic
 
-        %% === FINANCING GATE ===
-        S4_FinGate{"Financing<br/>Approved?"}:::logic
-        S4_FinBlocked["⛔ Blocked: Awaiting Financing Approval"]:::terminator
+            %% === FINANCING GATE ===
+            S4_FinGate{"Financing<br/>Approved?"}:::logic
+            S4_FinBlocked["⛔ Blocked: Awaiting Financing Approval"]:::terminator
+
+            %% === 30% DEPOSIT (Cash projects) ===
+            S4_Deposit["[S] Payment: Collect 30% Deposit"]:::ho
+            S4_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
+            S4_DepositFailed["[S] Payment: Deposit Payment Failed"]:::ho
+            S4_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
+        end
+        style S4_PaymentCollection fill:none,stroke:none
 
         S4_Dec_PayMethod -- "Lease" --> S4_FinGate
         S4_Dec_PayMethod -- "Cash" --> S4_Deposit
         S4_FinGate -- "Yes" --> S4_Dec_Inventory
         S4_FinGate -- "No" --> S4_FinBlocked
-
-        %% === 30% DEPOSIT (Cash projects) ===
-        S4_Deposit["[S] Payment: Collect 30% Deposit"]:::ho
-        S4_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
-        S4_DepositFailed["[S] Payment: Deposit Payment Failed"]:::ho
-        S4_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
 
         %% === INVENTORY CHECK ===
         S4_Dec_Inventory{"Inventory<br/>Status"}:::logic
