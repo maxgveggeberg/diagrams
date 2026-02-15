@@ -280,7 +280,7 @@ flowchart TD
         S3_Ref_OrderMatInstall[["→ Stage 4 / Stage 5: Order Material & Installation"]]:::subprocess
 
         %% Sibi Approves paths
-        S3_SibiContactsHO["Sibi Contacts HO Directly"]:::sibi
+        S3_SibiContactsHO["Contact HO Directly"]:::sibi
         S3_SendToSales["Sends to Sales Rep"]:::sibi
         S3_SalesReviewCO["[T][N] Review Change Order"]:::ho
         S3_SalesContactsHO["Sales Sends to HO"]:::solar
