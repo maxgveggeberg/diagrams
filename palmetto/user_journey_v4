@@ -468,7 +468,7 @@ flowchart TD
         direction TB
 
         %% Entry
-        S5_Backref_SiteVisit(["↩ Stage 2/3: Site Visit or Change Order"]):::subprocess
+        S5_Backref_SiteVisit[["Stage 4 / Stage 5: Order Material & Install"]]:::subprocess
 
         %% === FINANCING GATE ===
         S5_FinGate{"Financing<br/>Approved?"}:::logic
