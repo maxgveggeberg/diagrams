@@ -188,7 +188,7 @@ flowchart TD
 
         %% CO declines → fallback
         S2_AwaitCO --> S2_CODeclinesAll --> S2_COContact
-        S2_COContact --> S2_COContactTask --> S2_COContactNotif
+        S2_COContact --> S2_COContactTaskNotif
 
         %% HO declines confirmed time → fallback
         S2_ConfirmTime -->|HO declines| S2_COContact
