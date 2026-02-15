@@ -346,8 +346,10 @@ flowchart TD
 
         %% === INVENTORY CHECK ===
         S4_Dec_Inventory{"Inventory<br/>Status"}:::logic
-        S4_UpdateInvTask["[T][N] Update Inventory Status"]:::sibi
-        S4_UpdateInvStatus["Update Inventory Status"]:::sibi
+        S4_ConvertOrder["Convert Draft Order to Order"]:::sibi
+        S4_InvUnknown["Unknown"]:::sibi
+        S4_InvUnavailable["Unavailable"]:::sibi
+        S4_InvOutOfStock["Out of Stock"]:::sibi
 
         %% #1: Order Pending
         S4_Pending["[S] Material Ordering: Order Pending"]:::sibi
@@ -402,9 +404,11 @@ flowchart TD
         S4_HOUpdatePayment --> S4_Deposit
 
         %% Inventory check
-        S4_Dec_Inventory -- "Yes" --> S4_UpdateInvTask
-        S4_UpdateInvTask --> S4_UpdateInvStatus
-        S4_Dec_Inventory -- "No" --> S4_Pending
+        S4_Dec_Inventory -- "Available" --> S4_ConvertOrder
+        S4_Dec_Inventory -- "Unknown" --> S4_InvUnknown
+        S4_Dec_Inventory -- "Unavailable" --> S4_InvUnavailable
+        S4_Dec_Inventory -- "Out of Stock" --> S4_InvOutOfStock
+        S4_ConvertOrder --> S4_Pending
 
         S4_Pending -->|Sibi confirms| S4_Approved
         S4_Approved -->|Sibi begins prep| S4_Processing
