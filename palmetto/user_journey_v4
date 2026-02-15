@@ -246,10 +246,9 @@ flowchart TD
         S3_DeclinedNotif["[N] #20 Declined by HO"]:::solar
 
         %% #5-8: Cash payment path
-        S3_PayMethodNotif["[N] #21 Payment Method Needed"]:::ho
-        S3_SelectPayment{"Payment<br/>Method?"}:::logic
+        S3_SelectPayment{"Change Order<br/>Payment Method?"}:::logic
+        S3_Dec_CCOnFile{"Credit Card<br/>on File?"}:::logic
         S3_CCRequired["[S][T] Change Order: CC Required"]:::ho
-        S3_CCRequiredNotif["[N] #22 CC Required"]:::ho
         S3_CCCharge["Charge Credit Card"]:::tetra
         S3_CCComplete["[S] Change Order: Change Order Complete"]:::tetra
         S3_CCCompleteNotif["[N] #23 Change Order Complete"]:::ho
@@ -290,7 +289,7 @@ flowchart TD
         %% HO decides
         S3_SentNotif --> S3_HOApproved --> S3_Approved
         S3_Approved --> S3_ApprovedNotif
-        S3_ApprovedNotif --> S3_PayMethodNotif
+        S3_ApprovedNotif --> S3_SelectPayment
 
         S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
         S3_Dec_Required -- No --> S3_NotRequiredComplete --> S3_NotRequiredUpdateProject --> S3_Ref_Installation
@@ -298,13 +297,10 @@ flowchart TD
         S3_Declined --> S3_DeclinedNotif
         S3_DeclinedNotif --> S3_Cancelled
 
-        %% Payment method
-        S3_PayMethodNotif --> S3_SelectPayment
-        S3_SelectPayment --> S3_CCRequired
-        S3_SelectPayment -- "Cash + no CC" --> S3_CCRequired
-        S3_CCRequired --> S3_CCRequiredNotif
-
-        %% CC payment (no declined path)
+        %% Credit card path
+        S3_SelectPayment -- "Credit Card" --> S3_Dec_CCOnFile
+        S3_Dec_CCOnFile -- Yes --> S3_CCCharge
+        S3_Dec_CCOnFile -- No --> S3_CCRequired
         S3_CCRequired --> S3_CCCharge
         S3_CCCharge --> S3_CCComplete
         S3_CCComplete --> S3_CCCompleteNotif
