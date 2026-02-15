@@ -237,6 +237,10 @@ flowchart TD
         S3_ApprovedNotif["[N] #19 Approved by HO"]:::solar
         S3_Dec_Amount{"Amount > 0?"}:::logic
 
+        %% HO Declined → Required?
+        S3_Dec_Required{"Required?"}:::logic
+        S3_NotRequiredComplete["[S] Change Order: Change Order Complete"]:::tetra
+
         %% #4: HO Declines
         S3_Declined["[S] Change Order: Change Order Declined"]:::ho
         S3_DeclinedNotif["[N] #20 Declined by HO"]:::solar
@@ -304,7 +308,9 @@ flowchart TD
         S3_Approved --> S3_ApprovedNotif
         S3_ApprovedNotif --> S3_Dec_Amount
 
-        S3_SentNotif --> S3_HODeclined --> S3_Declined
+        S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
+        S3_Dec_Required -- No --> S3_NotRequiredComplete
+        S3_Dec_Required -- Yes --> S3_Declined
         S3_Declined --> S3_DeclinedNotif
         S3_DeclinedNotif --> S3_Dec_HOAction
         S3_Dec_HOAction -- "Cancel job" --> S3_Cancelled
