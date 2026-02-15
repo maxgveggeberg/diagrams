@@ -134,7 +134,11 @@ flowchart TD
         S1_InvUnavailable --> S1_UnavailEquipTask
         S1_UnavailEquipTask --> S1_Dec_ChangeEquip
 
-        S1_CreateDraftOrder -- "Unknown" --> S1_Dec_ChangeEquip
+        S1_MaterialOrderUnknown["[S] Material Ordering: Unknown"]:::sibi
+
+        S1_Dec_Inventory -- "Unknown" --> S1_MaterialOrderUnknown
+        S1_MaterialOrderUnknown --> S1_CreateDraftOrder
+        S1_CreateDraftOrder --> S1_Dec_ChangeEquip
         S1_CancelOrder["Cancel Order"]:::tetra
 
         S1_Dec_ChangeEquip -- "No" --> S1_UpdateInventory
