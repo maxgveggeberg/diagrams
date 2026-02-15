@@ -135,8 +135,7 @@ flowchart TD
 
         %% #2: Awaiting CO Confirmation
         S2_AwaitCO["[S] Site Visit: Awaiting CO Confirmation"]:::monitor
-        S2_AwaitCOTask["[T] Confirm site visit time"]:::co
-        S2_AwaitCONotif["[N] #9 CO Task: Confirm Time"]:::co
+        S2_AwaitCONotif["[TN] #9 CO Task: Confirm Time"]:::co
 
         %% CO Selects Time
         S2_COSelectsTimes["CO Selects from HO Times"]:::co
@@ -163,7 +162,7 @@ flowchart TD
         S2_ConfirmedNotif["[N] #12 Site Visit Confirmed"]:::co
 
         %% #8: Site Visit Complete
-        S2_COMarksComplete["[S] Site Visit: Site Visit Confirmed<br/>CO Marks Complete"]:::co
+        S2_COMarksComplete["CO Marks Complete"]:::co
         S2_Complete["[S] Site Visit: Site Visit Complete"]:::co
         S2_CompleteDec{"Change Order<br/>Required?"}:::logic
 
@@ -179,7 +178,7 @@ flowchart TD
 
         %% --- FLOW ---
         S2_SelectTimes --> S2_HOSubmits3 --> S2_AwaitCO
-        S2_AwaitCO --> S2_AwaitCOTask --> S2_AwaitCONotif
+        S2_AwaitCO --> S2_AwaitCONotif
 
         %% CO selects time
         S2_AwaitCO --> S2_COSelectsTimes
@@ -225,17 +224,12 @@ flowchart TD
 
         %% #1: CO creates change order
         S3_Created["[S] Change Order: Change Order Created"]:::co
-        S3_CreatedTask["[T] Review change order"]:::sibi
-        S3_CreatedNotif["[N] #17 Change Order Created"]:::solar
-        S3_CreatedExpiry{"Hours > 24<br/>not reviewed?"}:::logic
-        S3_CreatedRemind["[N] Remind Sibi"]:::sibi
+        S3_CreatedNotif["[TN] #17 Change Order Created"]:::solar
 
         %% #2: Sibi reviews → Sent to HO
         S3_Sent["[S] Change Order: Change Order Sent"]:::solar
         S3_SentTask["[T] Review change order"]:::ho
         S3_SentNotif["[N] #18 Sent for Review"]:::ho
-        S3_SentExpiry{"Days > 3<br/>no HO response?"}:::logic
-        S3_SentRemind["[N] Remind HO"]:::ho
 
         %% #3: HO Approves
         S3_Dec_HO{"HO Response?"}:::logic
@@ -280,20 +274,22 @@ flowchart TD
         S3_ToInstallNotif["[N] #28 Select Install Dates"]:::ho
         S3_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
 
+        %% CB Decision
+        S3_CBApproves["CB Approves"]:::sibi
+        S3_CBDeclines["CB Declines"]:::sibi
+        S3_Ref_OrderMatInstall[["→ Stage 4 / Stage 5: Order Material & Installation"]]:::subprocess
+
         %% Exits
         S3_Cancelled(["[S] Change Order: Job Cancelled"]):::terminator
         S3_RevisedScope(["↩ Revise Scope"]):::subprocess
 
         %% --- FLOW ---
-        S3_Created --> S3_CreatedTask --> S3_CreatedNotif
-        S3_Created --> S3_CreatedExpiry
-        S3_CreatedExpiry -- Yes --> S3_CreatedRemind
+        S3_Created --> S3_CreatedNotif
 
         %% Sibi approves → send to HO
-        S3_CreatedTask -->|Sibi approves| S3_Sent
+        S3_CreatedNotif --> S3_CBApproves --> S3_Sent
+        S3_CreatedNotif --> S3_CBDeclines --> S3_Ref_OrderMatInstall
         S3_Sent --> S3_SentTask --> S3_SentNotif
-        S3_Sent --> S3_SentExpiry
-        S3_SentExpiry -- Yes --> S3_SentRemind
 
         %% HO decides
         S3_SentTask --> S3_Dec_HO
