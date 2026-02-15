@@ -296,6 +296,7 @@ flowchart TD
         S3_SpeaksContractor["Speaks with Contractor"]:::sibi
         S3_CBApproves["Approves"]:::sibi
         S3_CBCancels["Cancels Change Order"]:::sibi
+        S3_CBCancelledStatus["[S] Change Order: Cancelled"]:::tetra
         S3_Ref_OrderMatInstall[["→ Stage 4 / Stage 5: Order Material & Installation"]]:::subprocess
 
         %% Sibi Approves paths
@@ -315,7 +316,7 @@ flowchart TD
         S3_SpeaksContractor --> S3_CBApproves
         S3_CBApproves --> S3_SibiContactsHO --> S3_Sent
         S3_CBApproves --> S3_SendToSales --> S3_SalesReviewCO --> S3_SalesContactsHO --> S3_Sent
-        S3_SpeaksContractor --> S3_CBCancels --> S3_Ref_OrderMatInstall
+        S3_SpeaksContractor --> S3_CBCancels --> S3_CBCancelledStatus --> S3_Ref_OrderMatInstall
         S3_Sent --> S3_SentNotif
 
         %% HO decides
