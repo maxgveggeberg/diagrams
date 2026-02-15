@@ -138,7 +138,6 @@ flowchart TD
 
         S1_Dec_Inventory -- "Unknown" --> S1_MaterialOrderUnknown
         S1_MaterialOrderUnknown --> S1_CreateDraftOrder
-        S1_CreateDraftOrder --> S1_Dec_ChangeEquip
         S1_CancelOrder["Cancel Order"]:::tetra
 
         S1_Dec_ChangeEquip -- "No" --> S1_UpdateInventory
