@@ -279,9 +279,11 @@ flowchart TD
         S3_CBDeclines["Declines"]:::sibi
         S3_Ref_OrderMatInstall[["→ Stage 4 / Stage 5: Order Material & Installation"]]:::subprocess
 
-        %% CB Approves → Sales Rep path
+        %% Sibi Approves paths
+        S3_SibiContactsHO["Sibi Contacts HO Directly"]:::sibi
         S3_SendToSales["Sends to Sales Rep"]:::sibi
-        S3_SalesContactsHO["Sales Contacts HO"]:::solar
+        S3_SalesReviewCO["[T][N] Review Change Order"]:::ho
+        S3_SalesContactsHO["Sales Sends to HO"]:::solar
 
         %% Exits
         S3_Cancelled(["[S] Change Order: Job Cancelled"]):::terminator
@@ -292,9 +294,8 @@ flowchart TD
 
         %% Sibi approves → send to HO
         S3_CreatedNotif --> S3_CBApproves
-        S3_CBApproves -->|CB contacts HO directly| S3_Sent
-        S3_CBApproves -->|Sends to Sales Rep| S3_SendToSales
-        S3_SendToSales --> S3_SalesContactsHO --> S3_Sent
+        S3_CBApproves --> S3_SibiContactsHO --> S3_Sent
+        S3_CBApproves --> S3_SendToSales --> S3_SalesReviewCO --> S3_SalesContactsHO --> S3_Sent
         S3_CreatedNotif --> S3_CBDeclines --> S3_Ref_OrderMatInstall
         S3_Sent --> S3_SentNotif
 
