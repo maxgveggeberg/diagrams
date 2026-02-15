@@ -245,7 +245,6 @@ flowchart TD
         %% #4: HO Declines
         S3_Declined["[S] Change Order: Change Order Declined"]:::ho
         S3_DeclinedNotif["[N] #20 Declined by HO"]:::solar
-        S3_Dec_HOAction{"HO Decision?"}:::logic
 
         %% #5-8: Cash payment path
         S3_PayMethodNotif["[N] #21 Payment Method Needed"]:::ho
@@ -288,7 +287,6 @@ flowchart TD
 
         %% Exits
         S3_Cancelled(["[S] Change Order: Job Cancelled"]):::terminator
-        S3_RevisedScope(["↩ Revise Scope"]):::subprocess
 
         %% --- FLOW ---
         S3_Created --> S3_CreatedNotif
@@ -309,9 +307,7 @@ flowchart TD
         S3_Dec_Required -- No --> S3_NotRequiredComplete --> S3_NotRequiredUpdateProject --> S3_Ref_Installation
         S3_Dec_Required -- Yes --> S3_Declined
         S3_Declined --> S3_DeclinedNotif
-        S3_DeclinedNotif --> S3_Dec_HOAction
-        S3_Dec_HOAction -- "Cancel job" --> S3_Cancelled
-        S3_Dec_HOAction -- "Revise scope" --> S3_RevisedScope
+        S3_DeclinedNotif --> S3_Cancelled
 
         %% Amount = 0 → skip payment
         S3_Dec_Amount -- "$0" --> S3_ZeroComplete
