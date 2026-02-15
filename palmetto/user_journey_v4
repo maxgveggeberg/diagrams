@@ -57,10 +57,8 @@ flowchart TD
             S1_CashInputCC["Input Credit Card Info"]:::ho
         end
         S1_Dec_Payment -- Cash --> S1_CashInputCC
-        S1_CashInputCC --> S1_CashClosedWon
-
-        S1_CashClosedWon["[S] Sales: Closed Won"]:::solar
-        S1_CashClosedWon --> S1_Ref_SiteVisit
+        S1_CashInputCC --> S1_ClosedWon
+        S1_CashInputCC --> S1_Ref_FinGateUnlock
 
         %% --- LEASE PATH (Palmetto) ---
         subgraph S1_Palmetto["Palmetto (Lease)"]
@@ -91,7 +89,7 @@ flowchart TD
 
             %% Upload docs
             S1_PalUploadDocs["HO Uploads Docs"]:::ho
-            S1_PalUploadNotif["[N] Notify of Submission"]:::palmetto
+            S1_PalUploadNotif["Notify of Submission (Webhook)"]:::palmetto
 
         end
 
@@ -133,7 +131,7 @@ flowchart TD
         S1_ClosedWon["[S] Sales: Closed Won"]:::solar
 
         S1_PalConditional --> S1_ClosedWon
-        S1_ClosedWon --> S1_Ref_SiteVisit
+        S1_ClosedWon --> S2_SelectTimes
 
         %% Denied → Closed Lost
         S1_PalDeniedDec -- No --> S1_ClosedLost
@@ -141,7 +139,6 @@ flowchart TD
         S1_ClosedLost(["[S] Sales: Closed Lost"]):::terminator
 
         %% --- SUBPROCESS EXIT ---
-        S1_Ref_SiteVisit[["→ Stage 2: Site Visit"]]:::subprocess
     end
 
     %% =============================================================
@@ -149,9 +146,6 @@ flowchart TD
     %% =============================================================
     subgraph Stage2_SiteVisit["STAGE 2: SITE VISIT"]
         direction TB
-
-        %% --- Entry ---
-        S2_Backref_Sales(["↩ Stage 1: Closed Won"]):::subprocess
 
         %% #1: Select Preferred Times
         S2_SelectTimes["[S][T] Site Visit: Select Preferred Site Visit Times"]:::ho
@@ -220,7 +214,6 @@ flowchart TD
         S2_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
 
         %% --- FLOW ---
-        S2_Backref_Sales --> S2_SelectTimes
         S2_SelectTimes --> S2_SelectNotif
         S2_SelectTimes -.-> S2_SelectExpiry
         S2_SelectExpiry -. Yes .-> S2_SelectRemind
@@ -868,9 +861,6 @@ flowchart TD
     %% =============================================================
     %% CROSS-STAGE CONNECTIONS
     %% =============================================================
-
-    %% Stage 1 → Stage 2
-    S1_Ref_SiteVisit --> S2_Backref_Sales
 
     %% Stage 2 → Stage 3 (Change Order)
     S2_Ref_ChangeOrder --> S3_Backref_SiteVisit
