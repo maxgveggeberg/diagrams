@@ -384,6 +384,9 @@ flowchart TD
         S4_FactoryDirectUpdate["[S] Material Ordering: Sibi Manually Update Status"]:::sibi
         S4_Dec_ReadyForPickup{"Material Ready<br/>for Pickup?"}:::logic
         S4_ReadyForPickup["[S] Material Ordering: Ready for Pickup"]:::sibi
+        S4_RescheduleStatus["[S] Install: Reschedule"]:::sibi
+        S4_RescheduleTask["[T][N] Reschedule Installation"]:::sibi
+        S4_RescheduleNotif["[N] Reschedule Due to Equipment Delays"]:::sibi
         S4_OosConvertOrder["Convert Draft Order to Order"]:::tetra
         S4_OosUpdateStatus["Sibi Updates Material Ordering Status via API"]:::sibi
 
@@ -413,6 +416,10 @@ flowchart TD
         S4_OosUpdateStatus --> S4_Pending
         S4_Pending --> S4_Dec_ReadyForPickup
         S4_Dec_ReadyForPickup -- "Yes" --> S4_ReadyForPickup
+        S4_Dec_ReadyForPickup -- "No" --> S4_RescheduleStatus
+        S4_RescheduleStatus --> S4_RescheduleTask
+        S4_RescheduleStatus --> S4_RescheduleNotif
+        S4_RescheduleTask --> S4_Dec_ReadyForPickup
 
         %% Exit
         S4_ReadyForPickup --> S4_Ref_InstallReady
