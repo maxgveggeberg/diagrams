@@ -175,8 +175,6 @@ flowchart TD
         S2_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
 
         %% Cross-stage exits
-        S2_Ref_ChangeOrder[["→ Stage 3: Change Order"]]:::subprocess
-        S2_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
 
         %% --- FLOW ---
         S2_SelectTimes --> S2_HOSubmits3 --> S2_AwaitCO
@@ -206,13 +204,13 @@ flowchart TD
         S2_Complete --> S2_CompleteDec
 
         %% Branch: Change Order or Installation
-        S2_CompleteDec -- "Yes: scope change" --> S2_Ref_ChangeOrder
-        S2_CompleteDec -- "No" --> S2_Ref_Installation
+        S2_CompleteDec -- "Yes: scope change" --> S3_Created
+        S2_CompleteDec -- "No, Financing" --> S5_Backref_SiteVisit
         S2_CompleteDec -- "No, Cash" --> S2_Deposit
 
         %% 30% Deposit flow (Cash projects)
         S2_Deposit --> S2_DepositPayDec
-        S2_DepositPayDec -- Yes --> S2_Ref_Installation
+        S2_DepositPayDec -- Yes --> S5_Backref_SiteVisit
         S2_DepositPayDec -- No --> S2_DepositFailed
         S2_DepositFailed --> S2_HOUpdatePayment
         S2_HOUpdatePayment --> S2_Deposit
@@ -223,9 +221,6 @@ flowchart TD
     %% =============================================================
     subgraph Stage3_ChangeOrder["STAGE 3: CHANGE ORDER"]
         direction TB
-
-        %% Entry
-        S3_Backref_SiteVisit(["↩ Stage 2: Site Visit Complete"]):::subprocess
 
         %% #1: CO creates change order
         S3_Created["[S] Change Order: Change Order Created"]:::co
@@ -289,7 +284,6 @@ flowchart TD
         S3_RevisedScope(["↩ Revise Scope"]):::subprocess
 
         %% --- FLOW ---
-        S3_Backref_SiteVisit --> S3_Created
         S3_Created --> S3_CreatedTask --> S3_CreatedNotif
         S3_Created --> S3_CreatedExpiry
         S3_CreatedExpiry -- Yes --> S3_CreatedRemind
@@ -807,11 +801,8 @@ flowchart TD
     %% Stage 1 → Stage 2 (Closed Won → Select Preferred Times)
     S1_ClosedWon --> S2_SelectTimes
 
-    %% Stage 2 → Stage 3 (Change Order)
-    S2_Ref_ChangeOrder --> S3_Backref_SiteVisit
-
-    %% Stage 2 → Stage 5 (Installation, no change order)
-    S2_Ref_Installation --> S5_Backref_SiteVisit
+    %% Stage 2 → Stage 3 (Change Order) — direct edge in Stage 2 flow
+    %% Stage 2 → Stage 5 (Installation) — direct edges in Stage 2 flow
 
     %% Stage 3 → Stage 5 (Installation, after change order)
     S3_Ref_Installation --> S5_Backref_SiteVisit
