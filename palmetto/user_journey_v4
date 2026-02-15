@@ -234,7 +234,6 @@ flowchart TD
         S3_HOApproved["Approved"]:::ho
         S3_HODeclined["HO Declined"]:::ho
         S3_Approved["[S] Change Order: Change Order Approved"]:::ho
-        S3_ApprovedNotif["[N] #19 Approved by HO"]:::solar
 
         %% HO Declined → Required?
         S3_Dec_Required{"Required?"}:::logic
@@ -248,7 +247,7 @@ flowchart TD
 
         %% Cash path
         S3_Dec_ChangePayMethod{"Change Payment<br/>Method?"}:::logic
-        S3_CashLease[["Lease"]]:::subprocess
+        S3_CashLease[["Lease Approval"]]:::subprocess
         S3_Dec_PayWithCash{"Pay with<br/>Cash?"}:::logic
         S3_UpdateProjectScope["Update Project Scope"]:::tetra
 
@@ -260,7 +259,7 @@ flowchart TD
 
         %% Shared completion
         S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
-        S3_CompleteNotif["[N] #23 Change Order Complete"]:::ho
+        S3_CompleteNotif["[N] #19 Approved by HO"]:::solar
 
         %% #11: Exit to Installation
         S3_ToInstall["[S][T] Installation: Select Preferred Install Dates"]:::ho
@@ -293,8 +292,7 @@ flowchart TD
 
         %% HO decides
         S3_SentNotif --> S3_HOApproved --> S3_Approved
-        S3_Approved --> S3_ApprovedNotif
-        S3_ApprovedNotif --> S3_Dec_ProjectPayment
+        S3_Approved --> S3_Dec_ProjectPayment
         S3_Dec_ProjectPayment -- "Lease" --> S3_SelectPayment
         S3_Dec_ProjectPayment -- "Cash" --> S3_Dec_ChangePayMethod
         S3_Dec_ChangePayMethod -- No --> S3_UpdateProjectScope
