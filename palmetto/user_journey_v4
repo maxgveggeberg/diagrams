@@ -120,10 +120,10 @@ flowchart TD
         S1_CreateDraftOrder["Create Draft Order"]:::tetra
         S1_UpdateInventory["Update Inventory Status"]:::sibi
 
-        S1_MaterialOrderStatus["[S] Material Ordering: &lt;Status&gt;"]:::sibi
+        S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::sibi
 
         S1_ClosedWon --> S1_Dec_Inventory
-        S1_Dec_Inventory -- "Out of Stock / Available / Unknown" --> S1_MaterialOrderStatus
+        S1_Dec_Inventory -- "Out of Stock / Available" --> S1_MaterialOrderStatus
         S1_MaterialOrderStatus --> S1_CreateDraftOrder
         S1_Dec_ChangeEquip{"Change<br/>Equipment?"}:::logic
 
