@@ -131,7 +131,6 @@ flowchart TD
         S1_ClosedWon["[S] Sales: Closed Won"]:::solar
 
         S1_PalConditional --> S1_ClosedWon
-        S1_ClosedWon --> S2_SelectTimes
 
         %% Denied → Closed Lost
         S1_PalDeniedDec -- No --> S1_ClosedLost
@@ -148,7 +147,7 @@ flowchart TD
         direction TB
 
         %% #1: Select Preferred Times
-        S2_SelectTimes["[S][T] Site Visit: Select Preferred Site Visit Times"]:::ho
+        S2_SelectTimes["[S][T] Site Visit: Select Preferred Times"]:::ho
         S2_SelectNotif["[N] #8 Select Site Visit Times (⏱ 10min delay)"]:::ho
         %% EXPIRATION
         S2_SelectExpiry{"[EXP] Days > 7<br/>no times?"}:::logic
@@ -861,6 +860,9 @@ flowchart TD
     %% =============================================================
     %% CROSS-STAGE CONNECTIONS
     %% =============================================================
+
+    %% Stage 1 → Stage 2 (Closed Won → Select Preferred Times)
+    S1_ClosedWon --> S2_SelectTimes
 
     %% Stage 2 → Stage 3 (Change Order)
     S2_Ref_ChangeOrder --> S3_Backref_SiteVisit
