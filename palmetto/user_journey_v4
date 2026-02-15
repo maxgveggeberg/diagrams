@@ -247,6 +247,9 @@ flowchart TD
         S3_Dec_ProjectPayment{"Project<br/>Payment Method?"}:::logic
 
         %% Cash path
+        S3_Dec_ChangePayMethod{"Change Payment<br/>Method?"}:::logic
+        S3_CashLease[["Lease"]]:::subprocess
+        S3_Dec_PayWithCash{"Pay with<br/>Cash?"}:::logic
         S3_UpdateProjectScope["Update Project Scope"]:::tetra
 
         %% Payment paths
@@ -293,7 +296,13 @@ flowchart TD
         S3_Approved --> S3_ApprovedNotif
         S3_ApprovedNotif --> S3_Dec_ProjectPayment
         S3_Dec_ProjectPayment -- "Lease" --> S3_SelectPayment
-        S3_Dec_ProjectPayment -- "Cash" --> S3_UpdateProjectScope
+        S3_Dec_ProjectPayment -- "Cash" --> S3_Dec_ChangePayMethod
+        S3_Dec_ChangePayMethod -- No --> S3_UpdateProjectScope
+        S3_Dec_ChangePayMethod -- Yes --> S3_CashLease
+        S3_CashLease -- "Approved" --> S3_UpdateProjectScope
+        S3_CashLease -- "Denied" --> S3_Dec_PayWithCash
+        S3_Dec_PayWithCash -- Yes --> S3_UpdateProjectScope
+        S3_Dec_PayWithCash -- No --> S3_Cancelled
 
         S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
         S3_Dec_Required -- No --> S3_Complete
