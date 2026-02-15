@@ -250,14 +250,14 @@ flowchart TD
 
         %% #5-8: Cash payment path
         S3_SelectPayment{"Change Order<br/>Payment Method?"}:::logic
-        S3_Dec_CCOnFile{"Credit Card<br/>on File?"}:::logic
         S3_CCRequired["Input Credit Card"]:::ho
         S3_CCCharge["Charge Credit Card"]:::tetra
         S3_CCComplete["[S] Change Order: Change Order Complete"]:::tetra
         S3_CCCompleteNotif["[N] #23 Change Order Complete"]:::ho
 
         %% #9: Lease payment
-        S3_LeaseComplete["[S] Change Order: Change Order Complete<br/>(lease approved)"]:::tetra
+        S3_NotifyPalmetto["Notify Palmetto"]:::palmetto
+        S3_LeaseComplete["[S] Change Order: Change Order Complete"]:::tetra
         S3_LeaseCompleteNotif["[N] #23 Change Order Complete"]:::ho
 
         %% #11: Exit to Installation
@@ -302,16 +302,15 @@ flowchart TD
         S3_DeclinedNotif --> S3_Cancelled
 
         %% Credit card path
-        S3_SelectPayment -- "Credit Card" --> S3_Dec_CCOnFile
-        S3_Dec_CCOnFile -- Yes --> S3_CCCharge
-        S3_Dec_CCOnFile -- No --> S3_CCRequired
+        S3_SelectPayment -- "Credit Card" --> S3_CCRequired
         S3_CCRequired --> S3_CCCharge
         S3_CCCharge --> S3_CCComplete
         S3_CCComplete --> S3_CCCompleteNotif
         S3_CCCompleteNotif --> S3_ToInstall
 
         %% Lease approved
-        S3_SelectPayment -- "Lease" --> S3_LeaseComplete
+        S3_SelectPayment -- "Lease" --> S3_NotifyPalmetto
+        S3_NotifyPalmetto --> S3_LeaseComplete
         S3_LeaseComplete --> S3_LeaseCompleteNotif
         S3_LeaseCompleteNotif --> S3_ToInstall
 
