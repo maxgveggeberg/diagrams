@@ -132,6 +132,7 @@ flowchart TD
 
         %% #1: Select Preferred Times
         S2_SelectTimes["[S][T] Site Visit: Select Preferred Times"]:::ho
+        S2_HOSubmits3["HO Submits 3 Times"]:::ho
 
         %% #2: Awaiting CO Confirmation
         S2_AwaitCO["[S] Site Visit: Awaiting CO Confirmation"]:::monitor
@@ -143,11 +144,15 @@ flowchart TD
 
         %% #3: Confirm Time
         S2_ConfirmTime["[S] Site Visit: Confirm Time"]:::ho
-        S2_ConfirmTask["[T] Confirm site visit time"]:::ho
-        S2_ConfirmNotif["[N] #10 Confirm Appointment"]:::ho
+        S2_ConfirmTaskNotif["[T][N] #10 Confirm Appointment"]:::ho
 
         %% CO Declines
         S2_CODeclinesAll["CO Declines All"]:::co
+
+        %% Decision Nodes (converted from edge labels)
+        S2_HODeclines["HO Declines"]:::ho
+        S2_HOConfirms["HO Confirms"]:::ho
+        S2_COSchedules["CO Schedules Directly"]:::co
 
         %% #4a/4b: CO to Contact Directly
         S2_COContact["[S] Site Visit: CO to Contact Directly"]:::co
@@ -177,28 +182,27 @@ flowchart TD
         S2_Ref_Installation[["→ Stage 5: Installation"]]:::subprocess
 
         %% --- FLOW ---
-        S2_SelectTimes -->|HO submits 3 times| S2_AwaitCO
+        S2_SelectTimes --> S2_HOSubmits3 --> S2_AwaitCO
         S2_AwaitCO --> S2_AwaitCOTask --> S2_AwaitCONotif
 
         %% CO selects time
         S2_AwaitCO --> S2_COSelectsTimes
         S2_COSelectsTimes --> S2_ConfirmTime
-        S2_ConfirmTime --> S2_ConfirmNotif
-        S2_ConfirmTime --> S2_ConfirmTask
+        S2_ConfirmTime --> S2_ConfirmTaskNotif
 
         %% CO declines → fallback
         S2_AwaitCO --> S2_CODeclinesAll --> S2_COContact
         S2_COContact --> S2_COContactTaskNotif
 
         %% HO declines confirmed time → fallback
-        S2_ConfirmTime -->|HO declines| S2_COContact
+        S2_ConfirmTime --> S2_HODeclines --> S2_COContact
 
         %% HO confirms → Confirmed
-        S2_ConfirmTime -->|HO confirms| S2_Confirmed
+        S2_ConfirmTime --> S2_HOConfirms --> S2_Confirmed
         S2_Confirmed --> S2_ConfirmedTask --> S2_ConfirmedNotif
 
         %% CO schedules directly → Confirmed
-        S2_COContact -->|CO schedules directly| S2_Confirmed
+        S2_COContact --> S2_COSchedules --> S2_Confirmed
 
         %% Reminders
         S2_Confirmed --> S2_ReminderDayBeforeHO
