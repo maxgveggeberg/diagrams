@@ -381,7 +381,9 @@ flowchart TD
         S4_Dec_Inventory{"Inventory<br/>Status"}:::logic
         S4_FactoryDirectStatus["[S] Material Ordering: Place Factory Direct Order"]:::sibi
         S4_FactoryDirect["[T][N] Place Factory Direct Order"]:::sibi
+        S4_FactoryDirectUpdate["Sibi Manually Update Status"]:::sibi
         S4_OosConvertOrder["Convert Draft Order to Order"]:::tetra
+        S4_OosUpdateStatus["Sibi Updates Material Ordering Status via API"]:::sibi
 
         %% Unknown path
 
@@ -440,8 +442,10 @@ flowchart TD
         %% Inventory check
         S4_Dec_Inventory -- "Factory Direct" --> S4_FactoryDirectStatus
         S4_FactoryDirectStatus --> S4_FactoryDirect
+        S4_FactoryDirect --> S4_FactoryDirectUpdate
         S4_Dec_Inventory -- "Available / Out of Stock" --> S4_OosConvertOrder
-        S4_OosConvertOrder --> S4_Pending
+        S4_OosConvertOrder --> S4_OosUpdateStatus
+        S4_OosUpdateStatus --> S4_Pending
 
         S4_Pending -->|Sibi confirms| S4_Approved
         S4_Approved -->|Sibi begins prep| S4_Processing
