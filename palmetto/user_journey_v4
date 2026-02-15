@@ -128,7 +128,11 @@ flowchart TD
         S1_Dec_ChangeEquip{"Change<br/>Equipment?"}:::logic
 
         S1_CreateDraftOrder -- "Unknown" --> S1_Dec_ChangeEquip
-        S1_Dec_ChangeEquip --> S1_UpdateInventory
+        S1_CancelOrder["Cancel Order"]:::tetra
+
+        S1_Dec_ChangeEquip -- "No" --> S1_UpdateInventory
+        S1_Dec_ChangeEquip -- "Yes" --> S1_CancelOrder
+        S1_CancelOrder --> S1_CreateDraftOrder
         S1_UpdateInventory --> S1_Dec_Inventory
 
         %% Denied → Closed Lost
