@@ -345,8 +345,9 @@ flowchart TD
         S4_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
 
         %% === INVENTORY CHECK ===
-        S4_Dec_Inventory{"Inventory<br/>Unavailable?"}:::logic
-        S4_SpecialOrder["[N] Create Material Special Order"]:::sibi
+        S4_Dec_Inventory{"Inventory<br/>Unavailable / Unknown?"}:::logic
+        S4_UpdateInvTask["[T][N] Update Inventory Status"]:::sibi
+        S4_UpdateInvStatus["Update Inventory Status"]:::sibi
 
         %% #1: Order Pending
         S4_Pending["[S] Material Ordering: Order Pending"]:::sibi
@@ -401,7 +402,8 @@ flowchart TD
         S4_HOUpdatePayment --> S4_Deposit
 
         %% Inventory check
-        S4_Dec_Inventory -- "Yes" --> S4_SpecialOrder
+        S4_Dec_Inventory -- "Yes" --> S4_UpdateInvTask
+        S4_UpdateInvTask --> S4_UpdateInvStatus
         S4_Dec_Inventory -- "No" --> S4_Pending
 
         S4_Pending -->|Sibi confirms| S4_Approved
