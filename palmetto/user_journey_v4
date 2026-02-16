@@ -512,7 +512,7 @@ flowchart TD
         S5_QCDec{"QC Photos<br/>Verified?"}:::logic
         S5_QCRejected["[S] Installation: QC Rejected"]:::tetra
         S5_QCRejNotif37["[N] #37 Resubmit (CO)"]:::co
-        S5_Approve["[S][T] Installation: Approve Installation"]:::ho
+        S5_Approve["[T][N] Approve Installation"]:::ho
         %% === 3.x POST-INSTALL ===
         S5_HOApproves["HO Approves Installation"]:::ho
         S5_Dec_HOApproval["HO Reports Issue"]:::ho
@@ -520,10 +520,8 @@ flowchart TD
         S5_Approved["[S] Installation: Installation Approved"]:::solar
         S5_ApprovedNotif["[N] #39 Installation Approved (Sales + Ops)"]:::solar
 
-        S5_Declined["[S] Installation: Declined"]:::ho
-        S5_DeclinedTask["[T] Contact customer (CO via case)"]:::co
-        S5_DeclinedNotif1["[N] #40 Issue Reported"]:::co
-        S5_DeclinedNotif2["[N] #43 Payment Paused (Sales + Ops + CO)"]:::solar
+        S5_Declined["[S] Installation: Issue Reported"]:::ho
+        S5_DeclinedTask["[T][N] Issue Reported"]:::co
 
         %% Cross-stage exits
         S5_Ref_Payment[["→ Stage 7: Payment"]]:::subprocess
@@ -548,9 +546,7 @@ flowchart TD
 
         S5_Dec_HOApproval --> S5_Declined
         S5_Declined --> S5_DeclinedTask
-        S5_Declined --> S5_DeclinedNotif1
-        S5_Declined --> S5_DeclinedNotif2
-        S5_DeclinedNotif2 --> S5_Ref_Case
+        S5_DeclinedTask --> S5_Ref_Case
     end
 
     %% =============================================================
