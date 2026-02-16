@@ -34,7 +34,7 @@ flowchart TD
 
         %% --- Entry ---
         S1_Entry["[S] Sales: Quote Created"]:::tetra
-        S1_SelectEquip["Select Equipment"]:::solar
+        S1_SelectEquip["[A] Select Equipment"]:::solar
         S1_Entry --> S1_SelectEquip --> S1_Dec_Payment
 
         %% --- Payment Method Decision ---
@@ -42,15 +42,15 @@ flowchart TD
 
         %% --- CASH PATH ---
         subgraph S1_Cash["Cash"]
-            S1_CashInputCC["Input Credit Card Info"]:::ho
+            S1_CashInputCC["[A] Input Credit Card Info"]:::ho
         end
         S1_Dec_Payment -- Cash --> S1_CashInputCC
         S1_CashInputCC --> S1_ClosedWon
 
         %% --- LEASE PATH (Palmetto) ---
         subgraph S1_Palmetto["Palmetto (Lease)"]
-            S1_PalInputApplicants["Input Applicants"]:::ho
-            S1_PalSubmitToPalmetto["Submit to Palmetto for Approval"]:::tetra
+            S1_PalInputApplicants["[A] Input Applicants"]:::ho
+            S1_PalSubmitToPalmetto["[A] Submit to Palmetto for Approval"]:::tetra
             S1_PalSubmit["[S] Payment: Financing Submitted"]:::tetra
             S1_PalDec["Financing<br/>Partner<br/>Response"]:::palmetto
 
@@ -73,8 +73,8 @@ flowchart TD
             S1_PalDeniedDec{"Alternative<br/>Payment?"}:::logic
 
             %% Upload docs
-            S1_PalUploadDocs["HO Uploads Docs"]:::ho
-            S1_PalUploadNotif["Notify of Submission (Webhook)"]:::palmetto
+            S1_PalUploadDocs["[A] HO Uploads Docs"]:::ho
+            S1_PalUploadNotif["[A] Notify of Submission (Webhook)"]:::palmetto
 
         end
 
@@ -121,16 +121,16 @@ flowchart TD
             S1_MaterialOrderUnknown["[S] Material Ordering: Unknown"]:::tetra
             S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::tetra
             S1_UnavailEquipTask["[T][N] Confirm Factory Direct Order"]:::sibi
-            S1_Dec_ChangeEquip["Select Comparable<br/>Available Equipment"]:::sibi
-            S1_UpdateInvStatus["Update Inventory Status"]:::sibi
+            S1_Dec_ChangeEquip["[A] Select Comparable<br/>Available Equipment"]:::sibi
+            S1_UpdateInvStatus["[A] Update Inventory Status"]:::sibi
         end
         style S1_InventoryFlow fill:none,stroke:none
 
         S1_InventoryFlow ~~~ S1_ConfirmedGroup
 
         subgraph S1_ConfirmedGroup[" "]
-            S1_UpdateInventory["Confirmed"]:::sibi
-            S1_CreateDraftOrder["Create Draft Order"]:::tetra
+            S1_UpdateInventory["[A] Confirmed"]:::sibi
+            S1_CreateDraftOrder["[A] Create Draft Order"]:::tetra
         end
         style S1_ConfirmedGroup fill:none,stroke:none
 
@@ -163,26 +163,26 @@ flowchart TD
 
         %% #1: Select Preferred Times
         S2_SelectTimes["[S][T] Site Visit: Select Preferred Times"]:::ho
-        S2_HOSubmits3["HO Submits 3 Times"]:::ho
+        S2_HOSubmits3["[A] HO Submits 3 Times"]:::ho
 
         %% #2: Awaiting CO Confirmation
         S2_AwaitCO["[S] Site Visit: Awaiting CO Confirmation"]:::tetra
         S2_AwaitCONotif["[T][N] Confirm Time"]:::sibi
 
         %% CO Selects Time
-        S2_COSelectsTimes["CO Selects from HO Times"]:::sibi
+        S2_COSelectsTimes["[A] CO Selects from HO Times"]:::sibi
 
         %% #3: Confirm Time
         S2_ConfirmTime["[S] Site Visit: Confirm Time"]:::tetra
         S2_ConfirmTaskNotif["[T][N] Confirm Appointment"]:::ho
 
         %% CO Declines
-        S2_CODeclinesAll["CO Declines All"]:::sibi
+        S2_CODeclinesAll["[A] CO Declines All"]:::sibi
 
         %% Decision Nodes (converted from edge labels)
-        S2_HODeclines["HO Declines"]:::ho
-        S2_HOConfirms["HO Confirms"]:::ho
-        S2_COSchedules["CO Schedules Directly"]:::sibi
+        S2_HODeclines["[A] HO Declines"]:::ho
+        S2_HOConfirms["[A] HO Confirms"]:::ho
+        S2_COSchedules["[A] CO Schedules Directly"]:::sibi
 
         %% #4a/4b: CO to Contact Directly
         S2_COContact["[S] Site Visit: CO to Contact Directly"]:::tetra
@@ -194,7 +194,7 @@ flowchart TD
         S2_ConfirmedNotif["[N] Site Visit Confirmed"]:::sibi
 
         %% #8: Site Visit Complete
-        S2_COMarksComplete["CO Marks Complete"]:::sibi
+        S2_COMarksComplete["[A] CO Marks Complete"]:::sibi
         S2_Complete["[S] Site Visit: Site Visit Complete"]:::tetra
         S2_CompleteDec{"Change Order<br/>Required?"}:::logic
 
@@ -267,8 +267,8 @@ flowchart TD
         S3_SentNotif["[T][N] Review Change Order"]:::ho
 
         %% #3: HO Response
-        S3_HOApproved["HO Approved"]:::ho
-        S3_HODeclined["HO Declined"]:::ho
+        S3_HOApproved["[A] HO Approved"]:::ho
+        S3_HODeclined["[A] HO Declined"]:::ho
 
         %% HO Declined → Required?
         S3_Dec_Required{"Required?"}:::logic
@@ -283,12 +283,12 @@ flowchart TD
         %% Cash path
         S3_Dec_ChangePayMethod{"Change Payment<br/>Method?"}:::logic
         S3_CashLease[["Lease Approval"]]:::subprocess
-        S3_Dec_PayWithCC["Pay with Credit Card"]:::ho
-        S3_UpdateProjectScope["Update Project Scope"]:::tetra
+        S3_Dec_PayWithCC["[A] Pay with Credit Card"]:::ho
+        S3_UpdateProjectScope["[A] Update Project Scope"]:::tetra
 
         %% Payment paths
         S3_SelectPayment{"Change Order<br/>Payment Method?"}:::logic
-        S3_NotifyPalmetto["Notify Palmetto"]:::tetra
+        S3_NotifyPalmetto["[A] Notify Palmetto"]:::tetra
 
         %% Shared completion
         S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
@@ -298,17 +298,17 @@ flowchart TD
         S3_Ref_Install[["→ Stage 4 / Stage 5: Material Ordering & Install"]]:::subprocess
 
         %% CB Decision
-        S3_SpeaksContractor["Speaks with Contractor"]:::sibi
-        S3_CBApproves["Approves"]:::sibi
-        S3_CBCancels["Cancels Change Order"]:::sibi
+        S3_SpeaksContractor["[A] Speaks with Contractor"]:::sibi
+        S3_CBApproves["[A] Approves"]:::sibi
+        S3_CBCancels["[A] Cancels Change Order"]:::sibi
         S3_CBCancelledStatus["[S] Change Order: Cancelled"]:::tetra
         S3_Ref_OrderMatInstall[["→ Stage 4 / Stage 5: Order Material & Install"]]:::subprocess
 
         %% Sibi Approves paths
-        S3_SibiContactsHO["Contact HO Directly"]:::sibi
-        S3_SendToSales["Sends to Sales Rep"]:::sibi
+        S3_SibiContactsHO["[A] Contact HO Directly"]:::sibi
+        S3_SendToSales["[A] Sends to Sales Rep"]:::sibi
         S3_SalesReviewCO["[T][N] Review Change Order"]:::solar
-        S3_SalesContactsHO["Sales Sends to HO"]:::solar
+        S3_SalesContactsHO["[A] Sales Sends to HO"]:::solar
 
         %% Exits
         S3_Cancelled(["[S] Change Order: Job Cancelled"]):::tetra
