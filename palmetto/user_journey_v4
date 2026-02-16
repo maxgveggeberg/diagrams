@@ -539,6 +539,10 @@ flowchart TD
         S5_UploadQCTask --> S5_SibiUploadQC
         S5_SibiUploadQC --> S5_Dec_HOApproved
         S5_SendToPalmetto --> S5_PaySubmitted
+        S5_PaySubmitted --> S5_SubmissionApproved["Submission Approved"]:::palmetto
+        S5_SubmissionApproved --> S5_FundsReleased["Funds Released"]:::palmetto
+        S5_FundsReleased --> S5_FundsReceived["Funds Received"]:::palmetto
+        S5_FundsReceived --> S5_PayReceived["[S] Payment: Payment Received"]:::tetra
         S5_PaySubmitted --> S5_SubmissionDenied
         S5_SubmissionDenied --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
@@ -559,6 +563,7 @@ flowchart TD
         S5_Dec_HOApproved -- "Yes, Lease" --> S5_SendToPalmetto
         S5_Dec_HOApproved -- "Yes, Cash" --> S5_WithdrawCC
         S5_WithdrawCC --> S5_Dec_CashPaySuccess
+        S5_Dec_CashPaySuccess -- "Yes" --> S5_PayReceived
         S5_Dec_CashPaySuccess -- "No" --> S5_CashPayFailed
         S5_CashPayFailed --> S5_CashUpdatePay
         S5_CashUpdatePay --> S5_UpdateCC["Update Credit Card"]:::ho
