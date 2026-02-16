@@ -629,7 +629,6 @@ flowchart TD
         S6_Satisfied --> S6_Closed
         S6_Unresponsive --> S6_Closed
         S6_NotSatisfied --> S6_NotSatisfiedTask
-        S6_NotSatisfiedTask --> S6_InProgress
     end
 
     %% =============================================================
