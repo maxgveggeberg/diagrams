@@ -498,6 +498,8 @@ flowchart TD
         direction TB
 
         %% === 2.x EXECUTION ===
+        S5_InstComplete["Installation Complete"]:::co
+        S5_MarkComplete["Mark Installation Status Complete"]:::sibi
         S5_Complete["[S] Installation: Installation Complete"]:::co
 
         S5_QCDec{"QC Photos<br/>Verified?"}:::logic
@@ -522,6 +524,8 @@ flowchart TD
         S5_Ref_Case[["→ Stage 6: Case"]]:::subprocess
 
         %% --- 2.x EXECUTION FLOW ---
+        S5_InstComplete --> S5_MarkComplete
+        S5_MarkComplete --> S5_Complete
         S5_Complete --> S5_QCDec
         S5_QCDec -- No --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
