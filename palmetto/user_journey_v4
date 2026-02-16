@@ -523,6 +523,12 @@ flowchart TD
         S5_Declined["[S] Installation: Issue Reported"]:::ho
         S5_DeclinedTask["[T][N] Issue Reported"]:::co
 
+        %% Cash payment path
+        S5_WithdrawCC["Withdraw Remaining Balance from Credit Card"]:::tetra
+        S5_Dec_CashPaySuccess{"Payment<br/>Successful?"}:::logic
+        S5_CashPayFailed["[S] Payment: Payment Failed"]:::tetra
+        S5_CashUpdatePay["[T][N] Update Payment Method"]:::ho
+
         %% Cross-stage exits
         S5_Ref_Case[["→ Stage 6: Case"]]:::subprocess
 
@@ -549,6 +555,11 @@ flowchart TD
         S5_DeclinedTask --> S5_Ref_Case
 
         S5_Dec_HOApproved -- "Yes, Lease" --> S5_SendToPalmetto
+        S5_Dec_HOApproved -- "Yes, Cash" --> S5_WithdrawCC
+        S5_WithdrawCC --> S5_Dec_CashPaySuccess
+        S5_Dec_CashPaySuccess -- "No" --> S5_CashPayFailed
+        S5_CashPayFailed --> S5_CashUpdatePay
+        S5_CashUpdatePay --> S5_WithdrawCC
         S5_Dec_HOApproved -- "No" --> S5_Ref_Case
     end
 
