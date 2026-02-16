@@ -614,17 +614,11 @@ flowchart TD
 
         S6_Closed["[S] Case: Case Closed"]:::tetra
 
-        %% Cross-stage
-        S6_Ref_PaymentPause[["→ Stage 7: Payment Paused"]]:::subprocess
-        S6_Ref_PaymentResume[["→ Stage 7: Payment Resumed"]]:::subprocess
-
         %% --- FLOW ---
         S6_Backref_Install --> S6_Created
         S6_Created --> S6_CreatedTask
         S6_Created --> S6_CreatedNotif
         S6_Created --> S6_PayPaused
-        S6_PayPaused --> S6_Ref_PaymentPause
-
         S6_CreatedTask --> S6_InProgress
         S6_InProgress --> S6_InProgressTask
 
@@ -635,124 +629,8 @@ flowchart TD
         S6_InProgress -->|CO + HO confirm resolution| S6_Resolved
         S6_Resolved --> S6_ResolvedNotif
         S6_Resolved --> S6_PayResumed
-        S6_PayResumed --> S6_Ref_PaymentResume
 
         S6_Resolved --> S6_Closed
-    end
-
-    %% =============================================================
-    %% STAGE 7: PAYMENT
-    %% =============================================================
-    subgraph Stage7_Payment["STAGE 7: PAYMENT"]
-        direction TB
-
-        %% Entry
-        S7_Backref_Install(["↩ Stage 5: Installation Approved"]):::subprocess
-
-        %% Processing
-        S7_Processing["[S] Payment: Processing"]:::tetra
-        S7_ProcessExpiry{"Hours > 48<br/>still processing?"}:::logic
-        S7_ProcessAlert["[N] Alert Ops"]:::tetra
-
-        %% Payment method decision
-        S7_Dec_Method{"Payment<br/>Method?"}:::logic
-
-        %% === CASH PATH ===
-        S7_CashCharge["[S] Payment: CC Charge Attempted"]:::tetra
-        S7_Dec_CashResult{"CC Charge<br/>Successful?"}:::logic
-        S7_CashReceived["[S] Payment: Payment Received"]:::tetra
-
-        S7_CashFailed["[S][T] Payment: Payment Failed"]:::tetra
-        S7_CashFailedNotif["[N] #42 Payment Failed (HO + Sales)"]:::ho
-        S7_FailedTask1["[T] Contact customer"]:::solar
-        S7_FailedTask2["[T] Update payment method"]:::ho
-        S7_FailedExpiry{"Hours > 24<br/>no retry?"}:::logic
-        S7_FailedRemind["[N] Remind HO + Sales"]:::ho
-
-        S7_Dec_Retry{"HO Updates<br/>CC?"}:::logic
-
-        S7_Overdue["[S] Payment: Payment Overdue"]:::tetra
-        S7_OverdueNotif["[N] #45 Payment Overdue (HO + Sales)"]:::ho
-        S7_OverdueExpiry{"Days > 7<br/>no payment?"}:::logic
-        S7_OverdueRemind["[N] Escalate to Collections"]:::tetra
-
-        S7_Dec_OverdueRetry{"HO Updates<br/>CC?"}:::logic
-
-        S7_Collections["[S][T] Payment: Sent to Collections"]:::tetra
-        S7_CollectionsNotif46["[N] #46 Payment Escalation (Ops)"]:::tetra
-        S7_CollectionsNotif47["[N] #47 Sent to Collections (HO)"]:::ho
-        S7_CollectionsTask["[T] Send to collections"]:::tetra
-
-        %% === LEASE PATH ===
-        S7_LeaseRelease["[S] Payment: Lease Fund Released"]:::palmetto
-
-        %% === CONVERGENCE ===
-        S7_Distributed["[S] Payment: Funds Distributed"]:::tetra
-        S7_DistributedNotif["[N] #48 Payment Complete (HO)"]:::ho
-        S7_DistCO["Contractor Payout"]:::co
-        S7_DistSibi["Equipment Payout"]:::sibi
-        S7_DistSales["Sales Payout"]:::solar
-
-        %% Payment Paused (from Case)
-        S7_Paused["[S][N] Payment: Payment Paused<br/>#43 (Sales + Ops + CO)"]:::tetra
-        S7_PausedExpiry{"Days > 7<br/>case unresolved?"}:::logic
-        S7_PausedRemind["[N] Remind Ops"]:::tetra
-        S7_Backref_CasePause(["↩ Stage 6: Case Created"]):::subprocess
-
-        %% Payment Resumed (from Case)
-        S7_Backref_CaseResume(["↩ Stage 6: Case Resolved"]):::subprocess
-        S7_Resumed["[S][N] Payment: Payment Resumed<br/>#44 (Sales + Ops + CO)"]:::solar
-
-        %% Exit
-        S7_Complete(["[S] Payment: Complete"]):::terminator
-
-        %% --- FLOW ---
-        S7_Backref_Install --> S7_Processing
-        S7_Processing --> S7_ProcessExpiry
-        S7_ProcessExpiry -- Yes --> S7_ProcessAlert
-        S7_Processing --> S7_Dec_Method
-
-        %% Cash path
-        S7_Dec_Method -- Cash --> S7_CashCharge
-        S7_CashCharge --> S7_Dec_CashResult
-        S7_Dec_CashResult -- Yes --> S7_CashReceived
-        S7_Dec_CashResult -- No --> S7_CashFailed
-        S7_CashFailed --> S7_CashFailedNotif
-        S7_CashFailed --> S7_FailedTask1
-        S7_CashFailed --> S7_FailedTask2
-        S7_CashFailed --> S7_FailedExpiry
-        S7_FailedExpiry -- Yes --> S7_FailedRemind
-        S7_CashFailed --> S7_Dec_Retry
-        S7_Dec_Retry -- Yes --> S7_CashCharge
-        S7_Dec_Retry -- "No (7d+)" --> S7_Overdue
-        S7_Overdue --> S7_OverdueNotif
-        S7_Overdue --> S7_OverdueExpiry
-        S7_OverdueExpiry -- Yes --> S7_OverdueRemind
-        S7_Overdue --> S7_Dec_OverdueRetry
-        S7_Dec_OverdueRetry -- Yes --> S7_CashCharge
-        S7_Dec_OverdueRetry -- "No (14d+)" --> S7_Collections
-        S7_Collections --> S7_CollectionsNotif46
-        S7_Collections --> S7_CollectionsNotif47
-        S7_Collections --> S7_CollectionsTask
-
-        %% Lease path
-        S7_Dec_Method -- Lease --> S7_LeaseRelease
-
-        %% Convergence to Funds Distributed
-        S7_CashReceived --> S7_Distributed
-        S7_LeaseRelease --> S7_Distributed
-        S7_Distributed --> S7_DistributedNotif
-        S7_Distributed --> S7_DistCO
-        S7_Distributed --> S7_DistSibi
-        S7_Distributed --> S7_DistSales
-        S7_Distributed --> S7_Complete
-
-        %% Pause/Resume
-        S7_Backref_CasePause --> S7_Paused
-        S7_Paused --> S7_PausedExpiry
-        S7_PausedExpiry -- Yes --> S7_PausedRemind
-        S7_Backref_CaseResume --> S7_Resumed
-        S7_Resumed --> S7_Processing
     end
 
     %% =============================================================
@@ -764,4 +642,3 @@ flowchart TD
     Stage3_ChangeOrder --> Stage4_MaterialOrdering
     Stage4_MaterialOrdering --> Stage5_Installation
     Stage5_Installation --> Stage6_Case
-    Stage6_Case --> Stage7_Payment
