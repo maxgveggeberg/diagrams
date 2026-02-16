@@ -291,6 +291,9 @@ flowchart TD
         S3_CCRequired["Input Credit Card"]:::ho
         S3_CCCharge["Charge Credit Card"]:::tetra
         S3_NotifyPalmetto["Notify Palmetto"]:::tetra
+        S3_PalApproveScope["Approve Updated Project Scope"]:::palmetto
+        S3_PalDeclineScope["Decline Updated Project Scope"]:::palmetto
+        S3_PayCOWithCC["Pay for Change Order with Credit Card"]:::ho
 
         %% Shared completion
         S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
@@ -350,7 +353,11 @@ flowchart TD
 
         %% Lease approved
         S3_SelectPayment -- "Lease" --> S3_NotifyPalmetto
-        S3_NotifyPalmetto --> S3_UpdateProjectScope
+        S3_NotifyPalmetto --> S3_PalApproveScope
+        S3_NotifyPalmetto --> S3_PalDeclineScope
+        S3_PalApproveScope --> S3_UpdateProjectScope
+        S3_PalDeclineScope --> S3_PayCOWithCC
+        S3_PayCOWithCC --> S3_CCRequired
 
         %% Update scope → completion
         S3_UpdateProjectScope --> S3_Complete
