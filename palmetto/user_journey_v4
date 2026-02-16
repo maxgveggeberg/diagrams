@@ -55,7 +55,8 @@ flowchart TD
             S1_PalInputApplicants["[A] Input Applicants"]:::ho
             S1_PalSubmitToPalmetto["[A] Submit to Palmetto for Approval"]:::tetra
             S1_PalSubmit["[S] Payment: Financing Submitted"]:::tetra
-            S1_PalDec["Financing<br/>Partner<br/>Response"]:::palmetto
+            S1_PalCondApproved["[A] Conditionally Approved"]:::palmetto
+            S1_PalDecDenied["[A] Denied"]:::palmetto
 
             %% Conditional Approval
             S1_PalConditional["[S] Payment: Conditionally Approved"]:::tetra
@@ -84,10 +85,11 @@ flowchart TD
         S1_SelectLease --> S1_PalInputApplicants
         S1_PalInputApplicants --> S1_PalSubmitToPalmetto
         S1_PalSubmitToPalmetto --> S1_PalSubmit
-        S1_PalSubmit --> S1_PalDec
+        S1_PalSubmit --> S1_PalCondApproved
+        S1_PalSubmit --> S1_PalDecDenied
 
         %% Conditional
-        S1_PalDec -- "Conditional w/ verification docs" --> S1_PalConditional
+        S1_PalCondApproved --> S1_PalConditional
         S1_PalConditional --> S1_PalCondTask
 
         S1_PalCondTask --> S1_PalUploadDocs --> S1_PalUploadNotif --> S1_PalVerifSubmit
@@ -107,7 +109,7 @@ flowchart TD
         S1_PalVerifRejTask --> S1_PalVerifSubmit
 
         %% Denied
-        S1_PalDec -- Denied --> S1_PalDenied
+        S1_PalDecDenied --> S1_PalDenied
         S1_PalDenied --> S1_PalDeniedNotif2
         S1_PalDeniedNotif2 --> S1_PalDeniedDec
         S1_PalDeniedDec -- "Try another method" --> S1_CashInputCC
