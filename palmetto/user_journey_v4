@@ -260,7 +260,7 @@ flowchart TD
 
         %% #1: CO creates change order
         S3_Created["[S] Change Order: Change Order Created"]:::tetra
-        S3_CreatedNotif["[T][N] Change Order Created"]:::solar
+        S3_CreatedNotif["[T][N] Change Order Created"]:::sibi
 
         %% #2: Sibi reviews → Sent to HO
         S3_Sent["[S] Change Order: Change Order Sent"]:::tetra
