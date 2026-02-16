@@ -283,7 +283,7 @@ flowchart TD
         %% Cash path
         S3_Dec_ChangePayMethod{"Change Payment<br/>Method?"}:::logic
         S3_CashLease[["Lease Approval"]]:::subprocess
-        S3_Dec_PayWithCC{"Pay with<br/>Credit Card?"}:::logic
+        S3_Dec_PayWithCC["Pay with Credit Card"]:::ho
         S3_UpdateProjectScope["Update Project Scope"]:::tetra
 
         %% Payment paths
