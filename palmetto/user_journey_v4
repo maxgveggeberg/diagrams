@@ -391,10 +391,6 @@ flowchart TD
             S4_FactoryDirectStatus["[S] Material Ordering: Place Factory Direct Order"]:::sibi
             S4_FactoryDirect["[T][N] Place Factory Direct Order"]:::sibi
             S4_FactoryDirectUpdate["[S] Material Ordering: Sibi Manually Update Status"]:::sibi
-            S4_Dec_ReadyForPickup{"Material Ready<br/>for Pickup?"}:::logic
-            S4_ReadyForPickup["[S] Material Ordering: Ready for Pickup"]:::sibi
-            S4_RescheduleStatus["[S][T][N] Install: Reschedule"]:::sibi
-            S4_RescheduleInstall["Reschedule Installation"]:::sibi
             S4_OosConvertOrder["Convert Draft Order to Order"]:::tetra
             S4_OosUpdateStatus["Sibi Updates Material Ordering Status via API"]:::sibi
             S4_Pending["[S] Material Ordering: Order Pending"]:::sibi
@@ -427,8 +423,14 @@ flowchart TD
             S4_InstConfirmed["✓ [S] Install: Install Confirmed"]:::monitor
             S4_InstConfirmedTask["[T] Conduct install"]:::co
             S4_InstConfirmedNotif["[N] #12 Install Confirmed"]:::co
-            S4_InstCheckMaterial["Check Material Status<br/>24 Hours Before Installation"]:::sibi
         end
+
+        %% === MATERIAL CHECK & READINESS (Stage 4 level) ===
+        S4_InstCheckMaterial["Check Material Status<br/>24 Hours Before Installation"]:::sibi
+        S4_Dec_ReadyForPickup{"Material Ready<br/>for Pickup?"}:::logic
+        S4_ReadyForPickup["[S] Material Ordering: Ready for Pickup"]:::sibi
+        S4_RescheduleStatus["[S][T][N] Install: Reschedule"]:::sibi
+        S4_RescheduleInstall["Reschedule Installation"]:::sibi
 
         %% Cross-stage exit
         S4_Ref_InstallReady[["→ Stage 5: Installation Ready"]]:::subprocess
@@ -483,6 +485,8 @@ flowchart TD
 
         %% Check material status 24h before install
         S4_InstConfirmed --> S4_InstCheckMaterial
+        S4_InstCheckMaterial --> S4_Dec_ReadyForPickup
+
         %% Exit
         S4_ReadyForPickup --> S4_Ref_InstallReady
     end
