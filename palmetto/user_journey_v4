@@ -547,6 +547,9 @@ flowchart TD
         S5_Dec_HOApproval --> S5_Declined
         S5_Declined --> S5_DeclinedTask
         S5_DeclinedTask --> S5_Ref_Case
+
+        S5_Dec_HOApproved -- "Yes" --> S5_SendToPalmetto
+        S5_Dec_HOApproved -- "No" --> S5_Ref_Case
     end
 
     %% =============================================================
