@@ -503,7 +503,8 @@ flowchart TD
         S5_Complete["[S] Installation: Installation Complete"]:::co
 
         S5_Dec_PayMethod{"Payment<br/>Method?"}:::logic
-        S5_UploadQCTask["[T] Upload QC Photos"]:::co
+        S5_UploadQCStatus["[S] Payment: Upload QC Photos"]:::co
+        S5_UploadQCTask["[T][N] Upload QC Photos"]:::co
         S5_SibiUploadQC["Upload QC Photos"]:::sibi
         S5_SendToPalmetto["Send All Completion Files to Palmetto"]:::tetra
 
@@ -532,7 +533,8 @@ flowchart TD
         S5_InstComplete --> S5_MarkComplete
         S5_MarkComplete --> S5_Complete
         S5_Complete --> S5_Dec_PayMethod
-        S5_Dec_PayMethod -- "Lease" --> S5_UploadQCTask
+        S5_Dec_PayMethod -- "Lease" --> S5_UploadQCStatus
+        S5_UploadQCStatus --> S5_UploadQCTask
         S5_UploadQCTask --> S5_SibiUploadQC
         S5_SibiUploadQC --> S5_SendToPalmetto
         S5_SendToPalmetto --> S5_QCDec
