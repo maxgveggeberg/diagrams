@@ -204,7 +204,8 @@ flowchart TD
 
         %% Cross-stage exits
         S2_Ref_ChangeOrder[["Stage 3: Change Order"]]:::subprocess
-        S2_Ref_Installation[["Stage 4 / Stage 5: Order Material & Install"]]:::subprocess
+        S2_Dec_Schedule{"Schedule Site Visit<br/>On Site?"}:::logic
+        S2_InstScheduled["[S][N] Installation: Scheduled"]:::monitor
 
         %% --- FLOW ---
         S2_SelectTimes --> S2_HOSubmits3 --> S2_AwaitCO
@@ -235,15 +236,18 @@ flowchart TD
 
         %% Branch: Change Order or Installation
         S2_CompleteDec -- "Yes: scope change" --> S2_Ref_ChangeOrder
-        S2_CompleteDec -- "No, Financing" --> S2_Ref_Installation
+        S2_CompleteDec -- "No, Financing" --> S2_Dec_Schedule
         S2_CompleteDec -- "No, Cash" --> S2_Deposit
 
         %% 30% Deposit flow (Cash projects)
         S2_Deposit --> S2_DepositPayDec
-        S2_DepositPayDec -- Yes --> S2_Ref_Installation
+        S2_DepositPayDec -- Yes --> S2_Dec_Schedule
         S2_DepositPayDec -- No --> S2_DepositFailed
         S2_DepositFailed --> S2_HOUpdatePayment
         S2_HOUpdatePayment --> S2_Deposit
+
+        %% Schedule Site Visit decision
+        S2_Dec_Schedule -- "Yes" --> S2_InstScheduled
     end
 
     %% =============================================================
