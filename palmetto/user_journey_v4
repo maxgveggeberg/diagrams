@@ -561,7 +561,8 @@ flowchart TD
         S5_WithdrawCC --> S5_Dec_CashPaySuccess
         S5_Dec_CashPaySuccess -- "No" --> S5_CashPayFailed
         S5_CashPayFailed --> S5_CashUpdatePay
-        S5_CashUpdatePay --> S5_WithdrawCC
+        S5_CashUpdatePay --> S5_UpdateCC["Update Credit Card"]:::ho
+        S5_UpdateCC --> S5_WithdrawCC
         S5_Dec_HOApproved -- "No" --> S5_Ref_Case
     end
 
