@@ -267,6 +267,7 @@ flowchart TD
         S3_SentNotif["[T][N] Sent for Review"]:::ho
 
         %% #3: HO Response
+        S3_HOApproved["HO Approved"]:::ho
         S3_HODeclined["HO Declined"]:::ho
 
         %% HO Declined → Required?
@@ -326,7 +327,7 @@ flowchart TD
         S3_Sent --> S3_SentNotif
 
         %% HO decides
-        S3_SentNotif -- "Approved" --> S3_Dec_ProjectPayment
+        S3_SentNotif --> S3_HOApproved --> S3_Dec_ProjectPayment
         S3_Dec_ProjectPayment -- "Lease" --> S3_SelectPayment
         S3_Dec_ProjectPayment -- "Cash" --> S3_Dec_ChangePayMethod
         S3_Dec_ChangePayMethod -- No --> S3_UpdateProjectScope
