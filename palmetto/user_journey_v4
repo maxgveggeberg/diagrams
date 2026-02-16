@@ -507,6 +507,7 @@ flowchart TD
         S5_UploadQCTask["[T][N] Upload QC Photos"]:::co
         S5_SibiUploadQC["Upload QC Photos"]:::sibi
         S5_SendToPalmetto["Send All Completion Files to Palmetto"]:::tetra
+        S5_PaySubmitted["[S] Payment: Submitted"]:::tetra
 
         S5_QCDec{"QC Photos<br/>Verified?"}:::logic
         S5_QCRejected["[S] Installation: QC Rejected"]:::tetra
@@ -537,7 +538,8 @@ flowchart TD
         S5_UploadQCStatus --> S5_UploadQCTask
         S5_UploadQCTask --> S5_SibiUploadQC
         S5_SibiUploadQC --> S5_SendToPalmetto
-        S5_SendToPalmetto --> S5_QCDec
+        S5_SendToPalmetto --> S5_PaySubmitted
+        S5_PaySubmitted --> S5_QCDec
         S5_QCDec -- No --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
         S5_QCDec -- Yes --> S5_Approve
