@@ -432,8 +432,10 @@ flowchart TD
         S4_RescheduleStatus["[S][T][N] Install: Reschedule"]:::sibi
         S4_RescheduleInstall["Reschedule Installation"]:::sibi
 
-        %% Cross-stage exit
-        S4_Ref_InstallReady[["→ Stage 5: Installation Ready"]]:::subprocess
+        %% Installation Complete
+        S5_InstComplete["Installation Complete"]:::co
+        S5_MarkComplete["Mark Installation Status Complete"]:::sibi
+        S5_Complete["[S] Installation: Installation Complete"]:::co
 
         %% --- FLOW ---
         %% 30% Deposit flow (Cash projects)
@@ -487,8 +489,10 @@ flowchart TD
         S4_InstConfirmed --> S4_InstCheckMaterial
         S4_InstCheckMaterial --> S4_Dec_ReadyForPickup
 
-        %% Exit
-        S4_ReadyForPickup --> S4_Ref_InstallReady
+        %% Installation Complete flow
+        S4_ReadyForPickup --> S5_InstComplete
+        S5_InstComplete --> S5_MarkComplete
+        S5_MarkComplete --> S5_Complete
     end
 
     %% =============================================================
@@ -496,11 +500,6 @@ flowchart TD
     %% =============================================================
     subgraph Stage5_Installation["STAGE 5: INSTALLATION"]
         direction TB
-
-        %% === 2.x EXECUTION ===
-        S5_InstComplete["Installation Complete"]:::co
-        S5_MarkComplete["Mark Installation Status Complete"]:::sibi
-        S5_Complete["[S] Installation: Installation Complete"]:::co
 
         S5_Dec_PayMethod{"Payment<br/>Method?"}:::logic
         S5_UploadQCStatus["[S] Payment: Upload QC Photos"]:::co
@@ -530,11 +529,7 @@ flowchart TD
         S5_Ref_Payment[["→ Stage 7: Payment"]]:::subprocess
         S5_Ref_Case[["→ Stage 6: Case"]]:::subprocess
 
-        %% --- 2.x EXECUTION FLOW ---
-        S5_InstComplete --> S5_MarkComplete
-        S5_MarkComplete --> S5_Complete
-        S5_Complete --> S5_Dec_PayMethod
-        S5_Complete --> S5_Approve
+        %% --- FLOW ---
         S5_Dec_PayMethod -- "Lease" --> S5_UploadQCStatus
         S5_UploadQCStatus --> S5_UploadQCTask
         S5_UploadQCTask --> S5_SibiUploadQC
