@@ -516,20 +516,23 @@ flowchart TD
             S5_ResolveIssue["Resolve Issue"]:::co
         end
         style S5_RejectionLoop fill:none,stroke:none
-        S5_Approve["[T][N] Approve Installation"]:::ho
-        S5_HOUnresponsive["HO Unresponsive"]:::ho
-        S5_UnresponsiveStatus["[S] Installation: Unresponsive"]:::ho
-        S5_ReminderApprove["[N] Reminder: Approve Installation"]:::ho
-        S5_ManualUpdate["Manually Update Status"]:::sibi
-        %% === 3.x POST-INSTALL ===
-        S5_HOApproves["HO Approves Installation"]:::ho
-        S5_CSATSurvey["Fills out CSAT Survey"]:::ho
-        S5_Dec_HOApproval["HO Reports Issue"]:::ho
+        subgraph S5_PostInstall[" "]
+            S5_Approve["[T][N] Approve Installation"]:::ho
+            S5_HOUnresponsive["HO Unresponsive"]:::ho
+            S5_UnresponsiveStatus["[S] Installation: Unresponsive"]:::ho
+            S5_ReminderApprove["[N] Reminder: Approve Installation"]:::ho
+            S5_ManualUpdate["Manually Update Status"]:::sibi
+            %% === 3.x POST-INSTALL ===
+            S5_HOApproves["HO Approves Installation"]:::ho
+            S5_CSATSurvey["Fills out CSAT Survey"]:::ho
+            S5_Dec_HOApproval["HO Reports Issue"]:::ho
 
-        S5_Approved["[S] Installation: Installation Approved"]:::solar
+            S5_Approved["[S] Installation: Installation Approved"]:::solar
 
-        S5_Declined["[S] Installation: Issue Reported"]:::ho
-        S5_DeclinedTask["[T][N] Issue Reported"]:::co
+            S5_Declined["[S] Installation: Issue Reported"]:::ho
+            S5_DeclinedTask["[T][N] Issue Reported"]:::co
+        end
+        style S5_PostInstall fill:none,stroke:none
 
         %% Cash payment path
         S5_WithdrawCC["Withdraw Remaining Balance from Credit Card"]:::tetra
