@@ -405,6 +405,31 @@ flowchart TD
         %% Install scheduled decision
         S4_Dec_InstallScheduled{"Install<br/>Scheduled?"}:::logic
 
+        %% === INSTALL SCHEDULING (No path) ===
+        S4_InstSelectTimes["[S][T] Install: Select Preferred Times"]:::ho
+        S4_InstHOSubmits3["HO Submits 3 Times"]:::ho
+
+        S4_InstAwaitCO["[S] Install: Awaiting CO Confirmation"]:::monitor
+        S4_InstAwaitCONotif["[TN] #9 CO Task: Confirm Time"]:::co
+
+        S4_InstCOSelectsTimes["CO Selects from HO Times"]:::co
+
+        S4_InstConfirmTime["[S] Install: Confirm Time"]:::ho
+        S4_InstConfirmTaskNotif["[T][N] #10 Confirm Appointment"]:::ho
+
+        S4_InstCODeclinesAll["CO Declines All"]:::co
+
+        S4_InstHODeclines["HO Declines"]:::ho
+        S4_InstHOConfirms["HO Confirms"]:::ho
+        S4_InstCOSchedules["CO Schedules Directly"]:::co
+
+        S4_InstCOContact["[S] Install: CO to Contact Directly"]:::co
+        S4_InstCOContactTaskNotif["[T][N] #11 Contact HO to Schedule"]:::co
+
+        S4_InstConfirmed["✓ [S] Install: Install Confirmed"]:::monitor
+        S4_InstConfirmedTask["[T] Conduct install"]:::co
+        S4_InstConfirmedNotif["[N] #12 Install Confirmed"]:::co
+
         %% Cross-stage exit
         S4_Ref_InstallReady[["→ Stage 5: Installation Ready"]]:::subprocess
 
@@ -431,6 +456,30 @@ flowchart TD
         S4_Dec_ReadyForPickup -- "No" --> S4_RescheduleStatus
         S4_RescheduleStatus --> S4_RescheduleInstall
         S4_RescheduleInstall --> S4_Dec_ReadyForPickup
+
+        %% === INSTALL SCHEDULING FLOW (No path from Install Scheduled?) ===
+        S4_Dec_InstallScheduled -- "No" --> S4_InstSelectTimes
+        S4_InstSelectTimes --> S4_InstHOSubmits3 --> S4_InstAwaitCO
+        S4_InstAwaitCO --> S4_InstAwaitCONotif
+
+        %% CO selects time
+        S4_InstAwaitCO --> S4_InstCOSelectsTimes
+        S4_InstCOSelectsTimes --> S4_InstConfirmTime
+        S4_InstConfirmTime --> S4_InstConfirmTaskNotif
+
+        %% CO declines → fallback
+        S4_InstAwaitCO --> S4_InstCODeclinesAll --> S4_InstCOContact
+        S4_InstCOContact --> S4_InstCOContactTaskNotif
+
+        %% HO declines confirmed time → fallback
+        S4_InstConfirmTime --> S4_InstHODeclines --> S4_InstCOContact
+
+        %% HO confirms → Confirmed
+        S4_InstConfirmTime --> S4_InstHOConfirms --> S4_InstConfirmed
+        S4_InstConfirmed --> S4_InstConfirmedTask --> S4_InstConfirmedNotif
+
+        %% CO schedules directly → Confirmed
+        S4_InstCOContact --> S4_InstCOSchedules --> S4_InstConfirmed
 
         %% Exit
         S4_ReadyForPickup --> S4_Ref_InstallReady
