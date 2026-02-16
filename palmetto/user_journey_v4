@@ -449,11 +449,11 @@ flowchart TD
         S4_Dec_Inventory -- "Factory Direct" --> S4_FactoryDirectStatus
         S4_FactoryDirectStatus --> S4_FactoryDirect
         S4_FactoryDirect --> S4_FactoryDirectUpdate
-        S4_FactoryDirectUpdate --> S4_Dec_ReadyForPickup
+        S4_FactoryDirectUpdate --> S4_InstCheckMaterial
         S4_Dec_Inventory -- "Available / Out of Stock" --> S4_OosConvertOrder
         S4_OosConvertOrder --> S4_OosUpdateStatus
         S4_OosUpdateStatus --> S4_Pending
-        S4_Pending --> S4_Dec_ReadyForPickup
+        S4_Pending --> S4_InstCheckMaterial
         S4_Dec_ReadyForPickup -- "Yes" --> S4_ReadyForPickup
         S4_Dec_ReadyForPickup -- "No" --> S4_RescheduleStatus
         S4_RescheduleStatus --> S4_RescheduleInstall
