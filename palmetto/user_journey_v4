@@ -337,8 +337,7 @@ flowchart TD
         S3_Dec_ChangePayMethod -- Yes --> S3_CashLease
         S3_CashLease -- "Approved" --> S3_UpdateProjectScope
         S3_CashLease -- "Denied" --> S3_Dec_PayWithCC
-        S3_Dec_PayWithCC -- Yes --> S3_UpdateProjectScope
-        S3_Dec_PayWithCC -- No --> S3_Cancelled
+        S3_Dec_PayWithCC --> S3_UpdateProjectScope
 
         S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
         S3_Dec_Required -- No --> S3_Complete
