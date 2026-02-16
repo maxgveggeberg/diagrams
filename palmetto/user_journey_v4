@@ -207,7 +207,7 @@ flowchart TD
         %% Cross-stage exits
         S2_Ref_ChangeOrder[["Stage 3: Change Order"]]:::subprocess
         S2_Dec_Schedule{"Schedule Site Visit<br/>On Site?"}:::logic
-        S2_InstScheduled["[S][N] Installation: Scheduled"]:::monitor
+        S2_InstScheduled["[S][N] Install: Scheduled"]:::monitor
 
         %% --- FLOW ---
         S2_SelectTimes --> S2_HOSubmits3 --> S2_AwaitCO
@@ -236,7 +236,7 @@ flowchart TD
         S2_Confirmed --> S2_COMarksComplete --> S2_Complete
         S2_Complete --> S2_CompleteDec
 
-        %% Branch: Change Order or Installation
+        %% Branch: Change Order or Install
         S2_CompleteDec -- "Yes: scope change" --> S2_Ref_ChangeOrder
         S2_CompleteDec -- "No, Financing" --> S2_Dec_Schedule
         S2_CompleteDec -- "No, Cash" --> S2_Deposit
@@ -296,15 +296,15 @@ flowchart TD
         S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
         S3_CompleteNotif["[N] Approved by HO"]:::solar
 
-        %% #11: Exit to Installation
-        S3_Ref_Installation[["→ Stage 4 / Stage 5: Material Ordering & Installation"]]:::subprocess
+        %% #11: Exit to Install
+        S3_Ref_Install[["→ Stage 4 / Stage 5: Material Ordering & Install"]]:::subprocess
 
         %% CB Decision
         S3_SpeaksContractor["Speaks with Contractor"]:::sibi
         S3_CBApproves["Approves"]:::sibi
         S3_CBCancels["Cancels Change Order"]:::sibi
         S3_CBCancelledStatus["[S] Change Order: Cancelled"]:::tetra
-        S3_Ref_OrderMatInstall[["→ Stage 4 / Stage 5: Order Material & Installation"]]:::subprocess
+        S3_Ref_OrderMatInstall[["→ Stage 4 / Stage 5: Order Material & Install"]]:::subprocess
 
         %% Sibi Approves paths
         S3_SibiContactsHO["Contact HO Directly"]:::sibi
@@ -357,7 +357,7 @@ flowchart TD
 
         %% Shared completion
         S3_Complete --> S3_CompleteNotif
-        S3_CompleteNotif --> S3_Ref_Installation
+        S3_CompleteNotif --> S3_Ref_Install
     end
 
     %% =============================================================
@@ -429,16 +429,16 @@ flowchart TD
         end
 
         %% === MATERIAL CHECK & READINESS (Stage 4 level) ===
-        S4_InstCheckMaterial["Check Material Status<br/>24 Hours Before Installation"]:::sibi
+        S4_InstCheckMaterial["Check Material Status<br/>24 Hours Before Install"]:::sibi
         S4_Dec_ReadyForPickup{"Material Ready<br/>for Pickup?"}:::logic
         S4_ReadyForPickup["[S] Material Ordering: Ready for Pickup"]:::tetra
         S4_RescheduleStatus["[S][T][N] Install: Reschedule"]:::sibi
-        S4_RescheduleInstall["Reschedule Installation"]:::sibi
+        S4_RescheduleInstall["Reschedule Install"]:::sibi
 
-        %% Installation Complete
-        S5_InstComplete["Installation Complete"]:::sibi
-        S5_MarkComplete["Mark Installation Status Complete"]:::sibi
-        S5_Complete["[S] Installation: Installation Complete"]:::tetra
+        %% Install Complete
+        S5_InstComplete["Install Complete"]:::sibi
+        S5_MarkComplete["Mark Install Status Complete"]:::sibi
+        S5_Complete["[S] Install: Install Complete"]:::tetra
 
         %% --- FLOW ---
         %% 30% Deposit flow (Cash projects)
@@ -492,7 +492,7 @@ flowchart TD
         S4_InstConfirmed --> S4_InstCheckMaterial
         S4_InstCheckMaterial --> S4_Dec_ReadyForPickup
 
-        %% Installation Complete flow
+        %% Install Complete flow
         S4_ReadyForPickup --> S5_InstComplete
         S5_InstComplete --> S5_MarkComplete
         S5_MarkComplete --> S5_Complete
@@ -501,7 +501,7 @@ flowchart TD
     %% =============================================================
     %% STAGE 5: INSTALLATION
     %% =============================================================
-    subgraph Stage5_Installation["STAGE 5: INSTALLATION"]
+    subgraph Stage5_Install["STAGE 5: INSTALLATION"]
         direction TB
 
         S5_Dec_PayMethod{"Payment<br/>Method?"}:::logic
@@ -520,19 +520,19 @@ flowchart TD
         end
         style S5_RejectionLoop fill:none,stroke:none
         subgraph S5_PostInstall[" "]
-            S5_Approve["[T][N] Approve Installation"]:::ho
+            S5_Approve["[T][N] Approve Install"]:::ho
             S5_HOUnresponsive["HO Unresponsive"]:::ho
-            S5_UnresponsiveStatus["[S] Installation: Unresponsive"]:::tetra
-            S5_ReminderApprove["[N] Reminder: Approve Installation"]:::ho
+            S5_UnresponsiveStatus["[S] Install: Unresponsive"]:::tetra
+            S5_ReminderApprove["[N] Reminder: Approve Install"]:::ho
             S5_ManualUpdate["Manually Update Status"]:::sibi
             %% === 3.x POST-INSTALL ===
-            S5_HOApproves["HO Approves Installation"]:::ho
+            S5_HOApproves["HO Approves Install"]:::ho
             S5_CSATSurvey["Fills out CSAT Survey"]:::ho
             S5_Dec_HOApproval["HO Reports Issue"]:::ho
 
-            S5_Approved["[S] Installation: Installation Approved"]:::tetra
+            S5_Approved["[S] Install: Install Approved"]:::tetra
 
-            S5_Declined["[S] Installation: Issue Reported"]:::tetra
+            S5_Declined["[S] Install: Issue Reported"]:::tetra
             S5_DeclinedTask["[T][N] Issue Reported"]:::sibi
         end
         style S5_PostInstall fill:none,stroke:none
@@ -649,5 +649,5 @@ flowchart TD
     Stage1_Sales --> Stage2_SiteVisit
     Stage2_SiteVisit --> Stage3_ChangeOrder
     Stage3_ChangeOrder --> Stage4_MaterialOrdering
-    Stage4_MaterialOrdering --> Stage5_Installation
-    Stage5_Installation --> Stage6_Case
+    Stage4_MaterialOrdering --> Stage5_Install
+    Stage5_Install --> Stage6_Case
