@@ -540,7 +540,6 @@ flowchart TD
         S5_SendToPalmetto --> S5_QCDec
         S5_QCDec -- No --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
-        S5_QCRejected -->|CO resubmits| S5_Complete
         S5_QCDec -- Yes --> S5_Approve
         S5_Approve --> S5_ApproveNotif
         %% --- 3.x POST-INSTALL FLOW ---
