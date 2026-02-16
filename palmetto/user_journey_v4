@@ -542,6 +542,8 @@ flowchart TD
         S5_PaySubmitted --> S5_SubmissionDenied
         S5_SubmissionDenied --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
+        S5_QCRejNotif37 --> S5_ResolveIssue["Resolve Issue"]:::co
+        S5_ResolveIssue --> S5_SendToPalmetto
         %% --- 3.x POST-INSTALL FLOW ---
         S5_Approve --> S5_HOApproves
         S5_HOApproves --> S5_Approved
