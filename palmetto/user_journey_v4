@@ -364,7 +364,7 @@ flowchart TD
     %% =============================================================
     %% STAGE 4: INSTALL PREP
     %% =============================================================
-    subgraph Stage4_MaterialOrdering["STAGE 4: INSTALL PREP"]
+    subgraph Stage4_MaterialOrdering["STAGE 4: ORDERING & INSTALLATION"]
         direction TB
 
         %% === PAYMENT COLLECTION (invisible subgraph) ===
@@ -501,7 +501,7 @@ flowchart TD
     %% =============================================================
     %% STAGE 5: INSTALLATION
     %% =============================================================
-    subgraph Stage5_Install["STAGE 5: INSTALLATION"]
+    subgraph Stage5_Install["STAGE 5: POST-INSTALL & PAYMENT"]
         direction TB
 
         S5_Dec_PayMethod{"Payment<br/>Method?"}:::logic
