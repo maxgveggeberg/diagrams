@@ -503,14 +503,8 @@ flowchart TD
         S5_QCDec{"QC Photos<br/>Verified?"}:::logic
         S5_QCRejected["[S] Installation: QC Rejected"]:::tetra
         S5_QCRejNotif37["[N] #37 Resubmit (CO)"]:::co
-        S5_QCRejExpiry{"Hours > 24<br/>no resubmit?"}:::logic
-        S5_QCRejRemind["[N] Remind CO: Resubmit"]:::co
-
         S5_Approve["[S][T] Installation: Approve Installation"]:::ho
         S5_ApproveNotif["[N] #38 Approve Installation"]:::ho
-        S5_ApproveExpiry{"Hours > 24<br/>no response?"}:::logic
-        S5_ApproveRemind["[N] Remind HO: Approve"]:::ho
-
         %% === 3.x POST-INSTALL ===
         S5_Dec_HOApproval{"HO Approves<br/>Installation?"}:::logic
 
@@ -531,14 +525,9 @@ flowchart TD
         S5_Complete --> S5_QCDec
         S5_QCDec -- No --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
-        S5_QCRejected --> S5_QCRejExpiry
-        S5_QCRejExpiry -- Yes --> S5_QCRejRemind
         S5_QCRejected -->|CO resubmits| S5_Complete
         S5_QCDec -- Yes --> S5_Approve
         S5_Approve --> S5_ApproveNotif
-        S5_Approve --> S5_ApproveExpiry
-        S5_ApproveExpiry -- Yes --> S5_ApproveRemind
-
         %% --- 3.x POST-INSTALL FLOW ---
         S5_Approve --> S5_Dec_HOApproval
 
