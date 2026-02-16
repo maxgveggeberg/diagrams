@@ -534,6 +534,7 @@ flowchart TD
         S5_InstComplete --> S5_MarkComplete
         S5_MarkComplete --> S5_Complete
         S5_Complete --> S5_Dec_PayMethod
+        S5_Complete --> S5_Approve
         S5_Dec_PayMethod -- "Lease" --> S5_UploadQCStatus
         S5_UploadQCStatus --> S5_UploadQCTask
         S5_UploadQCTask --> S5_SibiUploadQC
@@ -542,7 +543,6 @@ flowchart TD
         S5_PaySubmitted --> S5_QCDec
         S5_QCDec -- No --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
-        S5_QCDec -- Yes --> S5_Approve
         S5_Approve --> S5_ApproveNotif
         %% --- 3.x POST-INSTALL FLOW ---
         S5_Approve --> S5_Dec_HOApproval
