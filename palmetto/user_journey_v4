@@ -33,7 +33,7 @@ flowchart TD
         direction TB
 
         %% --- Entry ---
-        S1_Entry["[S] Sales: Quote Created"]:::solar
+        S1_Entry["[S] Sales: Quote Created"]:::tetra
         S1_SelectEquip["Select Equipment"]:::solar
         S1_Entry --> S1_SelectEquip --> S1_Dec_Payment
 
@@ -111,15 +111,15 @@ flowchart TD
 
         %% --- CONVERGENCE ---
         %% Conditional Approval → AUTO Closed Won
-        S1_ClosedWon["[S] Sales: Closed Won"]:::solar
+        S1_ClosedWon["[S] Sales: Closed Won"]:::tetra
 
         S1_PalConditional --> S1_ClosedWon
 
         subgraph S1_InventoryFlow[" "]
             S1_Dec_Inventory{"Inventory<br/>Status"}:::logic
-            S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::sibi
-            S1_MaterialOrderUnknown["[S] Material Ordering: Unknown"]:::sibi
-            S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::sibi
+            S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::tetra
+            S1_MaterialOrderUnknown["[S] Material Ordering: Unknown"]:::tetra
+            S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::tetra
             S1_UnavailEquipTask["[T][N] Confirm Factory Direct Order"]:::sibi
             S1_Dec_ChangeEquip["Select Comparable<br/>Available Equipment"]:::sibi
             S1_UpdateInvStatus["Update Inventory Status"]:::sibi
@@ -150,7 +150,7 @@ flowchart TD
         %% Denied → Closed Lost
         S1_PalDeniedDec -- No --> S1_ClosedLost
 
-        S1_ClosedLost(["[S] Sales: Closed Lost"]):::terminator
+        S1_ClosedLost(["[S] Sales: Closed Lost"]):::tetra
 
         %% --- STAGE 1 END ---
     end
@@ -166,14 +166,14 @@ flowchart TD
         S2_HOSubmits3["HO Submits 3 Times"]:::ho
 
         %% #2: Awaiting CO Confirmation
-        S2_AwaitCO["[S] Site Visit: Awaiting CO Confirmation"]:::monitor
+        S2_AwaitCO["[S] Site Visit: Awaiting CO Confirmation"]:::tetra
         S2_AwaitCONotif["[TN] #9 CO Task: Confirm Time"]:::co
 
         %% CO Selects Time
         S2_COSelectsTimes["CO Selects from HO Times"]:::co
 
         %% #3: Confirm Time
-        S2_ConfirmTime["[S] Site Visit: Confirm Time"]:::ho
+        S2_ConfirmTime["[S] Site Visit: Confirm Time"]:::tetra
         S2_ConfirmTaskNotif["[T][N] #10 Confirm Appointment"]:::ho
 
         %% CO Declines
@@ -189,19 +189,19 @@ flowchart TD
         S2_COContactTaskNotif["[T][N] #11 Contact HO to Schedule"]:::co
 
         %% #5a/5b: Site Visit Confirmed
-        S2_Confirmed["✓ [S] Site Visit: Site Visit Confirmed"]:::monitor
+        S2_Confirmed["✓ [S] Site Visit: Site Visit Confirmed"]:::tetra
         S2_ConfirmedTask["[T] Conduct site visit"]:::co
         S2_ConfirmedNotif["[N] #12 Site Visit Confirmed"]:::co
 
         %% #8: Site Visit Complete
         S2_COMarksComplete["CO Marks Complete"]:::co
-        S2_Complete["[S] Site Visit: Site Visit Complete"]:::co
+        S2_Complete["[S] Site Visit: Site Visit Complete"]:::tetra
         S2_CompleteDec{"Change Order<br/>Required?"}:::logic
 
         %% #9: 30% Deposit (Cash projects)
-        S2_Deposit["[S] Payment: 30% Deposit"]:::ho
+        S2_Deposit["[S] Payment: 30% Deposit"]:::tetra
         S2_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
-        S2_DepositFailed["[S] Payment: Deposit Payment Failed"]:::ho
+        S2_DepositFailed["[S] Payment: Deposit Payment Failed"]:::tetra
         S2_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
 
         %% Cross-stage exits
@@ -259,11 +259,11 @@ flowchart TD
         direction TB
 
         %% #1: CO creates change order
-        S3_Created["[S] Change Order: Change Order Created"]:::co
+        S3_Created["[S] Change Order: Change Order Created"]:::tetra
         S3_CreatedNotif["[T][N] #17 Change Order Created"]:::solar
 
         %% #2: Sibi reviews → Sent to HO
-        S3_Sent["[S] Change Order: Change Order Sent"]:::solar
+        S3_Sent["[S] Change Order: Change Order Sent"]:::tetra
         S3_SentNotif["[T][N] #18 Sent for Review"]:::ho
 
         %% #3: HO Response
@@ -273,7 +273,7 @@ flowchart TD
         S3_Dec_Required{"Required?"}:::logic
 
         %% #4: HO Declines
-        S3_Declined["[S] Change Order: Change Order Declined"]:::ho
+        S3_Declined["[S] Change Order: Change Order Declined"]:::tetra
         S3_DeclinedNotif["[N] #20 Declined by HO"]:::solar
 
         %% Project payment method decision
@@ -312,7 +312,7 @@ flowchart TD
         S3_SalesContactsHO["Sales Sends to HO"]:::solar
 
         %% Exits
-        S3_Cancelled(["[S] Change Order: Job Cancelled"]):::terminator
+        S3_Cancelled(["[S] Change Order: Job Cancelled"]):::tetra
 
         %% --- FLOW ---
         S3_Created --> S3_CreatedNotif
@@ -374,9 +374,9 @@ flowchart TD
             S4_FinBlocked["⛔ Blocked: Awaiting Financing Approval"]:::terminator
 
             %% === 30% DEPOSIT (Cash projects) ===
-            S4_Deposit["[S] Payment: Collect 30% Deposit"]:::ho
+            S4_Deposit["[S] Payment: Collect 30% Deposit"]:::tetra
             S4_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
-            S4_DepositFailed["[S] Payment: Deposit Payment Failed"]:::ho
+            S4_DepositFailed["[S] Payment: Deposit Payment Failed"]:::tetra
             S4_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
             S4_PaymentApproved["[S] Payment: Approved"]:::tetra
         end
@@ -390,12 +390,12 @@ flowchart TD
         %% === MATERIAL ORDERING SUBGRAPH ===
         subgraph S4_MaterialOrdering["Material Ordering"]
             S4_Dec_Inventory{"Inventory<br/>Status"}:::logic
-            S4_FactoryDirectStatus["[S] Material Ordering: Place Factory Direct Order"]:::sibi
+            S4_FactoryDirectStatus["[S] Material Ordering: Place Factory Direct Order"]:::tetra
             S4_FactoryDirect["[T][N] Place Factory Direct Order"]:::sibi
-            S4_FactoryDirectUpdate["[S] Material Ordering: Sibi Manually Update Status"]:::sibi
+            S4_FactoryDirectUpdate["[S] Material Ordering: Sibi Manually Update Status"]:::tetra
             S4_OosConvertOrder["Convert Draft Order to Order"]:::tetra
             S4_OosUpdateStatus["Sibi Updates Material Ordering Status via API"]:::sibi
-            S4_Pending["[S] Material Ordering: Order Pending"]:::sibi
+            S4_Pending["[S] Material Ordering: Order Pending"]:::tetra
         end
 
         %% === INSTALL SCHEDULING SUBGRAPH ===
@@ -405,12 +405,12 @@ flowchart TD
             S4_InstSelectTimes["[S][T] Install: Select Preferred Times"]:::ho
             S4_InstHOSubmits3["HO Submits 3 Times"]:::ho
 
-            S4_InstAwaitCO["[S] Install: Awaiting CO Confirmation"]:::monitor
+            S4_InstAwaitCO["[S] Install: Awaiting CO Confirmation"]:::tetra
             S4_InstAwaitCONotif["[TN] #9 CO Task: Confirm Time"]:::co
 
             S4_InstCOSelectsTimes["CO Selects from HO Times"]:::co
 
-            S4_InstConfirmTime["[S] Install: Confirm Time"]:::ho
+            S4_InstConfirmTime["[S] Install: Confirm Time"]:::tetra
             S4_InstConfirmTaskNotif["[T][N] #10 Confirm Appointment"]:::ho
 
             S4_InstCODeclinesAll["CO Declines All"]:::co
@@ -419,10 +419,10 @@ flowchart TD
             S4_InstHOConfirms["HO Confirms"]:::ho
             S4_InstCOSchedules["CO Schedules Directly"]:::co
 
-            S4_InstCOContact["[S] Install: CO to Contact Directly"]:::co
+            S4_InstCOContact["[S] Install: CO to Contact Directly"]:::tetra
             S4_InstCOContactTaskNotif["[T][N] #11 Contact HO to Schedule"]:::co
 
-            S4_InstConfirmed["✓ [S] Install: Install Confirmed"]:::monitor
+            S4_InstConfirmed["✓ [S] Install: Install Confirmed"]:::tetra
             S4_InstConfirmedTask["[T] Conduct install"]:::co
             S4_InstConfirmedNotif["[N] #12 Install Confirmed"]:::co
         end
@@ -437,7 +437,7 @@ flowchart TD
         %% Installation Complete
         S5_InstComplete["Installation Complete"]:::co
         S5_MarkComplete["Mark Installation Status Complete"]:::sibi
-        S5_Complete["[S] Installation: Installation Complete"]:::co
+        S5_Complete["[S] Installation: Installation Complete"]:::tetra
 
         %% --- FLOW ---
         %% 30% Deposit flow (Cash projects)
@@ -504,7 +504,7 @@ flowchart TD
         direction TB
 
         S5_Dec_PayMethod{"Payment<br/>Method?"}:::logic
-        S5_UploadQCStatus["[S] Payment: Upload QC Photos"]:::co
+        S5_UploadQCStatus["[S] Payment: Upload QC Photos"]:::tetra
         S5_UploadQCTask["[T][N] Upload QC Photos"]:::co
         S5_Dec_HOApproved{"HO Approved?"}:::logic
         S5_SibiUploadQC["Upload QC Photos"]:::sibi
@@ -513,7 +513,7 @@ flowchart TD
 
         subgraph S5_RejectionLoop[" "]
             S5_SubmissionDenied["Submission Denied"]:::palmetto
-            S5_QCRejected["[S] Payment: Palmetto Rejected Submission"]:::palmetto
+            S5_QCRejected["[S] Payment: Palmetto Rejected Submission"]:::tetra
             S5_QCRejNotif37["[T][N] Payment Denied: Resubmit"]:::co
             S5_ResolveIssue["Resolve Issue"]:::co
         end
@@ -521,7 +521,7 @@ flowchart TD
         subgraph S5_PostInstall[" "]
             S5_Approve["[T][N] Approve Installation"]:::ho
             S5_HOUnresponsive["HO Unresponsive"]:::ho
-            S5_UnresponsiveStatus["[S] Installation: Unresponsive"]:::ho
+            S5_UnresponsiveStatus["[S] Installation: Unresponsive"]:::tetra
             S5_ReminderApprove["[N] Reminder: Approve Installation"]:::ho
             S5_ManualUpdate["Manually Update Status"]:::sibi
             %% === 3.x POST-INSTALL ===
@@ -529,9 +529,9 @@ flowchart TD
             S5_CSATSurvey["Fills out CSAT Survey"]:::ho
             S5_Dec_HOApproval["HO Reports Issue"]:::ho
 
-            S5_Approved["[S] Installation: Installation Approved"]:::solar
+            S5_Approved["[S] Installation: Installation Approved"]:::tetra
 
-            S5_Declined["[S] Installation: Issue Reported"]:::ho
+            S5_Declined["[S] Installation: Issue Reported"]:::tetra
             S5_DeclinedTask["[T][N] Issue Reported"]:::co
         end
         style S5_PostInstall fill:none,stroke:none
@@ -603,12 +603,12 @@ flowchart TD
             S6_CreatedTask["Contact customer"]:::co
             S6_UpdateCase["Update case information"]:::co
 
-            S6_InProgress["[S] Case: In Progress"]:::co
+            S6_InProgress["[S] Case: In Progress"]:::tetra
             S6_InProgressTask["[T][N] Resolve case"]:::co
             S6_FixIssue["Fix issue"]:::co
             S6_UpdateResolution["Update case information with resolution"]:::co
 
-            S6_Resolved["[S] Case: Case Resolved"]:::co
+            S6_Resolved["[S] Case: Case Resolved"]:::tetra
         end
         style S6_CaseFlow fill:none,stroke:none
         subgraph S6_SatisfactionCheck[" "]
