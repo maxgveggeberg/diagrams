@@ -528,6 +528,7 @@ flowchart TD
 
         %% --- FLOW ---
         S5_Dec_PayMethod -- "Lease" --> S5_UploadQCStatus
+        S5_Dec_PayMethod -- "Cash" --> S5_Dec_HOApproved
         S5_UploadQCStatus --> S5_UploadQCTask
         S5_UploadQCTask --> S5_SibiUploadQC
         S5_SibiUploadQC --> S5_Dec_HOApproved
