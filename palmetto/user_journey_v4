@@ -596,12 +596,8 @@ flowchart TD
         direction TB
 
         %% Entry
-        S6_Backref_Install(["↩ Stage 5: Installation Declined"]):::subprocess
-
-        S6_Created["[S][T] Case: Case Created"]:::tetra
+        S6_Created["[S][T][N] Case: Case Created"]:::tetra
         S6_CreatedTask["[T] Contact customer"]:::co
-        S6_CreatedNotif["[N] #49 Case Created (HO + Sales + CO + Ops)"]:::ho
-        S6_PayPaused["[N] #43 Payment Paused (Sales + Ops + CO)"]:::solar
 
         S6_InProgress["[S][T] Case: In Progress"]:::co
         S6_InProgressTask["[T] Resolve case"]:::co
@@ -617,10 +613,7 @@ flowchart TD
         S6_Closed["[S] Case: Case Closed"]:::tetra
 
         %% --- FLOW ---
-        S6_Backref_Install --> S6_Created
         S6_Created --> S6_CreatedTask
-        S6_Created --> S6_CreatedNotif
-        S6_Created --> S6_PayPaused
         S6_CreatedTask --> S6_InProgress
         S6_InProgress --> S6_InProgressTask
 
