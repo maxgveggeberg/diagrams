@@ -517,6 +517,10 @@ flowchart TD
         end
         style S5_RejectionLoop fill:none,stroke:none
         S5_Approve["[T][N] Approve Installation"]:::ho
+        S5_HOUnresponsive["HO Unresponsive"]:::ho
+        S5_UnresponsiveStatus["[S] Installation: Unresponsive"]:::ho
+        S5_ReminderApprove["[N] Reminder: Approve Installation"]:::ho
+        S5_ManualUpdate["Manually Update Status"]:::sibi
         %% === 3.x POST-INSTALL ===
         S5_HOApproves["HO Approves Installation"]:::ho
         S5_CSATSurvey["Fills out CSAT Survey"]:::ho
@@ -556,6 +560,11 @@ flowchart TD
         S5_Approve --> S5_HOApproves
         S5_HOApproves --> S5_Approved
         S5_HOApproves --> S5_CSATSurvey
+        S5_Approve --> S5_HOUnresponsive
+        S5_HOUnresponsive --> S5_UnresponsiveStatus
+        S5_UnresponsiveStatus --> S5_ReminderApprove
+        S5_ReminderApprove -- "No Response" --> S5_ManualUpdate
+        S5_ManualUpdate --> S5_Approved
         S5_Approve --> S5_Dec_HOApproval
 
         S5_Approved --> S5_Dec_HOApproved
