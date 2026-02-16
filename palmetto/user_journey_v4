@@ -502,6 +502,11 @@ flowchart TD
         S5_MarkComplete["Mark Installation Status Complete"]:::sibi
         S5_Complete["[S] Installation: Installation Complete"]:::co
 
+        S5_Dec_PayMethod{"Payment<br/>Method?"}:::logic
+        S5_UploadQCTask["[T] Upload QC Photos"]:::co
+        S5_SibiUploadQC["Upload QC Photos"]:::sibi
+        S5_SendToPalmetto["Send All Completion Files to Palmetto"]:::tetra
+
         S5_QCDec{"QC Photos<br/>Verified?"}:::logic
         S5_QCRejected["[S] Installation: QC Rejected"]:::tetra
         S5_QCRejNotif37["[N] #37 Resubmit (CO)"]:::co
@@ -526,7 +531,11 @@ flowchart TD
         %% --- 2.x EXECUTION FLOW ---
         S5_InstComplete --> S5_MarkComplete
         S5_MarkComplete --> S5_Complete
-        S5_Complete --> S5_QCDec
+        S5_Complete --> S5_Dec_PayMethod
+        S5_Dec_PayMethod -- "Lease" --> S5_UploadQCTask
+        S5_UploadQCTask --> S5_SibiUploadQC
+        S5_SibiUploadQC --> S5_SendToPalmetto
+        S5_SendToPalmetto --> S5_QCDec
         S5_QCDec -- No --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
         S5_QCRejected -->|CO resubmits| S5_Complete
