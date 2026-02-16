@@ -125,7 +125,7 @@ flowchart TD
         S1_ClosedWon --> S1_Dec_Inventory
         S1_Dec_Inventory -- "Out of Stock / Available" --> S1_MaterialOrderStatus
         S1_MaterialOrderStatus --> S1_CreateDraftOrder
-        S1_Dec_ChangeEquip["Swap Comparable<br/>Available Equipment"]:::sibi
+        S1_Dec_ChangeEquip["Select Comparable<br/>Available Equipment"]:::sibi
 
         S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::sibi
         S1_UnavailEquipTask["[T][N] Confirm Factory Direct Order"]:::sibi
@@ -138,10 +138,7 @@ flowchart TD
 
         S1_Dec_Inventory -- "Unknown" --> S1_MaterialOrderUnknown
         S1_MaterialOrderUnknown --> S1_CreateDraftOrder
-        S1_CancelOrder["Cancel Order"]:::tetra
-
-        S1_Dec_ChangeEquip --> S1_CancelOrder
-        S1_CancelOrder --> S1_CreateDraftOrder
+        S1_Dec_ChangeEquip --> S1_CreateDraftOrder
         S1_UnavailEquipTask --> S1_UpdateInventory
 
         %% Denied → Closed Lost
