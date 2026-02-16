@@ -429,6 +429,7 @@ flowchart TD
         S4_InstConfirmed["✓ [S] Install: Install Confirmed"]:::monitor
         S4_InstConfirmedTask["[T] Conduct install"]:::co
         S4_InstConfirmedNotif["[N] #12 Install Confirmed"]:::co
+        S4_InstCheckMaterial["Check Material Status<br/>24 Hours Before Installation"]:::sibi
 
         %% Cross-stage exit
         S4_Ref_InstallReady[["→ Stage 5: Installation Ready"]]:::subprocess
@@ -480,6 +481,10 @@ flowchart TD
 
         %% CO schedules directly → Confirmed
         S4_InstCOContact --> S4_InstCOSchedules --> S4_InstConfirmed
+
+        %% Check material status 24h before install
+        S4_InstConfirmed --> S4_InstCheckMaterial
+        S4_InstCheckMaterial --> S4_Dec_ReadyForPickup
 
         %% Exit
         S4_ReadyForPickup --> S4_Ref_InstallReady
