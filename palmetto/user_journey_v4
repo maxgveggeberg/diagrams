@@ -597,33 +597,23 @@ flowchart TD
 
         %% Entry
         S6_Created["[S][T][N] Case: Case Created"]:::tetra
-        S6_CreatedTask["[T] Contact customer"]:::co
+        S6_CreatedTask["Contact customer"]:::co
+        S6_UpdateCase["Update case information"]:::co
 
-        S6_InProgress["[S][T] Case: In Progress"]:::co
+        S6_InProgress["[S][T][N] Case: In Progress"]:::co
         S6_InProgressTask["[T] Resolve case"]:::co
 
-        S6_Remind3d["[N] #50 Case Progress Reminder (CO, 3d)"]:::co
-        S6_Remind5d["[N] #51 Case Progress Reminder (HO, 5d)"]:::ho
-        S6_Escalate7d["[N] #52 Case Escalation (Ops, 7d)"]:::tetra
-
-        S6_Resolved["[S] Case: Case Resolved"]:::co
-        S6_ResolvedNotif["[N] #53 Case Resolved (HO + Sales + CO + Ops)"]:::ho
-        S6_PayResumed["[N] #44 Payment Resumed (Sales + Ops + CO)"]:::solar
+        S6_Resolved["Case Resolved"]:::co
 
         S6_Closed["[S] Case: Case Closed"]:::tetra
 
         %% --- FLOW ---
         S6_Created --> S6_CreatedTask
-        S6_CreatedTask --> S6_InProgress
+        S6_CreatedTask --> S6_UpdateCase
+        S6_UpdateCase --> S6_InProgress
         S6_InProgress --> S6_InProgressTask
 
-        S6_InProgress -->|3 days| S6_Remind3d
-        S6_InProgress -->|5 days| S6_Remind5d
-        S6_InProgress -->|7 days| S6_Escalate7d
-
-        S6_InProgress -->|CO + HO confirm resolution| S6_Resolved
-        S6_Resolved --> S6_ResolvedNotif
-        S6_Resolved --> S6_PayResumed
+        S6_InProgress --> S6_Resolved
 
         S6_Resolved --> S6_Closed
     end
