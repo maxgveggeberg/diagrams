@@ -62,14 +62,14 @@ flowchart TD
             S1_PalVerifSubmit["[S] Payment: Verification Submitted"]:::tetra
             S1_PalVerifDec{"Verification<br/>Result?"}:::logic
             S1_PalVerifApproved["[S] Payment: Financing Approved"]:::tetra
-            S1_PalVerifApprovedNotif["[N] #5 Financing Approved"]:::ho
+            S1_PalVerifApprovedNotif["[N] Financing Approved"]:::ho
             S1_PalVerifRejected["[S] Payment: Need More Information"]:::tetra
             S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
-            S1_PalVerifRejNotif["[N] #4 Need More Information"]:::ho
+            S1_PalVerifRejNotif["[N] Need More Information"]:::ho
 
             %% Denied
             S1_PalDenied["[S] Payment: Financing Denied"]:::tetra
-            S1_PalDeniedNotif2["[N] #7 Follow Up (Sales)<br/>⏱ Only if 12h+ after proposal created"]:::solar
+            S1_PalDeniedNotif2["[N] Follow Up (Sales)<br/>⏱ Only if 12h+ after proposal created"]:::solar
             S1_PalDeniedDec{"Alternative<br/>Payment?"}:::logic
 
             %% Upload docs
@@ -167,34 +167,34 @@ flowchart TD
 
         %% #2: Awaiting CO Confirmation
         S2_AwaitCO["[S] Site Visit: Awaiting CO Confirmation"]:::tetra
-        S2_AwaitCONotif["[TN] #9 CO Task: Confirm Time"]:::co
+        S2_AwaitCONotif["[T][N] Confirm Time"]:::sibi
 
         %% CO Selects Time
-        S2_COSelectsTimes["CO Selects from HO Times"]:::co
+        S2_COSelectsTimes["CO Selects from HO Times"]:::sibi
 
         %% #3: Confirm Time
         S2_ConfirmTime["[S] Site Visit: Confirm Time"]:::tetra
-        S2_ConfirmTaskNotif["[T][N] #10 Confirm Appointment"]:::ho
+        S2_ConfirmTaskNotif["[T][N] Confirm Appointment"]:::ho
 
         %% CO Declines
-        S2_CODeclinesAll["CO Declines All"]:::co
+        S2_CODeclinesAll["CO Declines All"]:::sibi
 
         %% Decision Nodes (converted from edge labels)
         S2_HODeclines["HO Declines"]:::ho
         S2_HOConfirms["HO Confirms"]:::ho
-        S2_COSchedules["CO Schedules Directly"]:::co
+        S2_COSchedules["CO Schedules Directly"]:::sibi
 
         %% #4a/4b: CO to Contact Directly
-        S2_COContact["[S] Site Visit: CO to Contact Directly"]:::co
-        S2_COContactTaskNotif["[T][N] #11 Contact HO to Schedule"]:::co
+        S2_COContact["[S] Site Visit: CO to Contact Directly"]:::tetra
+        S2_COContactTaskNotif["[T][N] Contact HO to Schedule"]:::sibi
 
         %% #5a/5b: Site Visit Confirmed
         S2_Confirmed["✓ [S] Site Visit: Site Visit Confirmed"]:::tetra
-        S2_ConfirmedTask["[T] Conduct site visit"]:::co
-        S2_ConfirmedNotif["[N] #12 Site Visit Confirmed"]:::co
+        S2_ConfirmedTask["[T] Conduct site visit"]:::sibi
+        S2_ConfirmedNotif["[N] Site Visit Confirmed"]:::sibi
 
         %% #8: Site Visit Complete
-        S2_COMarksComplete["CO Marks Complete"]:::co
+        S2_COMarksComplete["CO Marks Complete"]:::sibi
         S2_Complete["[S] Site Visit: Site Visit Complete"]:::tetra
         S2_CompleteDec{"Change Order<br/>Required?"}:::logic
 
@@ -202,7 +202,7 @@ flowchart TD
         S2_Deposit["[S] Payment: 30% Deposit"]:::tetra
         S2_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
         S2_DepositFailed["[S] Payment: Deposit Payment Failed"]:::tetra
-        S2_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
+        S2_HOUpdatePayment["[T][N] Update Payment Method"]:::ho
 
         %% Cross-stage exits
         S2_Ref_ChangeOrder[["Stage 3: Change Order"]]:::subprocess
@@ -260,11 +260,11 @@ flowchart TD
 
         %% #1: CO creates change order
         S3_Created["[S] Change Order: Change Order Created"]:::tetra
-        S3_CreatedNotif["[T][N] #17 Change Order Created"]:::solar
+        S3_CreatedNotif["[T][N] Change Order Created"]:::solar
 
         %% #2: Sibi reviews → Sent to HO
         S3_Sent["[S] Change Order: Change Order Sent"]:::tetra
-        S3_SentNotif["[T][N] #18 Sent for Review"]:::ho
+        S3_SentNotif["[T][N] Sent for Review"]:::ho
 
         %% #3: HO Response
         S3_HODeclined["HO Declined"]:::ho
@@ -274,7 +274,7 @@ flowchart TD
 
         %% #4: HO Declines
         S3_Declined["[S] Change Order: Change Order Declined"]:::tetra
-        S3_DeclinedNotif["[N] #20 Declined by HO"]:::solar
+        S3_DeclinedNotif["[N] Declined by HO"]:::solar
 
         %% Project payment method decision
         S3_Dec_ProjectPayment{"Project<br/>Payment Method?"}:::logic
@@ -293,7 +293,7 @@ flowchart TD
 
         %% Shared completion
         S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
-        S3_CompleteNotif["[N] #19 Approved by HO"]:::solar
+        S3_CompleteNotif["[N] Approved by HO"]:::solar
 
         %% #11: Exit to Installation
         S3_Ref_Installation[["→ Stage 4 / Stage 5: Material Ordering & Installation"]]:::subprocess
@@ -377,7 +377,7 @@ flowchart TD
             S4_Deposit["[S] Payment: Collect 30% Deposit"]:::tetra
             S4_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
             S4_DepositFailed["[S] Payment: Deposit Payment Failed"]:::tetra
-            S4_HOUpdatePayment["[T][N] #16 Update Payment Method"]:::ho
+            S4_HOUpdatePayment["[T][N] Update Payment Method"]:::ho
             S4_PaymentApproved["[S] Payment: Approved"]:::tetra
         end
         style S4_PaymentCollection fill:none,stroke:none
@@ -406,36 +406,36 @@ flowchart TD
             S4_InstHOSubmits3["HO Submits 3 Times"]:::ho
 
             S4_InstAwaitCO["[S] Install: Awaiting CO Confirmation"]:::tetra
-            S4_InstAwaitCONotif["[TN] #9 CO Task: Confirm Time"]:::co
+            S4_InstAwaitCONotif["[T][N] Confirm Time"]:::sibi
 
-            S4_InstCOSelectsTimes["CO Selects from HO Times"]:::co
+            S4_InstCOSelectsTimes["CO Selects from HO Times"]:::sibi
 
             S4_InstConfirmTime["[S] Install: Confirm Time"]:::tetra
-            S4_InstConfirmTaskNotif["[T][N] #10 Confirm Appointment"]:::ho
+            S4_InstConfirmTaskNotif["[T][N] Confirm Appointment"]:::ho
 
-            S4_InstCODeclinesAll["CO Declines All"]:::co
+            S4_InstCODeclinesAll["CO Declines All"]:::sibi
 
             S4_InstHODeclines["HO Declines"]:::ho
             S4_InstHOConfirms["HO Confirms"]:::ho
-            S4_InstCOSchedules["CO Schedules Directly"]:::co
+            S4_InstCOSchedules["CO Schedules Directly"]:::sibi
 
             S4_InstCOContact["[S] Install: CO to Contact Directly"]:::tetra
-            S4_InstCOContactTaskNotif["[T][N] #11 Contact HO to Schedule"]:::co
+            S4_InstCOContactTaskNotif["[T][N] Contact HO to Schedule"]:::sibi
 
             S4_InstConfirmed["✓ [S] Install: Install Confirmed"]:::tetra
-            S4_InstConfirmedTask["[T] Conduct install"]:::co
-            S4_InstConfirmedNotif["[N] #12 Install Confirmed"]:::co
+            S4_InstConfirmedTask["[T] Conduct install"]:::sibi
+            S4_InstConfirmedNotif["[N] Install Confirmed"]:::sibi
         end
 
         %% === MATERIAL CHECK & READINESS (Stage 4 level) ===
         S4_InstCheckMaterial["Check Material Status<br/>24 Hours Before Installation"]:::sibi
         S4_Dec_ReadyForPickup{"Material Ready<br/>for Pickup?"}:::logic
-        S4_ReadyForPickup["[S] Material Ordering: Ready for Pickup"]:::sibi
+        S4_ReadyForPickup["[S] Material Ordering: Ready for Pickup"]:::tetra
         S4_RescheduleStatus["[S][T][N] Install: Reschedule"]:::sibi
         S4_RescheduleInstall["Reschedule Installation"]:::sibi
 
         %% Installation Complete
-        S5_InstComplete["Installation Complete"]:::co
+        S5_InstComplete["Installation Complete"]:::sibi
         S5_MarkComplete["Mark Installation Status Complete"]:::sibi
         S5_Complete["[S] Installation: Installation Complete"]:::tetra
 
@@ -505,7 +505,7 @@ flowchart TD
 
         S5_Dec_PayMethod{"Payment<br/>Method?"}:::logic
         S5_UploadQCStatus["[S] Payment: Upload QC Photos"]:::tetra
-        S5_UploadQCTask["[T][N] Upload QC Photos"]:::co
+        S5_UploadQCTask["[T][N] Upload QC Photos"]:::sibi
         S5_Dec_HOApproved{"HO Approved?"}:::logic
         S5_SibiUploadQC["Upload QC Photos"]:::sibi
         S5_SendToPalmetto["Send All Completion Files to Palmetto"]:::tetra
@@ -514,8 +514,8 @@ flowchart TD
         subgraph S5_RejectionLoop[" "]
             S5_SubmissionDenied["Submission Denied"]:::palmetto
             S5_QCRejected["[S] Payment: Palmetto Rejected Submission"]:::tetra
-            S5_QCRejNotif37["[T][N] Payment Denied: Resubmit"]:::co
-            S5_ResolveIssue["Resolve Issue"]:::co
+            S5_QCRejNotif37["[T][N] Payment Denied: Resubmit"]:::sibi
+            S5_ResolveIssue["Resolve Issue"]:::sibi
         end
         style S5_RejectionLoop fill:none,stroke:none
         subgraph S5_PostInstall[" "]
@@ -532,7 +532,7 @@ flowchart TD
             S5_Approved["[S] Installation: Installation Approved"]:::tetra
 
             S5_Declined["[S] Installation: Issue Reported"]:::tetra
-            S5_DeclinedTask["[T][N] Issue Reported"]:::co
+            S5_DeclinedTask["[T][N] Issue Reported"]:::sibi
         end
         style S5_PostInstall fill:none,stroke:none
 
@@ -600,13 +600,13 @@ flowchart TD
         %% Entry
         subgraph S6_CaseFlow[" "]
             S6_Created["[S][T][N] Case: Case Created"]:::tetra
-            S6_CreatedTask["Contact customer"]:::co
-            S6_UpdateCase["Update case information"]:::co
+            S6_CreatedTask["Contact customer"]:::sibi
+            S6_UpdateCase["Update case information"]:::sibi
 
             S6_InProgress["[S] Case: In Progress"]:::tetra
-            S6_InProgressTask["[T][N] Resolve case"]:::co
-            S6_FixIssue["Fix issue"]:::co
-            S6_UpdateResolution["Update case information with resolution"]:::co
+            S6_InProgressTask["[T][N] Resolve case"]:::sibi
+            S6_FixIssue["Fix issue"]:::sibi
+            S6_UpdateResolution["Update case information with resolution"]:::sibi
 
             S6_Resolved["[S] Case: Case Resolved"]:::tetra
         end
