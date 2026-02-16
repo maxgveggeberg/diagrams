@@ -118,17 +118,17 @@ flowchart TD
         S1_Dec_Inventory{"Inventory<br/>Status"}:::logic
 
         S1_CreateDraftOrder["Create Draft Order"]:::tetra
-        S1_UpdateInventory["Update Inventory Status"]:::sibi
+        S1_UpdateInventory["Confirmed"]:::sibi
 
         S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::sibi
 
         S1_ClosedWon --> S1_Dec_Inventory
         S1_Dec_Inventory -- "Out of Stock / Available" --> S1_MaterialOrderStatus
         S1_MaterialOrderStatus --> S1_CreateDraftOrder
-        S1_Dec_ChangeEquip{"Change<br/>Equipment?"}:::logic
+        S1_Dec_ChangeEquip["Change<br/>Equipment"]:::logic
 
         S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::sibi
-        S1_UnavailEquipTask["[T][N] Factory Direct Order"]:::sibi
+        S1_UnavailEquipTask["[T][N] Confirm Factory Direct Order"]:::sibi
 
         S1_Dec_Inventory -- "Unavailable" --> S1_InvUnavailable
         S1_InvUnavailable --> S1_UnavailEquipTask
@@ -140,10 +140,9 @@ flowchart TD
         S1_MaterialOrderUnknown --> S1_CreateDraftOrder
         S1_CancelOrder["Cancel Order"]:::tetra
 
-        S1_Dec_ChangeEquip -- "No" --> S1_UpdateInventory
-        S1_Dec_ChangeEquip -- "Yes" --> S1_CancelOrder
+        S1_Dec_ChangeEquip --> S1_CancelOrder
         S1_CancelOrder --> S1_CreateDraftOrder
-        S1_UpdateInventory --> S1_Dec_Inventory
+        S1_UnavailEquipTask --> S1_UpdateInventory
 
         %% Denied → Closed Lost
         S1_PalDeniedDec -- No --> S1_ClosedLost
