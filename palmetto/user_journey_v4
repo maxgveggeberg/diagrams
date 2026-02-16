@@ -596,16 +596,19 @@ flowchart TD
         direction TB
 
         %% Entry
-        S6_Created["[S][T][N] Case: Case Created"]:::tetra
-        S6_CreatedTask["Contact customer"]:::co
-        S6_UpdateCase["Update case information"]:::co
+        subgraph S6_CaseFlow[" "]
+            S6_Created["[S][T][N] Case: Case Created"]:::tetra
+            S6_CreatedTask["Contact customer"]:::co
+            S6_UpdateCase["Update case information"]:::co
 
-        S6_InProgress["[S] Case: In Progress"]:::co
-        S6_InProgressTask["[T][N] Resolve case"]:::co
-        S6_FixIssue["Fix issue"]:::co
-        S6_UpdateResolution["Update case information with resolution"]:::co
+            S6_InProgress["[S] Case: In Progress"]:::co
+            S6_InProgressTask["[T][N] Resolve case"]:::co
+            S6_FixIssue["Fix issue"]:::co
+            S6_UpdateResolution["Update case information with resolution"]:::co
 
-        S6_Resolved["[S] Case: Case Resolved"]:::co
+            S6_Resolved["[S] Case: Case Resolved"]:::co
+        end
+        style S6_CaseFlow fill:none,stroke:none
         subgraph S6_SatisfactionCheck[" "]
             S6_SatisfiedNotif["[N] Satisfied with case resolution?"]:::ho
             S6_Satisfied["Satisfied with resolution"]:::ho
