@@ -293,7 +293,7 @@ flowchart TD
         S3_NotifyPalmetto["Notify Palmetto"]:::tetra
         S3_PalApproveScope["Approve Updated Project Scope"]:::palmetto
         S3_PalDeclineScope["Decline Updated Project Scope"]:::palmetto
-        S3_PayCOWithCC["Pay for Change Order with Credit Card"]:::ho
+        S3_PayCOWithCC["Pay with Credit Card"]:::ho
 
         %% Shared completion
         S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
