@@ -290,7 +290,7 @@ flowchart TD
         S3_SelectPayment{"Change Order<br/>Payment Method?"}:::logic
         S3_CCRequired["Input Credit Card"]:::ho
         S3_CCCharge["Charge Credit Card"]:::tetra
-        S3_NotifyPalmetto["Notify Palmetto"]:::palmetto
+        S3_NotifyPalmetto["Notify Palmetto"]:::tetra
 
         %% Shared completion
         S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
