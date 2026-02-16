@@ -144,6 +144,10 @@ flowchart TD
         S1_Dec_ChangeEquip --> S1_CreateDraftOrder
         S1_UnavailEquipTask --> S1_UpdateInventory
 
+        S1_UpdateInvStatus["Update Inventory Status"]:::sibi
+        S1_CreateDraftOrder -- "Unknown" --> S1_UpdateInvStatus
+        S1_UpdateInvStatus --> S1_Dec_Inventory
+
         %% Denied → Closed Lost
         S1_PalDeniedDec -- No --> S1_ClosedLost
 
