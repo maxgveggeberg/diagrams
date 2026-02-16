@@ -333,7 +333,7 @@ flowchart TD
         S3_CantAfford["Can't Afford"]:::ho
         S3_CashLease -- "Approved" --> S3_UpdateProjectScope
         S3_CashLease -- "Denied" --> S3_Dec_PayWithCC
-        S3_CashLease -- "Can't Afford" --> S3_CantAfford
+        S3_CashLease -- "Denied" --> S3_CantAfford
         S3_CantAfford --> S3_Declined
         S3_Dec_PayWithCC --> S3_UpdateProjectScope
 
