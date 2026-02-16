@@ -510,7 +510,7 @@ flowchart TD
         S5_PaySubmitted["[S] Payment: Submitted"]:::tetra
 
         S5_QCDec{"QC Photos<br/>Verified?"}:::logic
-        S5_QCRejected["[S] Installation: Palmetto Rejected Submission"]:::palmetto
+        S5_QCRejected["[S] Payment: Palmetto Rejected Submission"]:::palmetto
         S5_QCRejNotif37["[T][N] Payment Denied: Resubmit"]:::co
         S5_Approve["[T][N] Approve Installation"]:::ho
         %% === 3.x POST-INSTALL ===
