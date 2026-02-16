@@ -509,7 +509,7 @@ flowchart TD
         S5_SendToPalmetto["Send All Completion Files to Palmetto"]:::tetra
         S5_PaySubmitted["[S] Payment: Submitted"]:::tetra
 
-        S5_QCDec{"QC Photos<br/>Verified?"}:::logic
+        S5_SubmissionDenied["Submission Denied"]:::palmetto
         S5_QCRejected["[S] Payment: Palmetto Rejected Submission"]:::palmetto
         S5_QCRejNotif37["[T][N] Payment Denied: Resubmit"]:::co
         S5_Approve["[T][N] Approve Installation"]:::ho
@@ -539,8 +539,8 @@ flowchart TD
         S5_UploadQCTask --> S5_SibiUploadQC
         S5_SibiUploadQC --> S5_Dec_HOApproved
         S5_SendToPalmetto --> S5_PaySubmitted
-        S5_PaySubmitted --> S5_QCDec
-        S5_QCDec -- "Submission Denied" --> S5_QCRejected
+        S5_PaySubmitted --> S5_SubmissionDenied
+        S5_SubmissionDenied --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
         %% --- 3.x POST-INSTALL FLOW ---
         S5_Approve --> S5_HOApproves
