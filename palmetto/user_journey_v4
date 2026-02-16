@@ -55,6 +55,7 @@ flowchart TD
             S1_PalInputApplicants["[A] Input Applicants"]:::ho
             S1_PalSubmitToPalmetto["[A] Submit to Palmetto for Approval"]:::tetra
             S1_PalSubmit["[S] Payment: Financing Submitted"]:::tetra
+            S1_PalSubmitTaskNotif["[T][N] Await Financing Decision"]:::palmetto
             S1_PalCondApproved["[A] Conditionally Approved"]:::palmetto
             S1_PalDecDenied["[A] Denied"]:::palmetto
 
@@ -85,8 +86,9 @@ flowchart TD
         S1_SelectLease --> S1_PalInputApplicants
         S1_PalInputApplicants --> S1_PalSubmitToPalmetto
         S1_PalSubmitToPalmetto --> S1_PalSubmit
-        S1_PalSubmit --> S1_PalCondApproved
-        S1_PalSubmit --> S1_PalDecDenied
+        S1_PalSubmit --> S1_PalSubmitTaskNotif
+        S1_PalSubmitTaskNotif --> S1_PalCondApproved
+        S1_PalSubmitTaskNotif --> S1_PalDecDenied
 
         %% Conditional
         S1_PalCondApproved --> S1_PalConditional
@@ -195,8 +197,7 @@ flowchart TD
 
         %% #5a/5b: Site Visit Confirmed
         S2_Confirmed["✓ [S] Site Visit: Site Visit Confirmed"]:::tetra
-        S2_ConfirmedTask["[T] Conduct site visit"]:::sibi
-        S2_ConfirmedNotif["[N] Site Visit Confirmed"]:::sibi
+        S2_ConfirmedTaskNotif["[T][N] Conduct Site Visit"]:::sibi
 
         %% #8: Site Visit Complete
         S2_COMarksComplete["[A] CO Marks Complete"]:::sibi
@@ -219,26 +220,26 @@ flowchart TD
         S2_AwaitCO --> S2_AwaitCONotif
 
         %% CO selects time
-        S2_AwaitCO --> S2_COSelectsTimes
+        S2_AwaitCONotif --> S2_COSelectsTimes
         S2_COSelectsTimes --> S2_ConfirmTime
         S2_ConfirmTime --> S2_ConfirmTaskNotif
 
         %% CO declines → fallback
-        S2_AwaitCO --> S2_CODeclinesAll --> S2_COContact
+        S2_AwaitCONotif --> S2_CODeclinesAll --> S2_COContact
         S2_COContact --> S2_COContactTaskNotif
 
         %% HO declines confirmed time → fallback
-        S2_ConfirmTime --> S2_HODeclines --> S2_COContact
+        S2_ConfirmTaskNotif --> S2_HODeclines --> S2_COContact
 
         %% HO confirms → Confirmed
-        S2_ConfirmTime --> S2_HOConfirms --> S2_Confirmed
-        S2_Confirmed --> S2_ConfirmedTask --> S2_ConfirmedNotif
+        S2_ConfirmTaskNotif --> S2_HOConfirms --> S2_Confirmed
+        S2_Confirmed --> S2_ConfirmedTaskNotif
 
         %% CO schedules directly → Confirmed
-        S2_COContact --> S2_COSchedules --> S2_Confirmed
+        S2_COContactTaskNotif --> S2_COSchedules --> S2_Confirmed
 
         %% Complete
-        S2_Confirmed --> S2_COMarksComplete --> S2_Complete
+        S2_ConfirmedTaskNotif --> S2_COMarksComplete --> S2_Complete
         S2_Complete --> S2_CompleteDec
 
         %% Branch: Change Order or Install
@@ -424,8 +425,7 @@ flowchart TD
             S4_InstCOContactTaskNotif["[T][N] Contact HO to Schedule"]:::sibi
 
             S4_InstConfirmed["✓ [S] Install: Install Confirmed"]:::tetra
-            S4_InstConfirmedTask["[T] Conduct install"]:::sibi
-            S4_InstConfirmedNotif["[N] Install Confirmed"]:::sibi
+            S4_InstConfirmedTaskNotif["[T][N] Conduct Install"]:::sibi
         end
 
         %% === MATERIAL CHECK & READINESS (Stage 4 level) ===
@@ -470,26 +470,26 @@ flowchart TD
         S4_InstAwaitCO --> S4_InstAwaitCONotif
 
         %% CO selects time
-        S4_InstAwaitCO --> S4_InstCOSelectsTimes
+        S4_InstAwaitCONotif --> S4_InstCOSelectsTimes
         S4_InstCOSelectsTimes --> S4_InstConfirmTime
         S4_InstConfirmTime --> S4_InstConfirmTaskNotif
 
         %% CO declines → fallback
-        S4_InstAwaitCO --> S4_InstCODeclinesAll --> S4_InstCOContact
+        S4_InstAwaitCONotif --> S4_InstCODeclinesAll --> S4_InstCOContact
         S4_InstCOContact --> S4_InstCOContactTaskNotif
 
         %% HO declines confirmed time → fallback
-        S4_InstConfirmTime --> S4_InstHODeclines --> S4_InstCOContact
+        S4_InstConfirmTaskNotif --> S4_InstHODeclines --> S4_InstCOContact
 
         %% HO confirms → Confirmed
-        S4_InstConfirmTime --> S4_InstHOConfirms --> S4_InstConfirmed
-        S4_InstConfirmed --> S4_InstConfirmedTask --> S4_InstConfirmedNotif
+        S4_InstConfirmTaskNotif --> S4_InstHOConfirms --> S4_InstConfirmed
+        S4_InstConfirmed --> S4_InstConfirmedTaskNotif
 
         %% CO schedules directly → Confirmed
-        S4_InstCOContact --> S4_InstCOSchedules --> S4_InstConfirmed
+        S4_InstCOContactTaskNotif --> S4_InstCOSchedules --> S4_InstConfirmed
 
         %% Check material status 24h before install
-        S4_InstConfirmed --> S4_InstCheckMaterial
+        S4_InstConfirmedTaskNotif --> S4_InstCheckMaterial
         S4_InstCheckMaterial --> S4_Dec_ReadyForPickup
 
         %% Install Complete flow
@@ -553,13 +553,14 @@ flowchart TD
         S5_UploadQCTask --> S5_SibiUploadQC
         S5_SibiUploadQC --> S5_Dec_HOApproved
         S5_SendToPalmetto --> S5_PaySubmitted
-        S5_PaySubmitted --> S5_SubmissionApproved["[A] Submission Approved"]:::palmetto
+        S5_PaySubmitted --> S5_PaySubmittedTaskNotif["[T][N] Await Submission Review"]:::palmetto
+        S5_PaySubmittedTaskNotif --> S5_SubmissionApproved["[A] Submission Approved"]:::palmetto
         S5_SubmissionApproved --> S5_FundsReleased["[A] Funds Released"]:::palmetto
         S5_FundsReleased --> S5_FundsReceived["[A] Funds Received"]:::palmetto
         S5_FundsReceived --> S5_PayReceived["[S] Payment: Payment Received"]:::tetra
         S5_PayReceived --> S5_Payment["[A] Payment Released"]:::tetra
         S5_Payment --> S5_PayComplete["[S] Payment: Payment Complete"]:::tetra
-        S5_PaySubmitted --> S5_SubmissionDenied
+        S5_PaySubmittedTaskNotif --> S5_SubmissionDenied
         S5_SubmissionDenied --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
         S5_QCRejNotif37 --> S5_ResolveIssue
