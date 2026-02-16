@@ -288,12 +288,7 @@ flowchart TD
 
         %% Payment paths
         S3_SelectPayment{"Change Order<br/>Payment Method?"}:::logic
-        S3_CCRequired["Input Credit Card"]:::ho
-        S3_CCCharge["Charge Credit Card"]:::tetra
         S3_NotifyPalmetto["Notify Palmetto"]:::tetra
-        S3_PalDeclineScope["Decline Updated Project Scope"]:::palmetto
-        S3_PayCOWithCC["Pay with Credit Card"]:::ho
-        S3_HOUnableToPay["HO Unable to Pay for Change Order"]:::ho
 
         %% Shared completion
         S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
@@ -345,19 +340,9 @@ flowchart TD
         S3_Declined --> S3_DeclinedNotif
         S3_DeclinedNotif --> S3_Cancelled
 
-        %% Credit card path
-        S3_SelectPayment -- "Credit Card" --> S3_CCRequired
-        S3_CCRequired --> S3_CCCharge
-        S3_CCCharge --> S3_UpdateProjectScope
-
         %% Lease approved
         S3_SelectPayment -- "Lease" --> S3_NotifyPalmetto
         S3_NotifyPalmetto --> S3_CashLease
-        S3_NotifyPalmetto --> S3_PalDeclineScope
-        S3_PalDeclineScope --> S3_PayCOWithCC
-        S3_PalDeclineScope --> S3_HOUnableToPay
-        S3_PayCOWithCC --> S3_CCRequired
-        S3_HOUnableToPay --> S3_Dec_Required
 
         %% Update scope → completion
         S3_UpdateProjectScope --> S3_Complete
