@@ -358,9 +358,9 @@ flowchart TD
     end
 
     %% =============================================================
-    %% STAGE 4: MATERIAL ORDERING
+    %% STAGE 4: INSTALL PREP
     %% =============================================================
-    subgraph Stage4_MaterialOrdering["STAGE 4: MATERIAL ORDERING"]
+    subgraph Stage4_MaterialOrdering["STAGE 4: INSTALL PREP"]
         direction TB
 
         %% === PAYMENT COLLECTION (invisible subgraph) ===
@@ -497,55 +497,6 @@ flowchart TD
     subgraph Stage5_Installation["STAGE 5: INSTALLATION"]
         direction TB
 
-        %% Entry
-        S5_Backref_SiteVisit[["Stage 4 / Stage 5: Order Material & Install"]]:::subprocess
-
-        %% === FINANCING GATE ===
-        S5_FinGate{"Financing<br/>Approved?"}:::logic
-        S5_FinBlocked["⛔ Blocked: Awaiting Financing Approval"]:::terminator
-
-        S5_Backref_SiteVisit --> S5_FinGate
-        S5_FinGate -- "Yes / Cash" --> S5_SelectDates
-        S5_FinGate -- "No (non-cash)" --> S5_FinBlocked
-
-        %% === 1.x SCHEDULING ===
-        S5_SelectDates["[S][T] Installation: Select Preferred Install Dates"]:::ho
-        S5_SelectDatesNotif["[N] #28 Select Install Dates"]:::ho
-        S5_SelectExpiry{"Days > 7<br/>no dates?"}:::logic
-        S5_SelectRemind["[N] Remind HO"]:::ho
-
-        S5_AwaitCO["[S] Installation: Awaiting CO Confirmation"]:::monitor
-        S5_AwaitCOTask["[T] Confirm install date"]:::co
-        S5_AwaitCONotif["[N] #29 CO Task: Confirm Date"]:::co
-        S5_AwaitCOExpiry{"Hours > 24<br/>no selection?"}:::logic
-        S5_AwaitCORemind["[N] Remind CO"]:::co
-
-        S5_ConfirmDate["[S][T] Installation: Confirm Install Date"]:::ho
-        S5_ConfirmDateNotif["[N] #30 Confirm Your Install Date"]:::ho
-        S5_ConfirmExpiry{"Hours > 48<br/>no confirm?"}:::logic
-        S5_ConfirmRemind["[N] Remind HO"]:::ho
-
-        S5_COContact["[S][T] Installation: CO to Contact Directly"]:::co
-        S5_COContactNotif["[N] #31 CO Task: Contact to Schedule"]:::co
-        S5_COContactExpiry{"Hours > 48<br/>no date?"}:::logic
-
-        S5_DateConfirmed["✓ [S] Installation: Install Date Confirmed"]:::monitor
-        S5_DateConfirmedNotif["[N] #32 Install Date Confirmed"]:::co
-
-        S5_Unresponsive["[S][T] Installation: Unresponsive"]:::tetra
-        S5_UnrespNotif["[N] #54 HO Unresponsive"]:::solar
-        S5_UnrespExpiry{"Days > 5?"}:::logic
-        S5_UnrespEscalate["[N] #55 Escalation to Ops"]:::tetra
-
-        %% 1.8: Installation Ready (GATE)
-        S5_Dec_Gate{"Install Date +<br/>Material Ready?"}:::logic
-        S5_Ready["✓ [S][T] Installation: Installation Ready"]:::monitor
-        S5_ReadyTask["[T] Complete installation"]:::co
-        S5_ReadyNotif["[N] #35 Material Check (2d before)"]:::co
-
-        S5_ReminderDayBeforeHO["[N] #33 Day Before (HO)"]:::ho
-        S5_ReminderDayBeforeCO["[N] #34 Day Before (CO)"]:::co
-
         %% === 2.x EXECUTION ===
         S5_Complete["[S] Installation: Installation Complete"]:::co
 
@@ -572,61 +523,11 @@ flowchart TD
         S5_DeclinedNotif1["[N] #40 Issue Reported"]:::co
         S5_DeclinedNotif2["[N] #43 Payment Paused (Sales + Ops + CO)"]:::solar
 
-        S5_InstUnresponsive["[S] Installation: CO Unresponsive"]:::tetra
-        S5_InstUnrespNotif36["[N] #36 Reminder: Complete Install"]:::co
-        S5_InstUnrespExpiry{"Days > 3?"}:::logic
-        S5_InstUnrespEsc["[N] Escalate to Ops"]:::tetra
-
         %% Cross-stage exits
         S5_Ref_Payment[["→ Stage 7: Payment"]]:::subprocess
         S5_Ref_Case[["→ Stage 6: Case"]]:::subprocess
-        S5_Ref_MaterialOrder[["→ Stage 4: Material Ordering"]]:::subprocess
-        S5_Ref_MaterialGate[["← Stage 4: Material Ready"]]:::subprocess
-
-        %% --- 1.x SCHEDULING FLOW ---
-        %% (Entry routing handled by Financing Gate above)
-        S5_SelectDates --> S5_SelectDatesNotif
-        S5_SelectDates --> S5_SelectExpiry
-        S5_SelectExpiry -- Yes --> S5_SelectRemind
-
-        S5_SelectDates -->|HO submits dates| S5_AwaitCO
-        S5_AwaitCO --> S5_AwaitCOTask --> S5_AwaitCONotif
-        S5_AwaitCO --> S5_AwaitCOExpiry
-        S5_AwaitCOExpiry -- Yes --> S5_AwaitCORemind
-
-        S5_AwaitCO -->|CO selects from HO dates| S5_ConfirmDate
-        S5_ConfirmDate --> S5_ConfirmDateNotif
-        S5_ConfirmDate --> S5_ConfirmExpiry
-        S5_ConfirmExpiry -- Yes --> S5_ConfirmRemind
-
-        S5_AwaitCO -->|CO declines / 24h timeout| S5_COContact
-        S5_COContact --> S5_COContactNotif
-        S5_COContact --> S5_COContactExpiry
-
-        S5_ConfirmDate -->|HO confirms| S5_DateConfirmed
-        S5_DateConfirmed --> S5_DateConfirmedNotif
-
-        S5_ConfirmDate -->|HO declines / 48h timeout| S5_COContact
-
-        S5_COContact -->|CO schedules directly| S5_DateConfirmed
-
-        S5_COContactExpiry -- Yes --> S5_Unresponsive
-        S5_Unresponsive --> S5_UnrespNotif
-        S5_UnrespNotif --> S5_UnrespExpiry
-        S5_UnrespExpiry -- Yes --> S5_UnrespEscalate
-
-        %% Gate
-        S5_DateConfirmed --> S5_Dec_Gate
-        S5_Ref_MaterialGate --> S5_Dec_Gate
-        S5_Dec_Gate -- "Both ready" --> S5_Ready
-        S5_Ready --> S5_ReadyTask --> S5_ReadyNotif
-
-        S5_DateConfirmed -.-> S5_Ref_MaterialOrder
-        S5_DateConfirmed --> S5_ReminderDayBeforeHO
-        S5_DateConfirmed --> S5_ReminderDayBeforeCO
 
         %% --- 2.x EXECUTION FLOW ---
-        S5_Ready -->|CO completes install| S5_Complete
         S5_Complete --> S5_QCDec
         S5_QCDec -- No --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
@@ -651,11 +552,6 @@ flowchart TD
         S5_Declined --> S5_DeclinedNotif1
         S5_Declined --> S5_DeclinedNotif2
         S5_DeclinedNotif2 --> S5_Ref_Case
-
-        S5_DateConfirmed -->|Install date passed + not complete| S5_InstUnresponsive
-        S5_InstUnresponsive --> S5_InstUnrespNotif36
-        S5_InstUnresponsive --> S5_InstUnrespExpiry
-        S5_InstUnrespExpiry -- Yes --> S5_InstUnrespEsc
     end
 
     %% =============================================================
