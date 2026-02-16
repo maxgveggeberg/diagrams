@@ -34,17 +34,20 @@ flowchart TD
 
         %% --- Entry ---
         S1_Entry["[S] Sales: Quote Created"]:::tetra
-        S1_SelectEquip["[A] Select Equipment"]:::solar
-        S1_Entry --> S1_SelectEquip --> S1_Dec_Payment
+        S1_SelectEquip["[A] Select Equipment"]:::ho
+        S1_Entry --> S1_SelectEquip
+        S1_SelectEquip --> S1_SelectCash
+        S1_SelectEquip --> S1_SelectLease
 
         %% --- Payment Method Decision ---
-        S1_Dec_Payment["Select Payment<br/>Method"]:::logic
+        S1_SelectCash["[A] Select Cash as Payment Method"]:::ho
+        S1_SelectLease["[A] Select Lease as Payment Method"]:::ho
 
         %% --- CASH PATH ---
         subgraph S1_Cash["Cash"]
             S1_CashInputCC["[A] Input Credit Card Info"]:::ho
         end
-        S1_Dec_Payment -- Cash --> S1_CashInputCC
+        S1_SelectCash --> S1_CashInputCC
         S1_CashInputCC --> S1_ClosedWon
 
         %% --- LEASE PATH (Palmetto) ---
@@ -78,7 +81,7 @@ flowchart TD
 
         end
 
-        S1_Dec_Payment -- Palmetto --> S1_PalInputApplicants
+        S1_SelectLease --> S1_PalInputApplicants
         S1_PalInputApplicants --> S1_PalSubmitToPalmetto
         S1_PalSubmitToPalmetto --> S1_PalSubmit
         S1_PalSubmit --> S1_PalDec
