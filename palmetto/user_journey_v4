@@ -504,7 +504,7 @@ flowchart TD
         S5_Dec_PayMethod{"Payment<br/>Method?"}:::logic
         S5_UploadQCStatus["[S] Payment: Upload QC Photos"]:::co
         S5_UploadQCTask["[T][N] Upload QC Photos"]:::co
-        S5_WaitingHOApproval["[S] Payment: Waiting for HO Approval"]:::ho
+        S5_Dec_HOApproved{"HO Approved?"}:::logic
         S5_SibiUploadQC["Upload QC Photos"]:::sibi
         S5_SendToPalmetto["Send All Completion Files to Palmetto"]:::tetra
         S5_PaySubmitted["[S] Payment: Submitted"]:::tetra
@@ -515,16 +515,15 @@ flowchart TD
         S5_Approve["[T][N] Approve Installation"]:::ho
         %% === 3.x POST-INSTALL ===
         S5_HOApproves["HO Approves Installation"]:::ho
+        S5_CSATSurvey["Fills out CSAT Survey"]:::ho
         S5_Dec_HOApproval["HO Reports Issue"]:::ho
 
         S5_Approved["[S] Installation: Installation Approved"]:::solar
-        S5_ApprovedNotif["[N] #39 Installation Approved (Sales + Ops)"]:::solar
 
         S5_Declined["[S] Installation: Issue Reported"]:::ho
         S5_DeclinedTask["[T][N] Issue Reported"]:::co
 
         %% Cross-stage exits
-        S5_Ref_Payment[["→ Stage 7: Payment"]]:::subprocess
         S5_Ref_Case[["→ Stage 6: Case"]]:::subprocess
 
         %% --- FLOW ---
@@ -539,10 +538,10 @@ flowchart TD
         %% --- 3.x POST-INSTALL FLOW ---
         S5_Approve --> S5_HOApproves
         S5_HOApproves --> S5_Approved
+        S5_HOApproves --> S5_CSATSurvey
         S5_Approve --> S5_Dec_HOApproval
 
-        S5_Approved --> S5_ApprovedNotif
-        S5_ApprovedNotif --> S5_Ref_Payment
+        S5_Approved --> S5_Dec_HOApproved
 
         S5_Dec_HOApproval --> S5_Declined
         S5_Declined --> S5_DeclinedTask
