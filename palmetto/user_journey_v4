@@ -115,36 +115,33 @@ flowchart TD
 
         S1_PalConditional --> S1_ClosedWon
 
-        S1_Dec_Inventory{"Inventory<br/>Status"}:::logic
+        subgraph S1_InventoryFlow[" "]
+            S1_Dec_Inventory{"Inventory<br/>Status"}:::logic
+            S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::sibi
+            S1_Dec_ChangeEquip["Select Comparable<br/>Available Equipment"]:::sibi
+            S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::sibi
+            S1_UnavailEquipTask["[T][N] Confirm Factory Direct Order"]:::sibi
+            S1_MaterialOrderUnknown["[S] Material Ordering: Unknown"]:::sibi
+            S1_UpdateInvStatus["Update Inventory Status"]:::sibi
 
-        subgraph S1_ConfirmedGroup[" "]
-            S1_UpdateInventory["Confirmed"]:::sibi
-            S1_CreateDraftOrder["Create Draft Order"]:::tetra
+            subgraph S1_ConfirmedGroup[" "]
+                S1_UpdateInventory["Confirmed"]:::sibi
+                S1_CreateDraftOrder["Create Draft Order"]:::tetra
+            end
+            style S1_ConfirmedGroup fill:none,stroke:none
         end
-        style S1_ConfirmedGroup fill:none,stroke:none
-
-        S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::sibi
+        style S1_InventoryFlow fill:none,stroke:none
 
         S1_ClosedWon --> S1_Dec_Inventory
         S1_Dec_Inventory -- "Out of Stock / Available" --> S1_MaterialOrderStatus
         S1_MaterialOrderStatus --> S1_CreateDraftOrder
-        S1_Dec_ChangeEquip["Select Comparable<br/>Available Equipment"]:::sibi
-
-        S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::sibi
-        S1_UnavailEquipTask["[T][N] Confirm Factory Direct Order"]:::sibi
-
         S1_Dec_Inventory -- "Unavailable" --> S1_InvUnavailable
         S1_InvUnavailable --> S1_UnavailEquipTask
         S1_UnavailEquipTask --> S1_Dec_ChangeEquip
-
-        S1_MaterialOrderUnknown["[S] Material Ordering: Unknown"]:::sibi
-
         S1_Dec_Inventory -- "Unknown" --> S1_MaterialOrderUnknown
         S1_MaterialOrderUnknown --> S1_CreateDraftOrder
         S1_Dec_ChangeEquip --> S1_CreateDraftOrder
         S1_UnavailEquipTask --> S1_UpdateInventory
-
-        S1_UpdateInvStatus["Update Inventory Status"]:::sibi
         S1_CreateDraftOrder -- "Unknown" --> S1_UpdateInvStatus
         S1_UpdateInvStatus --> S1_Dec_Inventory
 
