@@ -554,6 +554,8 @@ flowchart TD
         S5_SubmissionApproved --> S5_FundsReleased["Funds Released"]:::palmetto
         S5_FundsReleased --> S5_FundsReceived["Funds Received"]:::palmetto
         S5_FundsReceived --> S5_PayReceived["[S] Payment: Payment Received"]:::tetra
+        S5_PayReceived --> S5_Payment["Payment"]:::tetra
+        S5_Payment --> S5_PayComplete["[S] Payment: Payment Complete"]:::tetra
         S5_PaySubmitted --> S5_SubmissionDenied
         S5_SubmissionDenied --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
