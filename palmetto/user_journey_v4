@@ -264,7 +264,7 @@ flowchart TD
 
         %% #2: Sibi reviews → Sent to HO
         S3_Sent["[S] Change Order: Change Order Sent"]:::tetra
-        S3_SentNotif["[T][N] Sent for Review"]:::ho
+        S3_SentNotif["[T][N] Review Change Order"]:::ho
 
         %% #3: HO Response
         S3_HOApproved["HO Approved"]:::ho
@@ -309,7 +309,7 @@ flowchart TD
         %% Sibi Approves paths
         S3_SibiContactsHO["Contact HO Directly"]:::sibi
         S3_SendToSales["Sends to Sales Rep"]:::sibi
-        S3_SalesReviewCO["[T][N] Review Change Order"]:::ho
+        S3_SalesReviewCO["[T][N] Review Change Order"]:::solar
         S3_SalesContactsHO["Sales Sends to HO"]:::solar
 
         %% Exits
