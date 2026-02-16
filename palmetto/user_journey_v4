@@ -402,6 +402,9 @@ flowchart TD
         %% #1: Order Pending
         S4_Pending["[S] Material Ordering: Order Pending"]:::sibi
 
+        %% Install scheduled decision
+        S4_Dec_InstallScheduled{"Install<br/>Scheduled?"}:::logic
+
         %% Cross-stage exit
         S4_Ref_InstallReady[["→ Stage 5: Installation Ready"]]:::subprocess
 
@@ -410,6 +413,7 @@ flowchart TD
         S4_Deposit --> S4_DepositPayDec
         S4_DepositPayDec -- Yes --> S4_PaymentApproved
         S4_PaymentApproved --> S4_Dec_Inventory
+        S4_PaymentApproved --> S4_Dec_InstallScheduled
         S4_DepositPayDec -- No --> S4_DepositFailed
         S4_DepositFailed --> S4_HOUpdatePayment
         S4_HOUpdatePayment --> S4_Deposit
