@@ -330,7 +330,7 @@ flowchart TD
         S3_Dec_ProjectPayment -- "Cash" --> S3_Dec_ChangePayMethod
         S3_Dec_ChangePayMethod -- No --> S3_UpdateProjectScope
         S3_Dec_ChangePayMethod -- Yes --> S3_CashLease
-        S3_CantAfford["Can't Afford"]:::ho
+        S3_CantAfford["[A] Can't Afford"]:::ho
         S3_CashLease -- "Approved" --> S3_UpdateProjectScope
         S3_CashLease -- "Denied" --> S3_Dec_PayWithCC
         S3_CashLease -- "Denied" --> S3_CantAfford
@@ -389,8 +389,8 @@ flowchart TD
             S4_FactoryDirectStatus["[S] Material Ordering: Place Factory Direct Order"]:::tetra
             S4_FactoryDirect["[T][N] Place Factory Direct Order"]:::sibi
             S4_FactoryDirectUpdate["[S] Material Ordering: Sibi Manually Update Status"]:::tetra
-            S4_OosConvertOrder["Convert Draft Order to Order"]:::tetra
-            S4_OosUpdateStatus["Sibi Updates Material Ordering Status via API"]:::sibi
+            S4_OosConvertOrder["[A] Convert Draft Order to Order"]:::tetra
+            S4_OosUpdateStatus["[A] Sibi Updates Material Ordering Status via API"]:::sibi
             S4_Pending["[S] Material Ordering: Order Pending"]:::tetra
         end
 
@@ -399,21 +399,21 @@ flowchart TD
             S4_Dec_InstallScheduled{"Install<br/>Scheduled?"}:::logic
 
             S4_InstSelectTimes["[S][T] Install: Select Preferred Times"]:::ho
-            S4_InstHOSubmits3["HO Submits 3 Times"]:::ho
+            S4_InstHOSubmits3["[A] HO Submits 3 Times"]:::ho
 
             S4_InstAwaitCO["[S] Install: Awaiting CO Confirmation"]:::tetra
             S4_InstAwaitCONotif["[T][N] Confirm Time"]:::sibi
 
-            S4_InstCOSelectsTimes["CO Selects from HO Times"]:::sibi
+            S4_InstCOSelectsTimes["[A] CO Selects from HO Times"]:::sibi
 
             S4_InstConfirmTime["[S] Install: Confirm Time"]:::tetra
             S4_InstConfirmTaskNotif["[T][N] Confirm Appointment"]:::ho
 
-            S4_InstCODeclinesAll["CO Declines All"]:::sibi
+            S4_InstCODeclinesAll["[A] CO Declines All"]:::sibi
 
-            S4_InstHODeclines["HO Declines"]:::ho
-            S4_InstHOConfirms["HO Confirms"]:::ho
-            S4_InstCOSchedules["CO Schedules Directly"]:::sibi
+            S4_InstHODeclines["[A] HO Declines"]:::ho
+            S4_InstHOConfirms["[A] HO Confirms"]:::ho
+            S4_InstCOSchedules["[A] CO Schedules Directly"]:::sibi
 
             S4_InstCOContact["[S] Install: CO to Contact Directly"]:::tetra
             S4_InstCOContactTaskNotif["[T][N] Contact HO to Schedule"]:::sibi
@@ -424,15 +424,15 @@ flowchart TD
         end
 
         %% === MATERIAL CHECK & READINESS (Stage 4 level) ===
-        S4_InstCheckMaterial["Check Material Status<br/>24 Hours Before Install"]:::sibi
+        S4_InstCheckMaterial["[A] Check Material Status<br/>24 Hours Before Install"]:::sibi
         S4_Dec_ReadyForPickup{"Material Ready<br/>for Pickup?"}:::logic
         S4_ReadyForPickup["[S] Material Ordering: Ready for Pickup"]:::tetra
         S4_RescheduleStatus["[S][T][N] Install: Reschedule"]:::sibi
-        S4_RescheduleInstall["Reschedule Install"]:::sibi
+        S4_RescheduleInstall["[A] Reschedule Install"]:::sibi
 
         %% Install Complete
-        S5_InstComplete["Install Complete"]:::sibi
-        S5_MarkComplete["Mark Install Status Complete"]:::sibi
+        S5_InstComplete["[A] Install Complete"]:::sibi
+        S5_MarkComplete["[A] Mark Install Status Complete"]:::sibi
         S5_Complete["[S] Install: Install Complete"]:::tetra
 
         %% --- FLOW ---
@@ -503,27 +503,27 @@ flowchart TD
         S5_UploadQCStatus["[S] Payment: Upload QC Photos"]:::tetra
         S5_UploadQCTask["[T][N] Upload QC Photos"]:::sibi
         S5_Dec_HOApproved{"HO Approved?"}:::logic
-        S5_SibiUploadQC["Upload QC Photos"]:::sibi
-        S5_SendToPalmetto["Send All Completion Files to Palmetto"]:::tetra
+        S5_SibiUploadQC["[A] Upload QC Photos"]:::sibi
+        S5_SendToPalmetto["[A] Send All Completion Files to Palmetto"]:::tetra
         S5_PaySubmitted["[S] Payment: Submitted"]:::tetra
 
         subgraph S5_RejectionLoop[" "]
-            S5_SubmissionDenied["Submission Denied"]:::palmetto
+            S5_SubmissionDenied["[A] Submission Denied"]:::palmetto
             S5_QCRejected["[S] Payment: Palmetto Rejected Submission"]:::tetra
             S5_QCRejNotif37["[T][N] Payment Denied: Resubmit"]:::sibi
-            S5_ResolveIssue["Resolve Issue"]:::sibi
+            S5_ResolveIssue["[A] Resolve Issue"]:::sibi
         end
         style S5_RejectionLoop fill:none,stroke:none
         subgraph S5_PostInstall[" "]
             S5_Approve["[T][N] Approve Install"]:::ho
-            S5_HOUnresponsive["HO Unresponsive"]:::ho
+            S5_HOUnresponsive["[A] HO Unresponsive"]:::ho
             S5_UnresponsiveStatus["[S] Install: Unresponsive"]:::tetra
             S5_ReminderApprove["[N] Reminder: Approve Install"]:::ho
-            S5_ManualUpdate["Manually Update Status"]:::sibi
+            S5_ManualUpdate["[A] Manually Update Status"]:::sibi
             %% === 3.x POST-INSTALL ===
-            S5_HOApproves["HO Approves Install"]:::ho
-            S5_CSATSurvey["Fills out CSAT Survey"]:::ho
-            S5_Dec_HOApproval["HO Reports Issue"]:::ho
+            S5_HOApproves["[A] HO Approves Install"]:::ho
+            S5_CSATSurvey["[A] Fills out CSAT Survey"]:::ho
+            S5_Dec_HOApproval["[A] HO Reports Issue"]:::ho
 
             S5_Approved["[S] Install: Install Approved"]:::tetra
 
@@ -533,7 +533,7 @@ flowchart TD
         style S5_PostInstall fill:none,stroke:none
 
         %% Cash payment path
-        S5_WithdrawCC["Withdraw Remaining Balance from Credit Card"]:::tetra
+        S5_WithdrawCC["[A] Withdraw Remaining Balance from Credit Card"]:::tetra
         S5_Dec_CashPaySuccess{"Payment<br/>Successful?"}:::logic
         S5_CashPayFailed["[S] Payment: Payment Failed"]:::tetra
         S5_CashUpdatePay["[T][N] Update Payment Method"]:::ho
@@ -548,11 +548,11 @@ flowchart TD
         S5_UploadQCTask --> S5_SibiUploadQC
         S5_SibiUploadQC --> S5_Dec_HOApproved
         S5_SendToPalmetto --> S5_PaySubmitted
-        S5_PaySubmitted --> S5_SubmissionApproved["Submission Approved"]:::palmetto
-        S5_SubmissionApproved --> S5_FundsReleased["Funds Released"]:::palmetto
-        S5_FundsReleased --> S5_FundsReceived["Funds Received"]:::palmetto
+        S5_PaySubmitted --> S5_SubmissionApproved["[A] Submission Approved"]:::palmetto
+        S5_SubmissionApproved --> S5_FundsReleased["[A] Funds Released"]:::palmetto
+        S5_FundsReleased --> S5_FundsReceived["[A] Funds Received"]:::palmetto
         S5_FundsReceived --> S5_PayReceived["[S] Payment: Payment Received"]:::tetra
-        S5_PayReceived --> S5_Payment["Payment Released"]:::tetra
+        S5_PayReceived --> S5_Payment["[A] Payment Released"]:::tetra
         S5_Payment --> S5_PayComplete["[S] Payment: Payment Complete"]:::tetra
         S5_PaySubmitted --> S5_SubmissionDenied
         S5_SubmissionDenied --> S5_QCRejected
@@ -582,7 +582,7 @@ flowchart TD
         S5_Dec_CashPaySuccess -- "Yes" --> S5_PayReceived
         S5_Dec_CashPaySuccess -- "No" --> S5_CashPayFailed
         S5_CashPayFailed --> S5_CashUpdatePay
-        S5_CashUpdatePay --> S5_UpdateCC["Update Credit Card"]:::ho
+        S5_CashUpdatePay --> S5_UpdateCC["[A] Update Credit Card"]:::ho
         S5_UpdateCC --> S5_WithdrawCC
         S5_Dec_HOApproved -- "No" --> S5_Ref_Case
     end
@@ -596,23 +596,23 @@ flowchart TD
         %% Entry
         subgraph S6_CaseFlow[" "]
             S6_Created["[S][T][N] Case: Case Created"]:::tetra
-            S6_CreatedTask["Contact customer"]:::sibi
-            S6_UpdateCase["Update case information"]:::sibi
+            S6_CreatedTask["[A] Contact customer"]:::sibi
+            S6_UpdateCase["[A] Update case information"]:::sibi
 
             S6_InProgress["[S] Case: In Progress"]:::tetra
             S6_InProgressTask["[T][N] Resolve case"]:::sibi
-            S6_FixIssue["Fix issue"]:::sibi
-            S6_UpdateResolution["Update case information with resolution"]:::sibi
+            S6_FixIssue["[A] Fix issue"]:::sibi
+            S6_UpdateResolution["[A] Update case information with resolution"]:::sibi
 
             S6_Resolved["[S] Case: Case Resolved"]:::tetra
         end
         style S6_CaseFlow fill:none,stroke:none
         subgraph S6_SatisfactionCheck[" "]
             S6_SatisfiedNotif["[N] Satisfied with case resolution?"]:::ho
-            S6_Satisfied["Satisfied with resolution"]:::ho
-            S6_NotSatisfied["Not satisfied with resolution"]:::ho
+            S6_Satisfied["[A] Satisfied with resolution"]:::ho
+            S6_NotSatisfied["[A] Not satisfied with resolution"]:::ho
             S6_NotSatisfiedTask["[T][N] HO not satisfied with resolution"]:::ho
-            S6_Unresponsive["Unresponsive"]:::ho
+            S6_Unresponsive["[A] Unresponsive"]:::ho
         end
         style S6_SatisfactionCheck fill:none,stroke:none
         S6_Closed["[S] Case: Case Closed"]:::tetra
