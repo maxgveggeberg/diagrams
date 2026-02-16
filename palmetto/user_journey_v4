@@ -530,6 +530,7 @@ flowchart TD
         S5_Dec_PayMethod -- "Lease" --> S5_UploadQCStatus
         S5_UploadQCStatus --> S5_UploadQCTask
         S5_UploadQCTask --> S5_SibiUploadQC
+        S5_SibiUploadQC --> S5_Dec_HOApproved
         S5_SibiUploadQC --> S5_SendToPalmetto
         S5_SendToPalmetto --> S5_PaySubmitted
         S5_PaySubmitted --> S5_QCDec
