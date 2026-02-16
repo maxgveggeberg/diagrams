@@ -605,11 +605,13 @@ flowchart TD
 
         S6_Resolved["Case Resolved"]:::co
 
-        S6_Closed["[S] Case: Case Closed"]:::tetra
+        S6_Resolved["[S] Case: Case Resolved"]:::co
         S6_SatisfiedNotif["[N] Satisfied with case resolution?"]:::ho
         S6_Satisfied["Satisfied with resolution"]:::ho
         S6_NotSatisfied["Not satisfied with resolution"]:::ho
+        S6_NotSatisfiedTask["[T][N] HO not satisfied with resolution"]:::ho
         S6_Unresponsive["Unresponsive"]:::ho
+        S6_Closed["[S] Case: Case Closed"]:::tetra
 
         %% --- FLOW ---
         S6_Created --> S6_CreatedTask
@@ -619,11 +621,14 @@ flowchart TD
 
         S6_InProgress --> S6_Resolved
 
-        S6_Resolved --> S6_Closed
-        S6_Closed --> S6_SatisfiedNotif
+        S6_Resolved --> S6_SatisfiedNotif
         S6_SatisfiedNotif --> S6_Satisfied
         S6_SatisfiedNotif --> S6_NotSatisfied
         S6_SatisfiedNotif --> S6_Unresponsive
+        S6_Satisfied --> S6_Closed
+        S6_Unresponsive --> S6_Closed
+        S6_NotSatisfied --> S6_NotSatisfiedTask
+        S6_NotSatisfiedTask --> S6_InProgress
     end
 
     %% =============================================================
