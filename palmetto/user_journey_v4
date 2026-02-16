@@ -117,8 +117,11 @@ flowchart TD
 
         S1_Dec_Inventory{"Inventory<br/>Status"}:::logic
 
-        S1_CreateDraftOrder["Create Draft Order"]:::tetra
-        S1_UpdateInventory["Confirmed"]:::sibi
+        subgraph S1_ConfirmedGroup[" "]
+            S1_UpdateInventory["Confirmed"]:::sibi
+            S1_CreateDraftOrder["Create Draft Order"]:::tetra
+        end
+        style S1_ConfirmedGroup fill:none,stroke:none
 
         S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::sibi
 
