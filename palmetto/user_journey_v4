@@ -273,26 +273,26 @@ flowchart TD
         %% HO Declined → Required?
         S3_Dec_Required{"Required?"}:::logic
 
-        %% HO Approved → Project payment method
+        %% #4: HO Declines
+        S3_Declined["[S] Change Order: Change Order Declined"]:::tetra
+        S3_DeclinedNotif["[N] Declined by HO"]:::solar
+
+        %% Project payment method decision
         S3_Dec_ProjectPayment{"Project<br/>Payment Method?"}:::logic
 
-        %% Lease: HO selects CO payment
-        S3_SelectCOPayment["Select CO Payment"]:::ho
-        S3_NotifyPalmetto["Notify Palmetto"]:::palmetto
-        S3_LeaseApproval[["Lease Approval"]]:::subprocess
-
-        %% Lease denied → Required?
-        S3_Dec_RequiredLease{"Required?"}:::logic
-        S3_LeaseDeniedStatus["[S] Change Order: Lease Denied"]:::tetra
-        S3_ChangeOrderDeclined["[S] Change Order: Change Order Declined"]:::tetra
-
-        %% Convergence: CC payment
-        S3_PayWithCC["Pay with Credit Card"]:::ho
+        %% Cash path
+        S3_Dec_ChangePayMethod{"Change Payment<br/>Method?"}:::logic
+        S3_CashLease[["Lease Approval"]]:::subprocess
+        S3_Dec_PayWithCC["Pay with Credit Card"]:::ho
         S3_UpdateProjectScope["Update Project Scope"]:::tetra
+
+        %% Payment paths
+        S3_SelectPayment{"Change Order<br/>Payment Method?"}:::logic
+        S3_NotifyPalmetto["Notify Palmetto"]:::tetra
 
         %% Shared completion
         S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
-        S3_CompleteNotif["[N] Change Order Complete"]:::solar
+        S3_CompleteNotif["[N] Approved by HO"]:::solar
 
         %% #11: Exit to Install
         S3_Ref_Install[["→ Stage 4 / Stage 5: Material Ordering & Install"]]:::subprocess
@@ -324,39 +324,31 @@ flowchart TD
         S3_SpeaksContractor --> S3_CBCancels --> S3_CBCancelledStatus --> S3_Ref_OrderMatInstall
         S3_Sent --> S3_SentNotif
 
-        %% === HO DECIDES ===
-        S3_SentNotif --> S3_HOApproved
-        S3_SentNotif --> S3_HODeclined
+        %% HO decides
+        S3_SentNotif --> S3_HOApproved --> S3_Dec_ProjectPayment
+        S3_Dec_ProjectPayment -- "Lease" --> S3_SelectPayment
+        S3_Dec_ProjectPayment -- "Cash" --> S3_Dec_ChangePayMethod
+        S3_Dec_ChangePayMethod -- No --> S3_UpdateProjectScope
+        S3_Dec_ChangePayMethod -- Yes --> S3_CashLease
+        S3_CantAfford["Can't Afford"]:::ho
+        S3_CashLease -- "Approved" --> S3_UpdateProjectScope
+        S3_CashLease -- "Denied" --> S3_Dec_PayWithCC
+        S3_CashLease -- "Can't Afford" --> S3_CantAfford
+        S3_CantAfford --> S3_Declined
+        S3_Dec_PayWithCC --> S3_UpdateProjectScope
 
-        %% === HO DECLINED PATH ===
-        S3_HODeclined --> S3_Dec_Required
+        S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
         S3_Dec_Required -- No --> S3_Complete
-        S3_Dec_Required -- Yes --> S3_Cancelled
+        S3_Dec_Required -- Yes --> S3_Declined
+        S3_Declined --> S3_DeclinedNotif
+        S3_DeclinedNotif --> S3_Cancelled
 
-        %% === HO APPROVED PATH ===
-        S3_HOApproved --> S3_Dec_ProjectPayment
+        %% Lease approved
+        S3_SelectPayment -- "Lease" --> S3_NotifyPalmetto
+        S3_NotifyPalmetto --> S3_CashLease
 
-        %% Cash project → pay with credit card
-        S3_Dec_ProjectPayment -- Cash --> S3_PayWithCC
-
-        %% Lease project → HO selects how to pay for the change order
-        S3_Dec_ProjectPayment -- Lease --> S3_SelectCOPayment
-        S3_SelectCOPayment -- "Cash" --> S3_PayWithCC
-        S3_SelectCOPayment -- "Update Lease" --> S3_NotifyPalmetto
-
-        %% Credit card → update scope → complete (convergence point)
-        S3_PayWithCC --> S3_UpdateProjectScope
+        %% Update scope → completion
         S3_UpdateProjectScope --> S3_Complete
-
-        %% Lease update path
-        S3_NotifyPalmetto --> S3_LeaseApproval
-        S3_LeaseApproval -- Approved --> S3_UpdateProjectScope
-        S3_LeaseApproval -- Denied --> S3_Dec_RequiredLease
-        S3_Dec_RequiredLease -- No --> S3_Complete
-        S3_Dec_RequiredLease -- Yes --> S3_LeaseDeniedStatus
-        S3_LeaseDeniedStatus -- "Pay with CC" --> S3_PayWithCC
-        S3_LeaseDeniedStatus -- "Unable to Pay" --> S3_ChangeOrderDeclined
-        S3_ChangeOrderDeclined --> S3_Cancelled
 
         %% Shared completion
         S3_Complete --> S3_CompleteNotif
