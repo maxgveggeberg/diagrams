@@ -606,11 +606,14 @@ flowchart TD
         S6_UpdateResolution["Update case information with resolution"]:::co
 
         S6_Resolved["[S] Case: Case Resolved"]:::co
-        S6_SatisfiedNotif["[N] Satisfied with case resolution?"]:::ho
-        S6_Satisfied["Satisfied with resolution"]:::ho
-        S6_NotSatisfied["Not satisfied with resolution"]:::ho
-        S6_NotSatisfiedTask["[T][N] HO not satisfied with resolution"]:::ho
-        S6_Unresponsive["Unresponsive"]:::ho
+        subgraph S6_SatisfactionCheck[" "]
+            S6_SatisfiedNotif["[N] Satisfied with case resolution?"]:::ho
+            S6_Satisfied["Satisfied with resolution"]:::ho
+            S6_NotSatisfied["Not satisfied with resolution"]:::ho
+            S6_NotSatisfiedTask["[T][N] HO not satisfied with resolution"]:::ho
+            S6_Unresponsive["Unresponsive"]:::ho
+        end
+        style S6_SatisfactionCheck fill:none,stroke:none
         S6_Closed["[S] Case: Case Closed"]:::tetra
 
         %% --- FLOW ---
