@@ -483,8 +483,6 @@ flowchart TD
 
         %% Check material status 24h before install
         S4_InstConfirmed --> S4_InstCheckMaterial
-        S4_InstCheckMaterial --> S4_Dec_ReadyForPickup
-
         %% Exit
         S4_ReadyForPickup --> S4_Ref_InstallReady
     end
