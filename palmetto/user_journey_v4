@@ -504,6 +504,7 @@ flowchart TD
         S5_Dec_PayMethod{"Payment<br/>Method?"}:::logic
         S5_UploadQCStatus["[S] Payment: Upload QC Photos"]:::co
         S5_UploadQCTask["[T][N] Upload QC Photos"]:::co
+        S5_WaitingHOApproval["[S] Payment: Waiting for HO Approval"]:::ho
         S5_SibiUploadQC["Upload QC Photos"]:::sibi
         S5_SendToPalmetto["Send All Completion Files to Palmetto"]:::tetra
         S5_PaySubmitted["[S] Payment: Submitted"]:::tetra
@@ -512,13 +513,12 @@ flowchart TD
         S5_QCRejected["[S] Installation: QC Rejected"]:::tetra
         S5_QCRejNotif37["[N] #37 Resubmit (CO)"]:::co
         S5_Approve["[S][T] Installation: Approve Installation"]:::ho
-        S5_ApproveNotif["[N] #38 Approve Installation"]:::ho
         %% === 3.x POST-INSTALL ===
-        S5_Dec_HOApproval{"HO Approves<br/>Installation?"}:::logic
+        S5_HOApproves["HO Approves Installation"]:::ho
+        S5_Dec_HOApproval["HO Reports Issue"]:::ho
 
         S5_Approved["[S] Installation: Installation Approved"]:::solar
         S5_ApprovedNotif["[N] #39 Installation Approved (Sales + Ops)"]:::solar
-        S5_Survey["[N] #41 Survey (3d after)"]:::ho
 
         S5_Declined["[S] Installation: Declined"]:::ho
         S5_DeclinedTask["[T] Contact customer (CO via case)"]:::co
@@ -532,22 +532,23 @@ flowchart TD
         %% --- FLOW ---
         S5_Dec_PayMethod -- "Lease" --> S5_UploadQCStatus
         S5_UploadQCStatus --> S5_UploadQCTask
+        S5_UploadQCTask --> S5_WaitingHOApproval
+        S5_WaitingHOApproval --> S5_Approve
         S5_UploadQCTask --> S5_SibiUploadQC
         S5_SibiUploadQC --> S5_SendToPalmetto
         S5_SendToPalmetto --> S5_PaySubmitted
         S5_PaySubmitted --> S5_QCDec
         S5_QCDec -- No --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
-        S5_Approve --> S5_ApproveNotif
         %% --- 3.x POST-INSTALL FLOW ---
+        S5_Approve --> S5_HOApproves
+        S5_HOApproves --> S5_Approved
         S5_Approve --> S5_Dec_HOApproval
 
-        S5_Dec_HOApproval -- Yes --> S5_Approved
         S5_Approved --> S5_ApprovedNotif
-        S5_Approved -->|3 days later| S5_Survey
         S5_ApprovedNotif --> S5_Ref_Payment
 
-        S5_Dec_HOApproval -- No --> S5_Declined
+        S5_Dec_HOApproval --> S5_Declined
         S5_Declined --> S5_DeclinedTask
         S5_Declined --> S5_DeclinedNotif1
         S5_Declined --> S5_DeclinedNotif2
