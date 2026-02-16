@@ -628,6 +628,7 @@ flowchart TD
         S6_FixIssue --> S6_UpdateResolution
         S6_UpdateResolution --> S6_Resolved
 
+        S6_CaseFlow ~~~ S6_SatisfactionCheck
         S6_Resolved --> S6_SatisfiedNotif
         S6_SatisfiedNotif --> S6_Satisfied
         S6_SatisfiedNotif --> S6_NotSatisfied
@@ -635,6 +636,7 @@ flowchart TD
         S6_Satisfied --> S6_Closed
         S6_Unresponsive --> S6_Closed
         S6_NotSatisfied --> S6_NotSatisfiedTask
+        S6_NotSatisfiedTask --> S6_InProgress
     end
 
     %% =============================================================
