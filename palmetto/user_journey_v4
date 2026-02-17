@@ -54,8 +54,10 @@ flowchart TD
         subgraph S1_Palmetto["Palmetto (Lease)"]
             S1_PalInputApplicants["[A] Input Applicants"]:::ho
             S1_PalSubmitToPalmetto["[A] Submit to Palmetto for Approval"]:::tetra
-            S1_PalSubmit["[S] Payment: Financing Submitted"]:::tetra
+            S1_PalSubmit["[A] Financing Response"]:::palmetto
             S1_PalUnderReview["[A] Under Review"]:::palmetto
+            S1_PalUnderReviewStatus["[S] Payment: Under Review"]:::tetra
+            S1_PalUpdateStatus["[A] Update Status"]:::palmetto
             S1_PalCondApproved["[A] Conditionally Approved"]:::palmetto
             S1_PalDecDenied["[A] Denied"]:::palmetto
 
@@ -89,6 +91,10 @@ flowchart TD
         S1_PalSubmit --> S1_PalUnderReview
         S1_PalSubmit --> S1_PalCondApproved
         S1_PalSubmit --> S1_PalDecDenied
+        S1_PalUnderReview --> S1_PalUnderReviewStatus
+        S1_PalUnderReviewStatus --> S1_PalUpdateStatus
+        S1_PalUpdateStatus --> S1_PalCondApproved
+        S1_PalUpdateStatus --> S1_PalDecDenied
 
         %% Conditional
         S1_PalCondApproved --> S1_PalConditional
