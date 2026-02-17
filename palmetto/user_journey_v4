@@ -58,6 +58,7 @@ flowchart TD
             S1_PalUnderReview["[A] Under Review"]:::palmetto
             S1_PalUnderReviewStatus["[S] Payment: Under Review"]:::tetra
             S1_PalUpdateStatus["[A] Update Status"]:::palmetto
+            S1_PalStatusUpdatedNotif["[N] Your Status Has Been Updated"]:::ho
             S1_PalCondApproved["[A] Conditionally Approved"]:::palmetto
             S1_PalDecDenied["[A] Denied"]:::palmetto
 
@@ -93,8 +94,9 @@ flowchart TD
         S1_PalSubmit --> S1_PalDecDenied
         S1_PalUnderReview --> S1_PalUnderReviewStatus
         S1_PalUnderReviewStatus --> S1_PalUpdateStatus
-        S1_PalUpdateStatus --> S1_PalCondApproved
-        S1_PalUpdateStatus --> S1_PalDecDenied
+        S1_PalUpdateStatus --> S1_PalStatusUpdatedNotif
+        S1_PalStatusUpdatedNotif --> S1_PalCondApproved
+        S1_PalStatusUpdatedNotif --> S1_PalDecDenied
 
         %% Conditional
         S1_PalCondApproved --> S1_PalConditional
