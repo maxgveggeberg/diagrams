@@ -58,7 +58,7 @@ flowchart TD
             S1_PalSubmitToPalmetto["[A] Submit to Palmetto for Approval"]:::tetra
             S1_PalSubmit["[A] Financing Response"]:::palmetto
             S1_PalUnderReview["[A] Under Review"]:::palmetto
-            S1_PalUnderReviewStatus["[S] Payment: Under Review"]:::tetra
+            S1_PalUnderReviewStatus["[S] Payment: Under Review<br/>EXP: 72 hours"]:::tetra
             S1_PalUpdateStatus["[A] Update Status"]:::palmetto
             S1_PalStatusUpdatedNotif["[N] Your Status Has Been Updated"]:::ho
             S1_PalCondApproved["[A] Conditionally Approved"]:::palmetto
@@ -139,7 +139,7 @@ flowchart TD
         subgraph S1_InventoryFlow[" "]
             S1_Dec_Inventory{"Inventory<br/>Status"}:::logic
             S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::tetra
-            S1_MaterialOrderUnknown["[S] Material Ordering: Unknown"]:::tetra
+            S1_MaterialOrderUnknown["[S] Material Ordering: Unknown<br/>EXP: 24 hours"]:::tetra
             S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::tetra
             S1_UnavailEquipTask["[N] Place Factory Direct Order"]:::sibi
             S1_UpdateInvStatus["[A] Update Inventory Status"]:::sibi
@@ -178,12 +178,12 @@ flowchart TD
         direction TB
 
         %% #1: Select Preferred Times
-        S2_SelectTimes["[S] Site Visit: Select Preferred Times"]:::ho
+        S2_SelectTimes["[S] Site Visit: Select Preferred Times<br/>EXP: 24 hours"]:::ho
         S2_SelectTimesTask["[T] Select Preferred Times"]:::ho
         S2_HOSubmits3["[A] HO Submits 3 Times"]:::ho
 
         %% #2: Awaiting CO Confirmation
-        S2_AwaitCO["[S] Site Visit: Waiting for CO Confirmation"]:::tetra
+        S2_AwaitCO["[S] Site Visit: Waiting for CO Confirmation<br/>EXP: 12 hours before first appointment or 2 business days"]:::tetra
         S2_AwaitCONotif["[T] Confirm Time"]:::sibi
         S2_AwaitCON["[N] HO submitted preferred times"]:::sibi
 
@@ -204,12 +204,12 @@ flowchart TD
         S2_COSchedules["[A] CO Schedules Directly"]:::sibi
 
         %% #4a/4b: CO to Contact Directly
-        S2_COContact["[S] Site Visit: CO to Contact Directly"]:::tetra
+        S2_COContact["[S] Site Visit: CO to Contact Directly<br/>EXP: 24 hours"]:::tetra
         S2_COContactTaskNotif["[T] Contact HO to Schedule"]:::sibi
         S2_COContactN["[N] Contact HO to schedule directly"]:::sibi
 
         %% #5a/5b: Site Visit Confirmed
-        S2_Confirmed["✓ [S] Site Visit: Site Visit Confirmed"]:::tetra
+        S2_Confirmed["✓ [S] Site Visit: Site Visit Confirmed<br/>EXP: 6 hours after scheduled site visit time"]:::tetra
         S2_ConfirmedTaskNotif["[T] Conduct Site Visit"]:::sibi
         S2_ConfirmedN["[N] Site visit confirmed"]:::sibi
 
@@ -221,14 +221,15 @@ flowchart TD
         %% #9: 30% Deposit (Cash projects)
         S2_Deposit["[A] Withdraw Payment from Credit Card on File"]:::tetra
         S2_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
-        S2_DepositFailed["[S] Payment: Deposit Payment Failed"]:::tetra
+        S2_DepositFailed["[S] Payment: Deposit Payment Failed<br/>EXP: 24 hours"]:::tetra
         S2_HOUpdatePayment["[T] Update Payment Method"]:::ho
         S2_UpdatePayN["[N] Payment failed — update payment method"]:::ho
 
         %% Cross-stage exits
         S2_Ref_ChangeOrder[["Stage 3: Change Order"]]:::subprocess
         S2_Dec_Schedule{"Schedule Site Visit<br/>On Site?"}:::logic
-        S2_InstScheduled["[S][N] Install: Scheduled"]:::monitor
+        S2_InstScheduled["[S] Install: Scheduled"]:::monitor
+        S2_InstScheduled_Notif["[N] Install: Scheduled"]:::monitor
 
         %% --- FLOW ---
         S2_SelectTimes --> S2_SelectTimesTask --> S2_HOSubmits3 --> S2_AwaitCO
@@ -276,6 +277,7 @@ flowchart TD
 
         %% Schedule Site Visit decision
         S2_Dec_Schedule -- "Yes" --> S2_InstScheduled
+        S2_InstScheduled --> S2_InstScheduled_Notif
         S2_Ref_Stage4[["Stage 4"]]:::subprocess
         S2_Dec_Schedule -- "No" --> S2_Ref_Stage4
     end
@@ -287,7 +289,7 @@ flowchart TD
         direction TB
 
         %% #1: CO creates change order
-        S3_Created["[S] Change Order: Change Order Created"]:::tetra
+        S3_Created["[S] Change Order: Change Order Created<br/>EXP: Next business day"]:::tetra
         S3_CreatedNotif["[T] Review Change Order"]:::sibi
         S3_CreatedN["[N] Change order created"]:::sibi
 
@@ -329,7 +331,7 @@ flowchart TD
 
         %% Paths from Created
         S3_SendToSales["[A] Decide to Send to Sales Rep"]:::sibi
-        S3_SalesContactsHO["[S] Sales Rep Contacts HO"]:::tetra
+        S3_SalesContactsHO["[S] Sales Rep Contacts HO<br/>EXP: 2 business days"]:::tetra
         S3_SalesReviewCO["[T] Review Change Order"]:::solar
         S3_SalesReviewN["[N] Change order needs Sales review"]:::solar
         S3_ChangeStatusSent["[A] Change Status to Sent to HO"]:::solar
@@ -397,9 +399,9 @@ flowchart TD
             S4_FinBlocked["⛔ Blocked: Awaiting Financing Approval"]:::terminator
 
             %% === 30% DEPOSIT (Cash projects) ===
-            S4_Deposit["[S] Payment: Collect 30% Deposit"]:::tetra
+            S4_Deposit["[S] Payment: Collect 30% Deposit<br/>EXP: 3 days"]:::tetra
             S4_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
-            S4_DepositFailed["[S] Payment: Deposit Payment Failed"]:::tetra
+            S4_DepositFailed["[S] Payment: Deposit Payment Failed<br/>EXP: 3 days"]:::tetra
             S4_HOUpdatePayment["[T] Update Payment Method"]:::ho
             S4_UpdatePayN["[N] Payment failed — update payment method"]:::ho
             S4_PaymentApproved["[S] Payment: Approved"]:::tetra
@@ -414,29 +416,30 @@ flowchart TD
         %% === MATERIAL ORDERING SUBGRAPH ===
         subgraph S4_MaterialOrdering["Material Ordering"]
             S4_Dec_Inventory{"Inventory<br/>Status"}:::logic
-            S4_FactoryDirectStatus["[S] Material Ordering: Place Factory Direct Order"]:::tetra
+            S4_FactoryDirectStatus["[S] Material Ordering: Place Factory Direct Order<br/>EXP: Next business day"]:::tetra
             S4_FactoryDirect["[T] Place Factory Direct Order"]:::sibi
             S4_FactoryDirectN["[N] Place factory direct order"]:::sibi
-            S4_FactoryDirectUpdate["[S] Material Ordering: Sibi Manually Update Status"]:::tetra
+            S4_FactoryDirectUpdate["[S] Material Ordering: Sibi Manually Update Status<br/>EXP: 5 business days"]:::tetra
             S4_OosConvertOrder["[A] Convert Draft Order to Order"]:::tetra
             S4_OosUpdateStatus["[A] Sibi Updates Material Ordering Status via API"]:::sibi
-            S4_Pending["[S] Material Ordering: Order Pending"]:::tetra
+            S4_Pending["[S] Material Ordering: Order Pending<br/>EXP: 23 hours before install date"]:::tetra
         end
 
         %% === INSTALL SCHEDULING SUBGRAPH ===
         subgraph S4_InstallScheduling["Install Scheduling"]
             S4_Dec_InstallScheduled{"Install<br/>Scheduled?"}:::logic
 
-            S4_InstSelectTimes["[S][T] Install: Select Preferred Times"]:::ho
+            S4_InstSelectTimes["[S] Install: Select Preferred Times<br/>EXP: 5 days"]:::ho
+            S4_InstSelectTimes_Task["[T] Select Preferred Times"]:::ho
             S4_InstHOSubmits3["[A] HO Submits 3 Times"]:::ho
 
-            S4_InstAwaitCO["[S] Install: Awaiting CO Confirmation"]:::tetra
+            S4_InstAwaitCO["[S] Install: Awaiting CO Confirmation<br/>EXP: 24 hours"]:::tetra
             S4_InstAwaitCONotif["[T] Confirm Time"]:::sibi
             S4_InstAwaitCON["[N] HO submitted install times — confirm one"]:::sibi
 
             S4_InstCOSelectsTimes["[A] CO Selects from HO Times"]:::sibi
 
-            S4_InstConfirmTime["[S] Install: Confirm Time"]:::tetra
+            S4_InstConfirmTime["[S] Install: Confirm Time<br/>EXP: 3 days"]:::tetra
             S4_InstConfirmTaskNotif["[T] Confirm Appointment"]:::ho
             S4_InstConfirmN["[N] CO selected an install time — please confirm"]:::ho
 
@@ -446,11 +449,11 @@ flowchart TD
             S4_InstHOConfirms["[A] HO Confirms"]:::ho
             S4_InstCOSchedules["[A] CO Schedules Directly"]:::sibi
 
-            S4_InstCOContact["[S] Install: CO to Contact Directly"]:::tetra
+            S4_InstCOContact["[S] Install: CO to Contact Directly<br/>EXP: 48 hours"]:::tetra
             S4_InstCOContactTaskNotif["[T] Contact HO to Schedule"]:::sibi
             S4_InstCOContactN["[N] Contact HO to schedule directly"]:::sibi
 
-            S4_InstConfirmed["✓ [S] Install: Install Confirmed"]:::tetra
+            S4_InstConfirmed["✓ [S] Install: Install Confirmed<br/>EXP: After install date passes"]:::tetra
             S4_InstConfirmedTaskNotif["[T] Conduct Install"]:::sibi
             S4_InstConfirmedN["[N] Install confirmed"]:::sibi
         end
@@ -459,7 +462,7 @@ flowchart TD
         S4_InstCheckMaterial["[A] Check Material Status<br/>24 Hours Before Install"]:::sibi
         S4_Dec_ReadyForPickup{"Material Ready<br/>for Pickup?"}:::logic
         S4_ReadyForPickup["[S] Material Ordering: Ready for Pickup"]:::tetra
-        S4_RescheduleStatus["[S] Install: Reschedule"]:::sibi
+        S4_RescheduleStatus["[S] Install: Reschedule<br/>EXP: 48 hours"]:::sibi
         S4_RescheduleTask["[T] Reschedule Install"]:::sibi
         S4_RescheduleN["[N] Material not ready — reschedule install"]:::sibi
         S4_RescheduleInstall["[A] Reschedule Install"]:::sibi
@@ -498,7 +501,8 @@ flowchart TD
 
         %% === INSTALL SCHEDULING FLOW (No path from Install Scheduled?) ===
         S4_Dec_InstallScheduled -- "No" --> S4_InstSelectTimes
-        S4_InstSelectTimes --> S4_InstHOSubmits3 --> S4_InstAwaitCO
+        S4_InstSelectTimes --> S4_InstSelectTimes_Task
+        S4_InstSelectTimes_Task --> S4_InstHOSubmits3 --> S4_InstAwaitCO
         S4_InstAwaitCO --> S4_InstAwaitCONotif
         S4_InstAwaitCONotif --> S4_InstAwaitCON
 
@@ -541,17 +545,17 @@ flowchart TD
         direction TB
 
         S5_Dec_PayMethod{"Payment<br/>Method?"}:::logic
-        S5_UploadQCStatus["[S] Payment: Upload QC Photos"]:::tetra
+        S5_UploadQCStatus["[S] Payment: Upload QC Photos<br/>EXP: 24 hours"]:::tetra
         S5_UploadQCTask["[T] Upload QC Photos"]:::sibi
         S5_UploadQCN["[N] Upload QC photos for Palmetto review"]:::sibi
         S5_Dec_HOApproved{"HO Approved?"}:::logic
         S5_SibiUploadQC["[A] Upload QC Photos"]:::sibi
         S5_SendToPalmetto["[A] Send All Completion Files to Palmetto"]:::tetra
-        S5_PaySubmitted["[S] Payment: Submitted"]:::tetra
+        S5_PaySubmitted["[S] Payment: Submitted<br/>EXP: 48 hours"]:::tetra
 
         subgraph S5_RejectionLoop[" "]
             S5_SubmissionDenied["[A] Submission Denied"]:::palmetto
-            S5_QCRejected["[S] Payment: Palmetto Rejected Submission"]:::tetra
+            S5_QCRejected["[S] Payment: Palmetto Rejected Submission<br/>EXP: 24 hours"]:::tetra
             S5_QCRejNotif37["[T] Payment Denied: Resubmit"]:::sibi
             S5_QCRejN["[N] Submission rejected — resubmit"]:::sibi
             S5_ResolveIssue["[A] Resolve Issue"]:::sibi
@@ -561,7 +565,7 @@ flowchart TD
             S5_Approve["[T] Approve Install"]:::ho
             S5_ApproveN["[N] Install marked complete"]:::ho
             S5_HOUnresponsive["[A] HO Unresponsive"]:::ho
-            S5_UnresponsiveStatus["[S] Install: Unresponsive"]:::tetra
+            S5_UnresponsiveStatus["[S] Install: Unresponsive<br/>EXP: 3 days"]:::tetra
             S5_ReminderApprove["[N] Reminder: Approve Install"]:::ho
             S5_ManualUpdate["[A] Manually Update Status"]:::sibi
             %% === 3.x POST-INSTALL ===
@@ -571,7 +575,7 @@ flowchart TD
 
             S5_Approved["[S] Install: Install Approved"]:::tetra
 
-            S5_Declined["[S] Install: Issue Reported"]:::tetra
+            S5_Declined["[S] Install: Issue Reported<br/>EXP: 24 hours"]:::tetra
             S5_DeclinedTask["[T] Issue Reported — investigate"]:::sibi
             S5_DeclinedN["[N] Issue reported by HO"]:::sibi
         end
@@ -580,7 +584,7 @@ flowchart TD
         %% Cash payment path
         S5_WithdrawCC["[A] Withdraw Remaining Balance from Credit Card"]:::tetra
         S5_Dec_CashPaySuccess{"Payment<br/>Successful?"}:::logic
-        S5_CashPayFailed["[S] Payment: Payment Failed"]:::tetra
+        S5_CashPayFailed["[S] Payment: Payment Failed<br/>EXP: 24 hours"]:::tetra
         S5_CashUpdatePay["[T] Update Payment Method"]:::ho
         S5_CashUpdateN["[N] Payment failed — update payment method"]:::ho
 
@@ -649,18 +653,18 @@ flowchart TD
 
         %% Entry
         subgraph S6_CaseFlow[" "]
-            S6_Created["[S] Case: Case Created"]:::tetra
+            S6_Created["[S] Case: Case Created<br/>EXP: 24 hours"]:::tetra
             S6_CreatedN["[N] Case created"]:::tetra
             S6_CreatedTask["[A] Contact customer"]:::sibi
             S6_UpdateCase["[A] Update case information"]:::sibi
 
-            S6_InProgress["[S] Case: In Progress"]:::tetra
+            S6_InProgress["[S] Case: In Progress<br/>EXP: 3 days"]:::tetra
             S6_InProgressTask["[T] Resolve case"]:::sibi
             S6_InProgressN["[N] Case in progress — investigating"]:::ho
             S6_FixIssue["[A] Fix issue"]:::sibi
             S6_UpdateResolution["[A] Update case information with resolution"]:::sibi
 
-            S6_Resolved["[S] Case: Case Resolved"]:::tetra
+            S6_Resolved["[S] Case: Case Resolved<br/>EXP: 5 days"]:::tetra
         end
         style S6_CaseFlow fill:none,stroke:none
         subgraph S6_SatisfactionCheck[" "]
