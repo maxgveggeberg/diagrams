@@ -66,12 +66,13 @@ flowchart TD
 
             %% Conditional Approval
             S1_PalConditional["[S] Payment: Conditionally Approved"]:::tetra
+            S1_PalCondNotif["[N] Payment: Conditionally Approved<br/>⏱ If 12h+ after proposal created"]:::solar
             S1_PalCondTask["[T] Submit Verification Docs"]:::ho
 
             %% Verification flow
             S1_PalVerifSubmit["[S] Payment: Verification Submitted"]:::tetra
             S1_PalVerifDec{"Verification<br/>Result?"}:::logic
-            S1_PalVerifApproved["[S] Payment: Financing Approved"]:::tetra
+            S1_PalVerifApproved(["[S] Payment: Financing Approved"]):::tetra
             S1_PalVerifApprovedNotif["[N] Financing Approved"]:::ho
             S1_PalVerifRejected["[S] Payment: Need More Information"]:::tetra
             S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
@@ -102,6 +103,7 @@ flowchart TD
 
         %% Conditional
         S1_PalCondApproved --> S1_PalConditional
+        S1_PalConditional --> S1_PalCondNotif
         S1_PalConditional --> S1_PalCondTask
 
         S1_PalCondTask --> S1_PalUploadDocs --> S1_PalUploadNotif --> S1_PalVerifSubmit
@@ -128,8 +130,8 @@ flowchart TD
 
         %% --- CONVERGENCE ---
         %% Conditional Approval → AUTO Closed Won
-        S1_ClosedWon["[S] Sales: Closed Won"]:::tetra
-        S1_ClosedWonFollowUp["[N] Closed Won<br/>⏱ Only if 12h+ after proposal created"]:::solar
+        S1_ClosedWon(["[S] Sales: Closed Won"]):::tetra
+        S1_ClosedWonFollowUp["[N] Closed Won<br/>If 12h+ after proposal created"]:::solar
 
         S1_PalConditional --> S1_ClosedWon
         S1_ClosedWon --> S1_ClosedWonFollowUp
@@ -279,7 +281,7 @@ flowchart TD
         S3_CreatedNotif["[T][N] Change Order Created"]:::sibi
 
         %% #2: Sibi reviews → Sent to HO
-        S3_Sent["[S] Change Order: Change Order Sent"]:::tetra
+        S3_Sent["[S] Change Order: Sent to HO"]:::tetra
         S3_SentNotif["[T][N] Review Change Order"]:::ho
 
         %% #3: HO Response
@@ -313,18 +315,12 @@ flowchart TD
         %% #11: Exit to Install
         S3_Ref_Install[["→ Stage 4 / Stage 5: Material Ordering & Install"]]:::subprocess
 
-        %% CB Decision
-        S3_SpeaksContractor["[A] Speaks with Contractor"]:::sibi
-        S3_CBApproves["[A] Approves"]:::sibi
-        S3_CBCancels["[A] Cancels Change Order"]:::sibi
-        S3_CBCancelledStatus["[S] Change Order: Cancelled"]:::tetra
-        S3_Ref_OrderMatInstall[["→ Stage 4 / Stage 5: Order Material & Install"]]:::subprocess
-
-        %% Sibi Approves paths
-        S3_SibiContactsHO["[A] Contact HO Directly"]:::sibi
-        S3_SendToSales["[A] Sends to Sales Rep"]:::sibi
+        %% Paths from Created
+        S3_SendToSales["[A] Decide to Send to Sales Rep"]:::sibi
+        S3_SalesContactsHO["[S] Sales Rep Contacts HO"]:::tetra
         S3_SalesReviewCO["[T][N] Review Change Order"]:::solar
-        S3_SalesContactsHO["[A] Sales Sends to HO"]:::solar
+        S3_ChangeStatusSent["[A] Change Status to Sent to HO"]:::solar
+        S3_SibiContactsHO["[A] Speak with HO Directly"]:::sibi
 
         %% Exits
         S3_Cancelled(["[S] Change Order: Job Cancelled"]):::tetra
@@ -332,12 +328,11 @@ flowchart TD
         %% --- FLOW ---
         S3_Created --> S3_CreatedNotif
 
-        %% Sibi speaks with contractor, then approves or cancels
-        S3_CreatedNotif --> S3_SpeaksContractor
-        S3_SpeaksContractor --> S3_CBApproves
-        S3_CBApproves --> S3_SibiContactsHO --> S3_Sent
-        S3_CBApproves --> S3_SendToSales --> S3_SalesReviewCO --> S3_SalesContactsHO --> S3_Sent
-        S3_SpeaksContractor --> S3_CBCancels --> S3_CBCancelledStatus --> S3_Ref_OrderMatInstall
+        %% Two paths: Sales Rep or Direct to HO
+        S3_CreatedNotif --> S3_SendToSales
+        S3_CreatedNotif --> S3_SibiContactsHO
+        S3_SendToSales --> S3_SalesContactsHO --> S3_SalesReviewCO --> S3_ChangeStatusSent --> S3_Sent
+        S3_SibiContactsHO --> S3_ChangeStatusSent
         S3_Sent --> S3_SentNotif
 
         %% HO decides
