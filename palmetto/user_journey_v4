@@ -46,9 +46,11 @@ flowchart TD
         %% --- CASH PATH ---
         subgraph S1_Cash["Cash"]
             S1_CashInputCC["[A] Input Credit Card Info"]:::ho
+            S1_CashCCOnFile["[S] Payment: Credit Card on File"]:::tetra
         end
         S1_SelectCash --> S1_CashInputCC
-        S1_CashInputCC --> S1_ClosedWon
+        S1_CashInputCC --> S1_CashCCOnFile
+        S1_CashCCOnFile --> S1_ClosedWon
 
         %% --- LEASE PATH (Palmetto) ---
         subgraph S1_Palmetto["Palmetto (Lease)"]
@@ -127,16 +129,17 @@ flowchart TD
         %% --- CONVERGENCE ---
         %% Conditional Approval → AUTO Closed Won
         S1_ClosedWon["[S] Sales: Closed Won"]:::tetra
+        S1_ClosedWonFollowUp["[N] Closed Won<br/>⏱ Only if 12h+ after proposal created"]:::solar
 
         S1_PalConditional --> S1_ClosedWon
+        S1_ClosedWon --> S1_ClosedWonFollowUp
 
         subgraph S1_InventoryFlow[" "]
             S1_Dec_Inventory{"Inventory<br/>Status"}:::logic
             S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::tetra
             S1_MaterialOrderUnknown["[S] Material Ordering: Unknown"]:::tetra
             S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::tetra
-            S1_UnavailEquipTask["[T][N] Confirm Factory Direct Order"]:::sibi
-            S1_Dec_ChangeEquip["[A] Select Comparable<br/>Available Equipment"]:::sibi
+            S1_UnavailEquipTask["[N] Factory Direct Order"]:::sibi
             S1_UpdateInvStatus["[A] Update Inventory Status"]:::sibi
         end
         style S1_InventoryFlow fill:none,stroke:none
@@ -144,7 +147,6 @@ flowchart TD
         S1_InventoryFlow ~~~ S1_ConfirmedGroup
 
         subgraph S1_ConfirmedGroup[" "]
-            S1_UpdateInventory["[A] Confirmed"]:::sibi
             S1_CreateDraftOrder["[A] Create Draft Order"]:::tetra
         end
         style S1_ConfirmedGroup fill:none,stroke:none
@@ -154,11 +156,8 @@ flowchart TD
         S1_MaterialOrderStatus --> S1_CreateDraftOrder
         S1_Dec_Inventory -- "Unavailable" --> S1_InvUnavailable
         S1_InvUnavailable --> S1_UnavailEquipTask
-        S1_UnavailEquipTask --> S1_Dec_ChangeEquip
         S1_Dec_Inventory -- "Unknown" --> S1_MaterialOrderUnknown
         S1_MaterialOrderUnknown --> S1_CreateDraftOrder
-        S1_Dec_ChangeEquip --> S1_CreateDraftOrder
-        S1_UnavailEquipTask --> S1_UpdateInventory
         S1_CreateDraftOrder -- "Unknown" --> S1_UpdateInvStatus
         S1_UpdateInvStatus --> S1_Dec_Inventory
 
@@ -177,11 +176,12 @@ flowchart TD
         direction TB
 
         %% #1: Select Preferred Times
-        S2_SelectTimes["[S][T] Site Visit: Select Preferred Times"]:::ho
+        S2_SelectTimes["[S] Site Visit: Select Preferred Times"]:::ho
+        S2_SelectTimesTask["[T] Select Preferred Times"]:::ho
         S2_HOSubmits3["[A] HO Submits 3 Times"]:::ho
 
         %% #2: Awaiting CO Confirmation
-        S2_AwaitCO["[S] Site Visit: Awaiting CO Confirmation"]:::tetra
+        S2_AwaitCO["[S] Site Visit: Waiting for CO Confirmation"]:::tetra
         S2_AwaitCONotif["[T][N] Confirm Time"]:::sibi
 
         %% CO Selects Time
@@ -213,7 +213,7 @@ flowchart TD
         S2_CompleteDec{"Change Order<br/>Required?"}:::logic
 
         %% #9: 30% Deposit (Cash projects)
-        S2_Deposit["[S] Payment: 30% Deposit"]:::tetra
+        S2_Deposit["[A] Withdraw Payment from Credit Card on File"]:::tetra
         S2_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
         S2_DepositFailed["[S] Payment: Deposit Payment Failed"]:::tetra
         S2_HOUpdatePayment["[T][N] Update Payment Method"]:::ho
@@ -224,7 +224,7 @@ flowchart TD
         S2_InstScheduled["[S][N] Install: Scheduled"]:::monitor
 
         %% --- FLOW ---
-        S2_SelectTimes --> S2_HOSubmits3 --> S2_AwaitCO
+        S2_SelectTimes --> S2_SelectTimesTask --> S2_HOSubmits3 --> S2_AwaitCO
         S2_AwaitCO --> S2_AwaitCONotif
 
         %% CO selects time
@@ -264,6 +264,8 @@ flowchart TD
 
         %% Schedule Site Visit decision
         S2_Dec_Schedule -- "Yes" --> S2_InstScheduled
+        S2_Ref_Stage4[["Stage 4"]]:::subprocess
+        S2_Dec_Schedule -- "No" --> S2_Ref_Stage4
     end
 
     %% =============================================================
