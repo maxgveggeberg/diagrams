@@ -60,6 +60,7 @@ flowchart TD
             S1_PalUnderReview["[A] Under Review"]:::palmetto
             S1_PalUnderReviewStatus["[S] Payment: Under Review<br/>EXP: 72 hours"]:::tetra
             S1_PalUpdateStatus["[A] Update Status"]:::palmetto
+            S1_PalStatusUpdated["[S] Payment: Status Updated"]:::tetra
             S1_PalStatusUpdatedNotif["[N] Your Status Has Been Updated<br/>Sales, HO"]:::ho
             S1_PalCondApproved["[A] Conditionally Approved"]:::palmetto
             S1_PalDecDenied["[A] Denied"]:::palmetto
@@ -87,6 +88,7 @@ flowchart TD
             S1_PalUploadDocs["[A] HO Uploads Docs"]:::ho
             S1_PalSendToPalmetto["[A] Send Docs to Palmetto"]:::tetra
             S1_PalNotifyRejection["[N] Notify of Rejection"]:::palmetto
+            S1_PalVerifRejAction["[A] Palmetto Rejects Verification"]:::palmetto
 
         end
 
@@ -98,14 +100,15 @@ flowchart TD
         S1_PalSubmit --> S1_PalDecDenied
         S1_PalUnderReview --> S1_PalUnderReviewStatus
         S1_PalUnderReviewStatus --> S1_PalUpdateStatus
-        S1_PalUpdateStatus --> S1_PalStatusUpdatedNotif
+        S1_PalUpdateStatus --> S1_PalStatusUpdated
+        S1_PalStatusUpdated --> S1_PalStatusUpdatedNotif
         S1_PalStatusUpdatedNotif --> S1_PalCondApproved
         S1_PalStatusUpdatedNotif --> S1_PalDecDenied
 
         %% Conditional
         S1_PalCondApproved --> S1_PalConditional
-        S1_PalConditional --> S1_PalCondNotif
         S1_PalConditional --> S1_PalCondTask
+        S1_PalCondTask --> S1_PalCondNotif
 
         S1_PalCondTask --> S1_PalUploadDocs --> S1_PalSendToPalmetto --> S1_PalVerifSubmit
         S1_PalVerifSubmit --> S1_PalVerifDec
@@ -117,7 +120,8 @@ flowchart TD
 
         %% Verification rejected
         S1_PalVerifDec -- Rejected --> S1_PalNotifyRejection
-        S1_PalNotifyRejection --> S1_PalVerifRejected
+        S1_PalNotifyRejection --> S1_PalVerifRejAction
+        S1_PalVerifRejAction --> S1_PalVerifRejected
         S1_PalVerifRejected --> S1_PalVerifRejTask
         S1_PalVerifRejTask --> S1_PalVerifRejNotif
 
@@ -143,6 +147,7 @@ flowchart TD
             S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::tetra
             S1_MaterialOrderUnknown["[S] Material Ordering: Unknown<br/>EXP: 24 hours"]:::tetra
             S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::tetra
+            S1_UnavailEquipTaskT["[T] Place Factory Direct Order"]:::sibi
             S1_UnavailEquipTask["[N] Place Factory Direct Order<br/>Sibi"]:::sibi
             S1_UpdateInvStatus["[A] Update Inventory Status"]:::sibi
         end
@@ -159,7 +164,8 @@ flowchart TD
         S1_Dec_Inventory -- "Out of Stock / Available" --> S1_MaterialOrderStatus
         S1_MaterialOrderStatus --> S1_CreateDraftOrder
         S1_Dec_Inventory -- "Unavailable" --> S1_InvUnavailable
-        S1_InvUnavailable --> S1_UnavailEquipTask
+        S1_InvUnavailable --> S1_UnavailEquipTaskT
+        S1_UnavailEquipTaskT --> S1_UnavailEquipTask
         S1_Dec_Inventory -- "Unknown" --> S1_MaterialOrderUnknown
         S1_MaterialOrderUnknown --> S1_CreateDraftOrder
         S1_CreateDraftOrder -- "Unknown" --> S1_UpdateInvStatus
@@ -340,6 +346,7 @@ flowchart TD
         S3_SibiContactsHO["[A] Speak with HO Directly"]:::sibi
 
         %% Exits
+        S3_CancelJob["[A] Cancel Job"]:::tetra
         S3_Cancelled(["[S] Change Order: Job Cancelled"]):::tetra
 
         %% --- FLOW ---
@@ -372,7 +379,8 @@ flowchart TD
         S3_Dec_Required -- No --> S3_Complete
         S3_Dec_Required -- Yes --> S3_Declined
         S3_Declined --> S3_DeclinedNotif
-        S3_DeclinedNotif --> S3_Cancelled
+        S3_DeclinedNotif --> S3_CancelJob
+        S3_CancelJob --> S3_Cancelled
 
         %% Lease approved
         S3_SelectPayment -- "Lease" --> S3_NotifyPalmetto
@@ -401,7 +409,7 @@ flowchart TD
             S4_FinBlocked["⛔ Blocked: Awaiting Financing Approval"]:::terminator
 
             %% === 30% DEPOSIT (Cash projects) ===
-            S4_Deposit["[S] Payment: Collect 30% Deposit<br/>EXP: 3 days"]:::tetra
+            S4_Deposit["[S] Payment: Withdraw 30% Deposit<br/>EXP: 3 days"]:::tetra
             S4_DepositPayDec{"Deposit Payment<br/>Successful?"}:::logic
             S4_DepositFailed["[S] Payment: Deposit Payment Failed<br/>EXP: 3 days"]:::tetra
             S4_HOUpdatePayment["[T] Update Payment Method"]:::ho
@@ -657,7 +665,7 @@ flowchart TD
         subgraph S6_CaseFlow[" "]
             S6_Created["[S] Case: Case Created<br/>EXP: 24 hours"]:::tetra
             S6_CreatedN["[N] Case created<br/>Sibi, HO"]:::tetra
-            S6_CreatedTask["[A] Contact customer"]:::sibi
+            S6_CreatedTask["[T] Contact customer"]:::sibi
             S6_UpdateCase["[A] Update case information"]:::sibi
 
             S6_InProgress["[S] Case: In Progress<br/>EXP: 3 days"]:::tetra
@@ -673,6 +681,7 @@ flowchart TD
             S6_SatisfiedNotif["[N] Satisfied with case resolution?<br/>HO"]:::ho
             S6_Satisfied["[A] Satisfied with resolution"]:::ho
             S6_NotSatisfied["[A] Not satisfied with resolution"]:::ho
+            S6_Reopened["[S] Case: Reopened"]:::tetra
             S6_NotSatisfiedTask["[T] HO not satisfied — reinvestigate"]:::ho
             S6_NotSatisfiedN["[N] HO not satisfied with resolution<br/>Sibi"]:::sibi
             S6_Unresponsive["[A] Unresponsive"]:::ho
@@ -687,7 +696,7 @@ flowchart TD
         S6_UpdateCase --> S6_InProgress
         S6_InProgress --> S6_InProgressTask
         S6_InProgressTask --> S6_InProgressN
-        S6_InProgress --> S6_FixIssue
+        S6_InProgressTask --> S6_FixIssue
         S6_FixIssue --> S6_UpdateResolution
         S6_UpdateResolution --> S6_Resolved
 
@@ -698,7 +707,8 @@ flowchart TD
         S6_SatisfiedNotif --> S6_Unresponsive
         S6_Satisfied --> S6_Closed
         S6_Unresponsive --> S6_Closed
-        S6_NotSatisfied --> S6_NotSatisfiedTask
+        S6_NotSatisfied --> S6_Reopened
+        S6_Reopened --> S6_NotSatisfiedTask
         S6_NotSatisfiedTask --> S6_NotSatisfiedN
         S6_NotSatisfiedTask --> S6_InProgress
     end
