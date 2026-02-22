@@ -223,7 +223,7 @@ flowchart TD
 
         %% #8: Site Visit Complete
         S2_COMarksComplete["[A] CO Marks Complete"]:::sibi
-        S2_Complete["[S] Site Visit: Site Visit Complete"]:::tetra
+        S2_Complete(["[S] Site Visit: Site Visit Complete"]):::tetra
         S2_CompleteDec{"Change Order<br/>Required?"}:::logic
 
         %% #9: 30% Deposit (Cash projects)
@@ -331,7 +331,7 @@ flowchart TD
         S3_NotifyPalmetto["[A] Notify Palmetto"]:::tetra
 
         %% Shared completion
-        S3_Complete["[S] Change Order: Change Order Complete"]:::tetra
+        S3_Complete(["[S] Change Order: Change Order Complete"]):::tetra
         S3_CompleteNotif["[N] Change Order Approved by HO<br/>Sales, CO, Sibi"]:::solar
 
         %% #11: Exit to Install
@@ -471,7 +471,7 @@ flowchart TD
         %% === MATERIAL CHECK & READINESS (Stage 4 level) ===
         S4_InstCheckMaterial["[A] Check Material Status<br/>24 Hours Before Install"]:::sibi
         S4_Dec_ReadyForPickup{"Material Ready<br/>for Pickup?"}:::logic
-        S4_ReadyForPickup["[S] Material Ordering: Ready for Pickup"]:::tetra
+        S4_ReadyForPickup(["[S] Material Ordering: Ready for Pickup"]):::tetra
         S4_RescheduleStatus["[S] Install: Reschedule<br/>EXP: 48 hours"]:::sibi
         S4_RescheduleTask["[T] Reschedule Install"]:::sibi
         S4_RescheduleN["[N] Material not ready — reschedule install<br/>Sibi, HO, CO"]:::sibi
@@ -583,7 +583,7 @@ flowchart TD
             S5_CSATSurvey["[A] Fills out CSAT Survey"]:::ho
             S5_Dec_HOApproval["[A] HO Reports Issue"]:::ho
 
-            S5_Approved["[S] Install: Install Approved"]:::tetra
+            S5_Approved(["[S] Install: Install Approved"]):::tetra
 
             S5_Declined["[S] Install: Issue Reported<br/>EXP: 24 hours"]:::tetra
             S5_DeclinedTask["[T] Issue Reported — investigate"]:::sibi
@@ -617,7 +617,7 @@ flowchart TD
         S5_FundsReleased --> S5_FundsReceived["[A] Funds Received"]:::palmetto
         S5_FundsReceived --> S5_PayReceived["[S] Payment: Payment Received"]:::tetra
         S5_PayReceived --> S5_Payment["[A] Payment Released"]:::tetra
-        S5_Payment --> S5_PayComplete["[S] Payment: Payment Complete"]:::tetra
+        S5_Payment --> S5_PayComplete(["[S] Payment: Payment Complete"]):::tetra
         S5_PaySubmittedTaskNotif --> S5_SubmissionDenied
         S5_SubmissionDenied --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
@@ -687,7 +687,7 @@ flowchart TD
             S6_Unresponsive["[A] Unresponsive"]:::ho
         end
         style S6_SatisfactionCheck fill:none,stroke:none
-        S6_Closed["[S] Case: Case Closed"]:::tetra
+        S6_Closed(["[S] Case: Case Closed"]):::tetra
 
         %% --- FLOW ---
         S6_Created --> S6_CreatedTask
