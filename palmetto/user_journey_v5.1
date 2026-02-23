@@ -73,7 +73,7 @@ flowchart TD
             %% Verification flow
             S1_PalVerifSubmit["[S] Payment: Verification Submitted"]:::tetra
             S1_PalVerifDec{"Verification<br/>Result?"}:::logic
-            S1_PalVerifApproved(["[S] Payment: Financing Approved"]):::tetra
+            S1_PalVerifApproved["[S] Payment: Financing Approved"]:::tetra
             S1_PalVerifApprovedNotif["[N] Financing Approved<br/>HO, Sales"]:::ho
             S1_PalVerifRejected["[S] Payment: Need More Information"]:::tetra
             S1_PalVerifRejTask["[T] Resubmit verification docs"]:::ho
@@ -147,8 +147,6 @@ flowchart TD
             S1_MaterialOrderStatus["[S] Material Ordering: Out of Stock / Available"]:::tetra
             S1_MaterialOrderUnknown["[S] Material Ordering: Unknown<br/>EXP: 24 hours"]:::tetra
             S1_InvUnavailable["[S] Material Ordering: Factory Direct Order"]:::tetra
-            S1_UnavailEquipTaskT["[T] Place Factory Direct Order"]:::sibi
-            S1_UnavailEquipTask["[N] Place Factory Direct Order<br/>Sibi"]:::sibi
             S1_UpdateInvStatus["[A] Update Inventory Status"]:::sibi
         end
         style S1_InventoryFlow fill:none,stroke:none
@@ -164,12 +162,10 @@ flowchart TD
         S1_Dec_Inventory -- "Out of Stock / Available" --> S1_MaterialOrderStatus
         S1_MaterialOrderStatus --> S1_CreateDraftOrder
         S1_Dec_Inventory -- "Unavailable" --> S1_InvUnavailable
-        S1_InvUnavailable --> S1_UnavailEquipTaskT
-        S1_UnavailEquipTaskT --> S1_UnavailEquipTask
         S1_Dec_Inventory -- "Unknown" --> S1_MaterialOrderUnknown
         S1_MaterialOrderUnknown --> S1_CreateDraftOrder
         S1_CreateDraftOrder -- "Unknown" --> S1_UpdateInvStatus
-        S1_UpdateInvStatus --> S1_Dec_Inventory
+        S1_UpdateInvStatus --> S1_MaterialOrderStatus
 
         %% Denied → Closed Lost
         S1_PalDeniedDec -- No --> S1_ClosedLost
@@ -236,8 +232,8 @@ flowchart TD
         %% Cross-stage exits
         S2_Ref_ChangeOrder[["Stage 3: Change Order"]]:::subprocess
         S2_Dec_Schedule{"Schedule Site Visit<br/>On Site?"}:::logic
-        S2_InstScheduled["[S] Install: Scheduled"]:::monitor
-        S2_InstScheduled_Notif["[N] Install: Scheduled<br/>HO, Sibi, CO"]:::monitor
+        S2_InstScheduled["[A] Install Scheduled"]:::monitor
+        S2_InstScheduled_Notif["[S] Install: Scheduled"]:::monitor
 
         %% --- FLOW ---
         S2_SelectTimes --> S2_SelectTimesTask --> S2_HOSubmits3 --> S2_AwaitCO
@@ -245,29 +241,29 @@ flowchart TD
         S2_AwaitCONotif --> S2_AwaitCON
 
         %% CO selects time
-        S2_AwaitCONotif --> S2_COSelectsTimes
+        S2_AwaitCON --> S2_COSelectsTimes
         S2_COSelectsTimes --> S2_ConfirmTime
         S2_ConfirmTime --> S2_ConfirmTaskNotif
         S2_ConfirmTaskNotif --> S2_ConfirmN
 
         %% CO declines → fallback
-        S2_AwaitCONotif --> S2_CODeclinesAll --> S2_COContact
+        S2_AwaitCON --> S2_CODeclinesAll --> S2_COContact
         S2_COContact --> S2_COContactTaskNotif
         S2_COContactTaskNotif --> S2_COContactN
 
         %% HO declines confirmed time → fallback
-        S2_ConfirmTaskNotif --> S2_HODeclines --> S2_COContact
+        S2_ConfirmN --> S2_HODeclines --> S2_COContact
 
         %% HO confirms → Confirmed
-        S2_ConfirmTaskNotif --> S2_HOConfirms --> S2_Confirmed
+        S2_ConfirmN --> S2_HOConfirms --> S2_Confirmed
         S2_Confirmed --> S2_ConfirmedTaskNotif
         S2_ConfirmedTaskNotif --> S2_ConfirmedN
 
         %% CO schedules directly → Confirmed
-        S2_COContactTaskNotif --> S2_COSchedules --> S2_Confirmed
+        S2_COContactN --> S2_COSchedules --> S2_Confirmed
 
         %% Complete
-        S2_ConfirmedTaskNotif --> S2_COMarksComplete --> S2_Complete
+        S2_ConfirmedN --> S2_COMarksComplete --> S2_Complete
         S2_Complete --> S2_CompleteDec
 
         %% Branch: Change Order or Install
@@ -281,7 +277,7 @@ flowchart TD
         S2_DepositPayDec -- No --> S2_DepositFailed
         S2_DepositFailed --> S2_HOUpdatePayment
         S2_HOUpdatePayment --> S2_UpdatePayN
-        S2_HOUpdatePayment --> S2_Deposit
+        S2_UpdatePayN --> S2_Deposit
 
         %% Schedule Site Visit decision
         S2_Dec_Schedule -- "Yes" --> S2_InstScheduled
@@ -307,35 +303,21 @@ flowchart TD
         S3_SentN["[N] Change order sent for your review<br/>HO, Sales"]:::ho
 
         %% #3: HO Response
-        S3_HOApproved["[A] HO Approved"]:::ho
-        S3_HODeclined["[A] HO Declined"]:::ho
-
-        %% HO Declined → Required?
-        S3_Dec_Required{"Required?"}:::logic
+        subgraph S3_HOResponse[" "]
+            S3_HOApproved["[A] HO Approved"]:::ho
+            S3_HODeclined["[A] HO Declined"]:::ho
+        end
+        style S3_HOResponse fill:none,stroke:none
 
         %% #4: HO Declines
-        S3_Declined["[S] Change Order: Change Order Declined"]:::tetra
+        S3_Declined(["[S] Change Order: Declined"]):::tetra
         S3_DeclinedNotif["[N] Change Order Declined<br/>HO, Sales, Sibi"]:::solar
 
-        %% Project payment method decision
-        S3_Dec_ProjectPayment{"Project<br/>Payment Method?"}:::logic
-
-        %% Cash path
-        S3_Dec_ChangePayMethod{"Change Payment<br/>Method?"}:::logic
-        S3_CashLease[["Lease Approval"]]:::subprocess
-        S3_Dec_PayWithCC["[A] Pay with Credit Card"]:::ho
         S3_UpdateProjectScope["[A] Update Project Scope"]:::tetra
-
-        %% Payment paths
-        S3_SelectPayment{"Change Order<br/>Payment Method?"}:::logic
-        S3_NotifyPalmetto["[A] Notify Palmetto"]:::tetra
 
         %% Shared completion
         S3_Complete(["[S] Change Order: Change Order Complete"]):::tetra
         S3_CompleteNotif["[N] Change Order Approved by HO<br/>Sales, CO, Sibi"]:::solar
-
-        %% #11: Exit to Install
-        S3_Ref_Install[["→ Stage 4 / Stage 5: Material Ordering & Install"]]:::subprocess
 
         %% Paths from Created
         S3_SendToSales["[A] Decide to Send to Sales Rep"]:::sibi
@@ -347,51 +329,66 @@ flowchart TD
 
         %% Exits
         S3_CancelJob["[A] Cancel Job"]:::tetra
-        S3_Cancelled(["[S] Change Order: Job Cancelled"]):::tetra
+        S3_Cancelled(["[S] Install: Job Cancelled"]):::tetra
+
+        %% --- PROJECT PAYMENT METHOD: LEASE ---
+        subgraph S3_LP_PaymentFlow[" "]
+            S3_LP_ChangeOrderPayMethod{"ChangeOrder<br/>PaymentMethod?"}:::logic
+            subgraph S3_LP_PayMethodBranches[" "]
+                S3_LP_SendUpdatedScope["[A] Send Updated Project Scope to Palmetto"]:::tetra
+                S3_LP_Stage1Lease[["Stage 1: Lease Approval"]]:::subprocess
+                S3_LP_CCOnFile{"Credit Card<br/>on File?"}:::logic
+            end
+            style S3_LP_PayMethodBranches fill:none,stroke:none
+            S3_LP_LeaseApproval["[A] Lease Approval"]:::palmetto
+            S3_LP_InputCC["[A] Input Credit Card"]:::ho
+            S3_LP_ChargeCC["[A] Charge Credit Card"]:::tetra
+            S3_LP_PaymentSuccessful["[A] Payment Successful"]:::tetra
+        end
+        style S3_LP_PaymentFlow fill:none,stroke:none
+
+        %% Lease Payment flow
+        S3_LP_ChangeOrderPayMethod -- "Update Lease" --> S3_LP_SendUpdatedScope
+        S3_LP_ChangeOrderPayMethod -- "New Lease" --> S3_LP_Stage1Lease
+        S3_LP_Stage1Lease -- "Conditionally Approved" --> S3_UpdateProjectScope
+        S3_LP_Stage1Lease -- "Denied, Cancel Project" --> S3_HODeclined
+        S3_LP_Stage1Lease -- "Denied, Pay with CC" --> S3_UpdateProjectScope
+        S3_LP_ChangeOrderPayMethod -- "Cash" --> S3_LP_CCOnFile
+        S3_LP_CCOnFile -- "No" --> S3_LP_InputCC
+        S3_LP_CCOnFile -- "Yes" --> S3_UpdateProjectScope
+        S3_LP_SendUpdatedScope --> S3_LP_LeaseApproval
+        S3_LP_LeaseApproval -- "Approved" --> S3_UpdateProjectScope
+        S3_LP_LeaseApproval -- "Denied" --> S3_LP_InputCC
+        S3_LP_InputCC --> S3_LP_ChargeCC
+        S3_LP_ChargeCC --> S3_LP_PaymentSuccessful
+        S3_LP_PaymentSuccessful --> S3_UpdateProjectScope
 
         %% --- FLOW ---
         S3_Created --> S3_CreatedNotif
         S3_CreatedNotif --> S3_CreatedN
 
         %% Two paths: Sales Rep or Direct to HO
-        S3_CreatedNotif --> S3_SendToSales
-        S3_CreatedNotif --> S3_SibiContactsHO
-        S3_SendToSales --> S3_SalesContactsHO --> S3_SalesReviewCO --> S3_ChangeStatusSent --> S3_Sent
-        S3_SalesReviewCO --> S3_SalesReviewN
+        S3_CreatedN --> S3_SendToSales
+        S3_CreatedN --> S3_SibiContactsHO
+        S3_SendToSales --> S3_SalesContactsHO --> S3_SalesReviewCO --> S3_SalesReviewN --> S3_ChangeStatusSent --> S3_Sent
         S3_SibiContactsHO --> S3_ChangeStatusSent
         S3_Sent --> S3_SentNotif
         S3_SentNotif --> S3_SentN
 
         %% HO decides
-        S3_SentNotif --> S3_HOApproved --> S3_Dec_ProjectPayment
-        S3_Dec_ProjectPayment -- "Lease" --> S3_SelectPayment
-        S3_Dec_ProjectPayment -- "Cash" --> S3_Dec_ChangePayMethod
-        S3_Dec_ChangePayMethod -- No --> S3_UpdateProjectScope
-        S3_Dec_ChangePayMethod -- Yes --> S3_CashLease
-        S3_CantAfford["[A] Can't Afford"]:::ho
-        S3_CashLease -- "Approved" --> S3_UpdateProjectScope
-        S3_CashLease -- "Denied" --> S3_Dec_PayWithCC
-        S3_CashLease -- "Denied" --> S3_CantAfford
-        S3_CantAfford --> S3_Declined
-        S3_Dec_PayWithCC --> S3_UpdateProjectScope
+        S3_SentN --> S3_HOApproved
+        S3_HOApproved -- "Project Payment Method" --> S3_LP_ChangeOrderPayMethod
 
-        S3_SentNotif --> S3_HODeclined --> S3_Dec_Required
-        S3_Dec_Required -- No --> S3_Complete
-        S3_Dec_Required -- Yes --> S3_Declined
+        S3_SentN --> S3_HODeclined --> S3_Declined
         S3_Declined --> S3_DeclinedNotif
         S3_DeclinedNotif --> S3_CancelJob
         S3_CancelJob --> S3_Cancelled
-
-        %% Lease approved
-        S3_SelectPayment -- "Lease" --> S3_NotifyPalmetto
-        S3_NotifyPalmetto --> S3_CashLease
 
         %% Update scope → completion
         S3_UpdateProjectScope --> S3_Complete
 
         %% Shared completion
         S3_Complete --> S3_CompleteNotif
-        S3_CompleteNotif --> S3_Ref_Install
     end
 
     %% =============================================================
@@ -491,13 +488,13 @@ flowchart TD
         S4_DepositPayDec -- No --> S4_DepositFailed
         S4_DepositFailed --> S4_HOUpdatePayment
         S4_HOUpdatePayment --> S4_UpdatePayN
-        S4_HOUpdatePayment --> S4_Deposit
+        S4_UpdatePayN --> S4_Deposit
 
         %% Inventory check
         S4_Dec_Inventory -- "Factory Direct" --> S4_FactoryDirectStatus
         S4_FactoryDirectStatus --> S4_FactoryDirect
         S4_FactoryDirect --> S4_FactoryDirectN
-        S4_FactoryDirect --> S4_FactoryDirectUpdate
+        S4_FactoryDirectN --> S4_FactoryDirectUpdate
         S4_FactoryDirectUpdate --> S4_InstCheckMaterial
         S4_Dec_Inventory -- "Available / Out of Stock" --> S4_OosConvertOrder
         S4_OosConvertOrder --> S4_OosUpdateStatus
@@ -506,7 +503,7 @@ flowchart TD
         S4_Dec_ReadyForPickup -- "Yes" --> S4_ReadyForPickup
         S4_Dec_ReadyForPickup -- "No" --> S4_RescheduleStatus
         S4_RescheduleStatus --> S4_RescheduleTask --> S4_RescheduleN
-        S4_RescheduleTask --> S4_RescheduleInstall
+        S4_RescheduleN --> S4_RescheduleInstall
         S4_RescheduleInstall --> S4_Dec_ReadyForPickup
 
         %% === INSTALL SCHEDULING FLOW (No path from Install Scheduled?) ===
@@ -517,29 +514,29 @@ flowchart TD
         S4_InstAwaitCONotif --> S4_InstAwaitCON
 
         %% CO selects time
-        S4_InstAwaitCONotif --> S4_InstCOSelectsTimes
+        S4_InstAwaitCON --> S4_InstCOSelectsTimes
         S4_InstCOSelectsTimes --> S4_InstConfirmTime
         S4_InstConfirmTime --> S4_InstConfirmTaskNotif
         S4_InstConfirmTaskNotif --> S4_InstConfirmN
 
         %% CO declines → fallback
-        S4_InstAwaitCONotif --> S4_InstCODeclinesAll --> S4_InstCOContact
+        S4_InstAwaitCON --> S4_InstCODeclinesAll --> S4_InstCOContact
         S4_InstCOContact --> S4_InstCOContactTaskNotif
         S4_InstCOContactTaskNotif --> S4_InstCOContactN
 
         %% HO declines confirmed time → fallback
-        S4_InstConfirmTaskNotif --> S4_InstHODeclines --> S4_InstCOContact
+        S4_InstConfirmN --> S4_InstHODeclines --> S4_InstCOContact
 
         %% HO confirms → Confirmed
-        S4_InstConfirmTaskNotif --> S4_InstHOConfirms --> S4_InstConfirmed
+        S4_InstConfirmN --> S4_InstHOConfirms --> S4_InstConfirmed
         S4_InstConfirmed --> S4_InstConfirmedTaskNotif
         S4_InstConfirmedTaskNotif --> S4_InstConfirmedN
 
         %% CO schedules directly → Confirmed
-        S4_InstCOContactTaskNotif --> S4_InstCOSchedules --> S4_InstConfirmed
+        S4_InstCOContactN --> S4_InstCOSchedules --> S4_InstConfirmed
 
         %% Check material status 24h before install
-        S4_InstConfirmedTaskNotif --> S4_InstCheckMaterial
+        S4_InstConfirmedN --> S4_InstCheckMaterial
         S4_InstCheckMaterial --> S4_Dec_ReadyForPickup
 
         %% Install Complete flow
@@ -606,15 +603,15 @@ flowchart TD
         S5_Dec_PayMethod -- "Cash" --> S5_Dec_HOApproved
         S5_UploadQCStatus --> S5_UploadQCTask
         S5_UploadQCTask --> S5_UploadQCN
-        S5_UploadQCTask --> S5_SibiUploadQC
+        S5_UploadQCN --> S5_SibiUploadQC
         S5_SibiUploadQC --> S5_Dec_HOApproved
         S5_SendToPalmetto --> S5_PaySubmitted
         S5_PaySubmittedN["[N] Completion files submitted to Palmetto<br/>Palmetto"]:::palmetto
         S5_PaySubmitted --> S5_PaySubmittedTaskNotif["[T] Await Submission Review"]:::palmetto
         S5_PaySubmittedTaskNotif --> S5_PaySubmittedN
-        S5_PaySubmittedTaskNotif --> S5_SubmissionApproved["[A] Submission Approved"]:::palmetto
+        S5_PaySubmittedN --> S5_SubmissionApproved["[A] Submission Approved"]:::palmetto
         S5_SubmissionApproved --> S5_FundsReleased["[A] Funds Released"]:::palmetto
-        S5_FundsReleased --> S5_FundsReceived["[A] Funds Received"]:::palmetto
+        S5_FundsReleased --> S5_FundsReceived["[A] Funds Received"]:::tetra
         S5_FundsReceived --> S5_PayReceived["[S] Payment: Payment Received"]:::tetra
         S5_PayReceived --> S5_Payment["[A] Payment Released"]:::tetra
         S5_Payment --> S5_PayComplete(["[S] Payment: Payment Complete"]):::tetra
@@ -622,19 +619,19 @@ flowchart TD
         S5_SubmissionDenied --> S5_QCRejected
         S5_QCRejected --> S5_QCRejNotif37
         S5_QCRejNotif37 --> S5_QCRejN
-        S5_QCRejNotif37 --> S5_ResolveIssue
+        S5_QCRejN --> S5_ResolveIssue
         S5_ResolveIssue --> S5_SendToPalmetto
         %% --- 3.x POST-INSTALL FLOW ---
         S5_Approve --> S5_ApproveN
-        S5_Approve --> S5_HOApproves
+        S5_ApproveN --> S5_HOApproves
         S5_HOApproves --> S5_Approved
         S5_HOApproves --> S5_CSATSurvey
-        S5_Approve --> S5_HOUnresponsive
+        S5_ApproveN --> S5_HOUnresponsive
         S5_HOUnresponsive --> S5_UnresponsiveStatus
         S5_UnresponsiveStatus --> S5_ReminderApprove
         S5_ReminderApprove -- "No Response" --> S5_ManualUpdate
         S5_ManualUpdate --> S5_Approved
-        S5_Approve --> S5_Dec_HOApproval
+        S5_ApproveN --> S5_Dec_HOApproval
 
         S5_Approved --> S5_Dec_HOApproved
 
@@ -650,7 +647,7 @@ flowchart TD
         S5_Dec_CashPaySuccess -- "No" --> S5_CashPayFailed
         S5_CashPayFailed --> S5_CashUpdatePay
         S5_CashUpdatePay --> S5_CashUpdateN
-        S5_CashUpdatePay --> S5_UpdateCC["[A] Update Credit Card"]:::ho
+        S5_CashUpdateN --> S5_UpdateCC["[A] Update Credit Card"]:::ho
         S5_UpdateCC --> S5_WithdrawCC
         S5_Dec_HOApproved -- "No" --> S5_Ref_Case
     end
@@ -690,13 +687,13 @@ flowchart TD
         S6_Closed(["[S] Case: Case Closed"]):::tetra
 
         %% --- FLOW ---
-        S6_Created --> S6_CreatedTask
         S6_Created --> S6_CreatedN
+        S6_CreatedN --> S6_CreatedTask
         S6_CreatedTask --> S6_UpdateCase
         S6_UpdateCase --> S6_InProgress
         S6_InProgress --> S6_InProgressTask
         S6_InProgressTask --> S6_InProgressN
-        S6_InProgressTask --> S6_FixIssue
+        S6_InProgressN --> S6_FixIssue
         S6_FixIssue --> S6_UpdateResolution
         S6_UpdateResolution --> S6_Resolved
 
@@ -710,7 +707,7 @@ flowchart TD
         S6_NotSatisfied --> S6_Reopened
         S6_Reopened --> S6_NotSatisfiedTask
         S6_NotSatisfiedTask --> S6_NotSatisfiedN
-        S6_NotSatisfiedTask --> S6_InProgress
+        S6_NotSatisfiedN --> S6_InProgress
     end
 
     %% =============================================================
