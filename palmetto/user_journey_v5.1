@@ -189,7 +189,7 @@ flowchart TD
         %% #2: Awaiting CO Confirmation
         S2_AwaitCO["[S] Site Visit: Waiting for CO Confirmation<br/>EXP: 12 hours before first appointment or 2 business days"]:::tetra
         S2_AwaitCONotif["[T] Confirm Time"]:::sibi
-        S2_AwaitCON["[N] HO submitted preferred times<br/>Sibi"]:::sibi
+        S2_AwaitCON["[N] HO submitted preferred times<br/>Sibi, HO"]:::sibi
 
         %% CO Selects Time
         S2_COSelectsTimes["[A] CO Selects from HO Times"]:::sibi
@@ -680,11 +680,12 @@ flowchart TD
             S6_NotSatisfied["[A] Not satisfied with resolution"]:::ho
             S6_Reopened["[S] Case: Reopened"]:::tetra
             S6_NotSatisfiedTask["[T] HO not satisfied — reinvestigate"]:::ho
-            S6_NotSatisfiedN["[N] HO not satisfied with resolution<br/>Sibi"]:::sibi
+            S6_NotSatisfiedN["[N] HO not satisfied with resolution<br/>Sibi, HO"]:::sibi
             S6_Unresponsive["[A] Unresponsive"]:::ho
         end
         style S6_SatisfactionCheck fill:none,stroke:none
         S6_Closed(["[S] Case: Case Closed"]):::tetra
+        S6_ClosedN["[N] Case has been closed<br/>Sibi, HO"]:::ho
 
         %% --- FLOW ---
         S6_Created --> S6_CreatedN
@@ -704,6 +705,7 @@ flowchart TD
         S6_SatisfiedNotif --> S6_Unresponsive
         S6_Satisfied --> S6_Closed
         S6_Unresponsive --> S6_Closed
+        S6_Closed --> S6_ClosedN
         S6_NotSatisfied --> S6_Reopened
         S6_Reopened --> S6_NotSatisfiedTask
         S6_NotSatisfiedTask --> S6_NotSatisfiedN
