@@ -18,9 +18,7 @@ flowchart TD
         Dec_SysType -- "Furnace AC / Heat Pump /<br/>Packaged System" --> Labor_Std["Labor: $4,100"]:::cost
         Dec_SysType -- "Dual Fuel" --> Labor_DF["Labor: $4,600"]:::cost
 
-        Equip --> Tax_Equip{"Sibi buying<br/>equipment?"}:::logic
-        Tax_Equip -- "Yes" --> EquipTax["Equipment + Tax<br/>(Sibi pays tax to state)"]:::cost
-        Tax_Equip -- "No (SIBI direct)" --> EquipNoTax["Equipment<br/>(no added tax)"]:::cost
+        Equip --> EquipTax["Equipment + Tax"]:::cost
 
         Labor_Std --> Tax_Labor{"Sibi managing<br/>labor?"}:::logic
         Labor_DF --> Tax_Labor
@@ -75,7 +73,6 @@ flowchart TD
     end
 
     EquipTax --> Subtotal
-    EquipNoTax --> Subtotal
     LaborIncl --> Subtotal
     LaborTax --> Subtotal
     Warr_FAC --> Subtotal
