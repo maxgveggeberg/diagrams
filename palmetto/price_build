@@ -8,24 +8,35 @@ flowchart TD
     classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
     classDef total fill:#333333,stroke:#333333,color:#ffffff
     classDef note fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
+    classDef commission fill:#f3e5f5,stroke:#6a1b9a,color:#4a148c,stroke-width:2px
 
     subgraph BaseComponents[BASE COST COMPONENTS]
         direction TB
         Equip["Equipment Cost<br/>(from SIBI)"]:::cost
-        Labor["Labor Cost<br/>(see table below)"]:::cost
-        Equip --> Tax_Equip{"CB buying<br/>equipment?"}:::logic
-        Tax_Equip -- "Yes" --> EquipTax["Equipment + Tax<br/>(CB pays tax to state)"]:::cost
+
+        Dec_SysType{"System<br/>Type?"}:::logic
+        Dec_SysType -- "Furnace AC / Heat Pump /<br/>Packaged System" --> Labor_Std["Labor: $4,100"]:::cost
+        Dec_SysType -- "Dual Fuel" --> Labor_DF["Labor: $4,600"]:::cost
+
+        Equip --> Tax_Equip{"Sibi buying<br/>equipment?"}:::logic
+        Tax_Equip -- "Yes" --> EquipTax["Equipment + Tax<br/>(Sibi pays tax to state)"]:::cost
         Tax_Equip -- "No (SIBI direct)" --> EquipNoTax["Equipment<br/>(no added tax)"]:::cost
 
-        Labor --> Tax_Labor{"CB managing<br/>labor?"}:::logic
-        Tax_Labor -- "Yes" --> LaborIncl["Labor<br/>(tax included by CB)"]:::cost
-        Tax_Labor -- "No (non-CB contractor)" --> LaborTax["Labor + Tax"]:::cost
+        Labor_Std --> Tax_Labor{"Sibi managing<br/>labor?"}:::logic
+        Labor_DF --> Tax_Labor
+        Tax_Labor -- "Yes" --> LaborIncl["Labor<br/>(tax included by Sibi)"]:::cost
+        Tax_Labor -- "No (non-Sibi contractor)" --> LaborTax["Labor + Tax"]:::cost
     end
 
     subgraph ConditionalAddOns[CONDITIONAL ADD-ONS]
         direction TB
         Dec_Lease{"Palmetto<br/>Lease?"}:::logic
-        Dec_Lease -- "Yes" --> Warranty["Warranty<br/>(see table below)"]:::conditional
+        Dec_Lease -- "Yes" --> Dec_WarrSys{"System<br/>Type?"}:::logic
+        Dec_WarrSys -- "Furnace AC" --> Warr_FAC["Warranty: $378"]:::conditional
+        Dec_WarrSys -- "Heat Pump" --> Warr_HP["Warranty: $453"]:::conditional
+        Dec_WarrSys -- "Packaged System" --> Warr_PKG["Warranty: $475"]:::conditional
+        Dec_WarrSys -- "Dual Fuel" --> Warr_DF["Warranty: $490"]:::conditional
+
         Dec_Lease -- "Yes" --> Thermostat["Smart Thermostat<br/>(1 included)"]:::conditional
         Thermostat --> Dec_MultiThermo{"Multiple<br/>thermostats?"}:::logic
         Dec_MultiThermo -- "Yes" --> AddlThermo["+ $175 per<br/>additional thermostat"]:::conditional
@@ -39,9 +50,9 @@ flowchart TD
         Dec_Roof -- "Yes" --> Crane["+ $600<br/>crane cost"]:::conditional
         Dec_Roof -- "No" --> CraneNone["No crane cost"]:::note
 
-        Dec_NonCB{"Non-CB<br/>labor?"}:::logic
-        Dec_NonCB -- "Yes" --> Affiliate["+ $500<br/>affiliate fee to Palmetto"]:::conditional
-        Dec_NonCB -- "No" --> AffNone["No affiliate fee"]:::note
+        Dec_NonSibi{"Non-Sibi<br/>labor?"}:::logic
+        Dec_NonSibi -- "Yes" --> Affiliate["+ $500<br/>affiliate fee to Palmetto"]:::conditional
+        Dec_NonSibi -- "No" --> AffNone["No affiliate fee"]:::note
     end
 
     subgraph Markups[MARKUPS]
@@ -55,11 +66,23 @@ flowchart TD
         NoPalmFee --> TotalPrice
     end
 
+    subgraph SalesComm[SALES COMMISSION — Paid by Tetra · Not Added to Price]
+        direction TB
+        Dec_Eff{"System<br/>Efficiency?"}:::logic
+        Dec_Eff -- "High Efficiency" --> Comm_Hi["$4,000 commission"]:::commission
+        Dec_Eff -- "Standard Efficiency" --> Comm_Std["$3,000 commission"]:::commission
+        Comm_Hi --> DiscNote["Homeowner discounts are<br/>deducted from sales rep commission"]:::note
+        Comm_Std --> DiscNote
+    end
+
     EquipTax --> Subtotal
     EquipNoTax --> Subtotal
     LaborIncl --> Subtotal
     LaborTax --> Subtotal
-    Warranty --> Subtotal
+    Warr_FAC --> Subtotal
+    Warr_HP --> Subtotal
+    Warr_PKG --> Subtotal
+    Warr_DF --> Subtotal
     AddlThermo --> Subtotal
     ThermoDone --> Subtotal
     HiEffCost --> Subtotal
