@@ -1,0 +1,70 @@
+```mermaid
+
+%%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
+flowchart TD
+    classDef cost fill:#e6f3ff,stroke:#08427b,color:#08427b,stroke-width:2px
+    classDef conditional fill:#fff8e1,stroke:#ffa000,color:#5d4037,stroke-width:2px
+    classDef markup fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
+    classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
+    classDef total fill:#333333,stroke:#333333,color:#ffffff
+    classDef note fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
+
+    subgraph BaseComponents[BASE COST COMPONENTS]
+        direction TB
+        Equip["Equipment Cost<br/>(from SIBI)"]:::cost
+        Labor["Labor Cost<br/>(see table below)"]:::cost
+        Equip --> Tax_Equip{"CB buying<br/>equipment?"}:::logic
+        Tax_Equip -- "Yes" --> EquipTax["Equipment + Tax<br/>(CB pays tax to state)"]:::cost
+        Tax_Equip -- "No (SIBI direct)" --> EquipNoTax["Equipment<br/>(no added tax)"]:::cost
+
+        Labor --> Tax_Labor{"CB managing<br/>labor?"}:::logic
+        Tax_Labor -- "Yes" --> LaborIncl["Labor<br/>(tax included by CB)"]:::cost
+        Tax_Labor -- "No (non-CB contractor)" --> LaborTax["Labor + Tax"]:::cost
+    end
+
+    subgraph ConditionalAddOns[CONDITIONAL ADD-ONS]
+        direction TB
+        Dec_Lease{"Palmetto<br/>Lease?"}:::logic
+        Dec_Lease -- "Yes" --> Warranty["Warranty<br/>(see table below)"]:::conditional
+        Dec_Lease -- "Yes" --> Thermostat["Smart Thermostat<br/>(1 included)"]:::conditional
+        Thermostat --> Dec_MultiThermo{"Multiple<br/>thermostats?"}:::logic
+        Dec_MultiThermo -- "Yes" --> AddlThermo["+ $175 per<br/>additional thermostat"]:::conditional
+        Dec_MultiThermo -- "No" --> ThermoDone["No extra cost"]:::note
+
+        Dec_HiEff{"High-eff furnace<br/>upgrade?"}:::logic
+        Dec_HiEff -- "Yes" --> HiEffCost["+ $2,200<br/>upgrade cost"]:::conditional
+        Dec_HiEff -- "No" --> HiEffNone["No upgrade cost"]:::note
+
+        Dec_Roof{"Unit on<br/>roof?"}:::logic
+        Dec_Roof -- "Yes" --> Crane["+ $600<br/>crane cost"]:::conditional
+        Dec_Roof -- "No" --> CraneNone["No crane cost"]:::note
+
+        Dec_NonCB{"Non-CB<br/>labor?"}:::logic
+        Dec_NonCB -- "Yes" --> Affiliate["+ $500<br/>affiliate fee to Palmetto"]:::conditional
+        Dec_NonCB -- "No" --> AffNone["No affiliate fee"]:::note
+    end
+
+    subgraph Markups[MARKUPS]
+        direction TB
+        Subtotal["Subtotal<br/>(all base + add-ons)"]:::note
+        Subtotal --> TetraFee["+ 5% Tetra markup<br/>(on all costs)"]:::markup
+        TetraFee --> Dec_CashLoan{"Cash or<br/>Loan?"}:::logic
+        Dec_CashLoan -- "Yes" --> PalmettoFee["+ 1% Palmetto markup"]:::markup
+        Dec_CashLoan -- "No (Lease)" --> NoPalmFee["No Palmetto markup"]:::note
+        PalmettoFee --> TotalPrice(["TOTAL PROJECT PRICE"]):::total
+        NoPalmFee --> TotalPrice
+    end
+
+    EquipTax --> Subtotal
+    EquipNoTax --> Subtotal
+    LaborIncl --> Subtotal
+    LaborTax --> Subtotal
+    Warranty --> Subtotal
+    AddlThermo --> Subtotal
+    ThermoDone --> Subtotal
+    HiEffCost --> Subtotal
+    HiEffNone --> Subtotal
+    Crane --> Subtotal
+    CraneNone --> Subtotal
+    Affiliate --> Subtotal
+    AffNone --> Subtotal
