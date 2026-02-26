@@ -70,6 +70,10 @@ flowchart TD
         Dec_CashLoan -- "No (Lease)" --> NoPalmFee["No Palmetto markup"]:::note
         PalmettoFee --> TotalPrice(["TOTAL PROJECT PRICE"]):::total
         NoPalmFee --> TotalPrice
+        TotalPrice --> Dec_CC{"Pay with<br/>credit card?"}:::logic
+        Dec_CC -- "Yes" --> CCFee["+ Credit Card<br/>Processing Fees"]:::markup
+        CCFee --> FinalPayment(["FINAL CUSTOMER PAYMENT"]):::total
+        Dec_CC -- "No" --> FinalPayment
     end
 
     EquipTax --> Subtotal
