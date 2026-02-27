@@ -59,8 +59,7 @@ flowchart TD
         Palmetto -- "Non-Sibi Labor" --> Pay_Affiliate["Pay Palmetto:<br/>$500 affiliate fee"]:::money
     end
 
-    Tetra_Receives --> Labor
-    Tetra_Receives --> Equipment
-    Tetra_Receives --> Sales
-    Tetra_Receives --> Palmetto
-    Tetra_Receives --> Tetra_Keeps
+    Collection --> Distribution
+    GL_Loan --> Labor
+    GL_Loan --> Equipment
+    GL_Loan -- "Sales Palmetto Tetra" --> Tetra_Receives
