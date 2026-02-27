@@ -18,9 +18,9 @@ flowchart TD
         Dec_CO -- "No" --> Dec_Method{"Payment<br/>Method?"}:::logic
         Dec_CO -- "Yes" --> Dec_CO_Pay{"Change order<br/>payment method?"}:::logic
 
-        Dec_CO_Pay -- "CC" --> CO_ChargeNow["Tetra: Charges HO<br/>on CO approval"]:::tetra
+        Dec_CO_Pay -- "Cash (CC / Bank)" --> CO_ChargeNow["Tetra: Charges HO<br/>on CO approval"]:::tetra
         CO_ChargeNow --> Dec_Method
-        Dec_CO_Pay -- "Lease / Loan" --> CO_AddPrice["Add CO amount<br/>to project price"]:::note
+        Dec_CO_Pay -- "Add to project price" --> CO_AddPrice["Update project price<br/>with CO amount"]:::note
         CO_AddPrice --> Dec_Method
 
         Dec_Method -- "Cash (CC / Bank)" --> Deposit_30["Tetra: Pulls 30%<br/>deposit from HO"]:::tetra
