@@ -14,7 +14,7 @@ flowchart TD
         direction TB
         Equip["Equipment Cost<br/>(from SIBI)"]:::cost
 
-        Dec_SysType{"System<br/>Type?"}:::logic
+        Dec_SysType{"Labor"}:::logic
         Dec_SysType -- "Furnace AC / Heat Pump /<br/>Packaged System" --> Labor_Std["Labor: $4,100"]:::cost
         Dec_SysType -- "Dual Fuel" --> Labor_DF["Labor: $4,600"]:::cost
 
@@ -25,7 +25,7 @@ flowchart TD
         Tax_Labor -- "Yes" --> LaborIncl["Labor<br/>(tax included by Sibi)"]:::cost
         Tax_Labor -- "No (non-Sibi contractor)" --> LaborTax["Labor + Tax"]:::cost
 
-        Dec_Eff{"System<br/>Efficiency?"}:::logic
+        Dec_Eff{"Sales"}:::logic
         Dec_Eff -- "High Efficiency" --> Comm_Hi["$4,000 commission"]:::commission
         Dec_Eff -- "Standard Efficiency" --> Comm_Std["$3,000 commission"]:::commission
         Comm_Hi --> Dec_Disc{"Homeowner<br/>discount?"}:::logic
@@ -70,10 +70,6 @@ flowchart TD
         Dec_CashLoan -- "No (Lease)" --> NoPalmFee["No Palmetto markup"]:::note
         PalmettoFee --> TotalPrice(["TOTAL PROJECT PRICE"]):::total
         NoPalmFee --> TotalPrice
-        TotalPrice --> Dec_CC{"Pay with<br/>credit card?"}:::logic
-        Dec_CC -- "Yes" --> CCFee["+ Credit Card<br/>Processing Fees"]:::markup
-        CCFee --> FinalPayment(["FINAL CUSTOMER PAYMENT"]):::total
-        Dec_CC -- "No" --> FinalPayment
     end
 
     EquipTax --> Subtotal
