@@ -45,8 +45,6 @@ flowchart TD
         Palmetto["Palmetto"]:::logic
         Tetra_Keeps["Tetra retains:<br/>5% markup"]:::tetra
 
-        Labor ~~~ Equipment ~~~ Sales ~~~ Palmetto ~~~ Tetra_Keeps
-
         Labor -- "Sibi" --> Pay_Sibi_Labor["Pay Sibi:<br/>Labor cost"]:::money
         Pay_Sibi_Labor --> Sibi_PaysTax_L["Sibi remits<br/>labor tax to state"]:::partner
         Labor -- "Non-Sibi" --> Pay_Contractor["Pay Contractor:<br/>Labor + Tax"]:::money
@@ -61,4 +59,8 @@ flowchart TD
         Palmetto -- "Non-Sibi Labor" --> Pay_Affiliate["Pay Palmetto:<br/>$500 affiliate fee"]:::money
     end
 
-    Collection --> Distribution
+    Tetra_Receives --> Labor
+    Tetra_Receives --> Equipment
+    Tetra_Receives --> Sales
+    Tetra_Receives --> Palmetto
+    Tetra_Receives --> Tetra_Keeps
