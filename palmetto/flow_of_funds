@@ -13,26 +13,26 @@ flowchart TD
     subgraph Collection[PAYMENT COLLECTION]
         direction TB
         Start(["Total Project Price"]):::terminator
-        Start --> Dec_Method{"Payment<br/>Method?"}:::logic
+        Start --> Dec_CO{"Change order<br/>after site visit?"}:::logic
 
-        Dec_Method -- "Cash (CC / Bank)" --> Dec_CO_Cash{"Change order<br/>after site visit?"}:::logic
-        Dec_CO_Cash -- "No" --> Deposit_30["Tetra: Pulls 30%<br/>deposit from HO"]:::tetra
-        Deposit_30 --> Balance_Later["Tetra: Pulls remaining<br/>balance after install"]:::tetra
-        Dec_CO_Cash -- "Yes" --> Dec_CO_Pay{"Change order<br/>payment method?"}:::logic
+        Dec_CO -- "No" --> Dec_Method{"Payment<br/>Method?"}:::logic
+        Dec_CO -- "Yes" --> Dec_CO_Pay{"Change order<br/>payment method?"}:::logic
+
         Dec_CO_Pay -- "CC" --> CO_ChargeNow["Tetra: Charges HO<br/>on CO approval"]:::tetra
-        CO_ChargeNow --> Deposit_30_CO["Tetra: Pulls 30%<br/>deposit (updated price)"]:::tetra
-        Deposit_30_CO --> Balance_Later_CO["Tetra: Pulls remaining<br/>balance after install"]:::tetra
+        CO_ChargeNow --> Dec_Method
         Dec_CO_Pay -- "Lease / Loan" --> CO_AddPrice["Add CO amount<br/>to project price"]:::note
-        CO_AddPrice --> Deposit_30_CO2["Tetra: Pulls 30%<br/>deposit (updated price)"]:::tetra
-        Deposit_30_CO2 --> Balance_Later_CO2["Tetra: Pulls remaining<br/>balance after install"]:::tetra
+        CO_AddPrice --> Dec_Method
 
-        Dec_Method -- "Lease" --> Palmetto_Pay["Palmetto: Pays Tetra<br/>full project amount"]:::partner
+        Dec_Method -- "Cash (CC / Bank)" --> Deposit_30["Tetra: Pulls 30%<br/>deposit from HO"]:::tetra
+        Deposit_30 --> Balance_Later["Tetra: Pulls remaining<br/>balance after install"]:::tetra
+
+        Dec_Method -- "Lease" --> GL_Lease["Goodleap: Funds<br/>lease"]:::partner
 
         Dec_Method -- "Loan" --> Tetra_Trigger["Tetra: Triggers<br/>loan funding"]:::tetra
-        Tetra_Trigger --> GL_Pay["Goodleap: Disburses<br/>funds to Tetra"]:::partner
+        Tetra_Trigger --> GL_Loan["Goodleap: Funds<br/>loan"]:::partner
     end
 
-    subgraph Distribution[FUND DISTRIBUTION — TETRA PAYS OUT]
+    subgraph Distribution_Cash[FUND DISTRIBUTION — CASH — TETRA PAYS OUT]
         direction TB
         Tetra_Receives["Tetra: Receives<br/>project funds"]:::tetra
 
@@ -63,8 +63,16 @@ flowchart TD
         Tetra_Receives --> Tetra_Keeps["Tetra retains:<br/>5% markup"]:::tetra
     end
 
+    subgraph Distribution_GL[FUND DISTRIBUTION — LEASE / LOAN — GOODLEAP PAYS OUT]
+        direction TB
+        GL_Receives["Goodleap: Disburses<br/>project funds"]:::partner
+
+        GL_Receives --> GL_Pay_Contractor["Pay Contractors:<br/>Labor"]:::money
+        GL_Receives --> GL_Pay_Sales["Pay Sales Org:<br/>Commission"]:::money
+        GL_Receives --> GL_Pay_Tetra["Pay Tetra"]:::money
+        GL_Receives --> GL_Pay_Palmetto["Pay Palmetto"]:::money
+    end
+
     Balance_Later --> Tetra_Receives
-    Balance_Later_CO --> Tetra_Receives
-    Balance_Later_CO2 --> Tetra_Receives
-    Palmetto_Pay --> Tetra_Receives
-    GL_Pay --> Tetra_Receives
+    GL_Lease --> GL_Receives
+    GL_Loan --> GL_Receives
