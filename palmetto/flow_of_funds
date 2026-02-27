@@ -1,0 +1,70 @@
+```mermaid
+
+%%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
+flowchart TD
+    classDef ho fill:#e6f3ff,stroke:#08427b,color:#08427b,stroke-width:2px
+    classDef tetra fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20,stroke-width:2px
+    classDef partner fill:#fff8e1,stroke:#ffa000,color:#5d4037,stroke-width:2px
+    classDef logic fill:#ffffff,stroke:#08427b,stroke-width:2px,color:#08427b
+    classDef money fill:#fce4ec,stroke:#c62828,color:#b71c1c,stroke-width:2px
+    classDef terminator fill:#333333,stroke:#333333,color:#ffffff
+    classDef note fill:#f4f4f4,stroke:#333333,stroke-width:2px,color:#000000
+
+    subgraph Collection[PAYMENT COLLECTION]
+        direction TB
+        Start(["Total Project Price"]):::terminator
+        Start --> Dec_Method{"Payment<br/>Method?"}:::logic
+
+        Dec_Method -- "Cash (CC / Bank)" --> Dec_CO_Cash{"Change order<br/>after site visit?"}:::logic
+        Dec_CO_Cash -- "No" --> Deposit_30["Tetra: Pulls 30%<br/>deposit from HO"]:::tetra
+        Deposit_30 --> Balance_Later["Tetra: Pulls remaining<br/>balance after install"]:::tetra
+        Dec_CO_Cash -- "Yes" --> Dec_CO_Pay{"Change order<br/>payment method?"}:::logic
+        Dec_CO_Pay -- "CC" --> CO_ChargeNow["Tetra: Charges HO<br/>on CO approval"]:::tetra
+        CO_ChargeNow --> Deposit_30_CO["Tetra: Pulls 30%<br/>deposit (updated price)"]:::tetra
+        Deposit_30_CO --> Balance_Later_CO["Tetra: Pulls remaining<br/>balance after install"]:::tetra
+        Dec_CO_Pay -- "Lease / Loan" --> CO_AddPrice["Add CO amount<br/>to project price"]:::note
+        CO_AddPrice --> Deposit_30_CO2["Tetra: Pulls 30%<br/>deposit (updated price)"]:::tetra
+        Deposit_30_CO2 --> Balance_Later_CO2["Tetra: Pulls remaining<br/>balance after install"]:::tetra
+
+        Dec_Method -- "Lease" --> Palmetto_Pay["Palmetto: Pays Tetra<br/>full project amount"]:::partner
+
+        Dec_Method -- "Loan" --> Tetra_Trigger["Tetra: Triggers<br/>loan funding"]:::tetra
+        Tetra_Trigger --> GL_Pay["Goodleap: Disburses<br/>funds to Tetra"]:::partner
+    end
+
+    subgraph Distribution[FUND DISTRIBUTION — TETRA PAYS OUT]
+        direction TB
+        Tetra_Receives["Tetra: Receives<br/>project funds"]:::tetra
+
+        Tetra_Receives --> Dec_SibiEquip{"Sibi ordered<br/>equipment?"}:::logic
+        Dec_SibiEquip -- "Yes" --> Pay_Sibi_Equip["Pay Sibi:<br/>Equipment + Tax"]:::money
+        Pay_Sibi_Equip --> Sibi_PaysTax_E["Sibi remits<br/>equipment tax to state"]:::partner
+        Dec_SibiEquip -- "No" --> No_Sibi_Equip["N/A"]:::note
+
+        Tetra_Receives --> Dec_SibiLabor{"Sibi managing<br/>labor?"}:::logic
+        Dec_SibiLabor -- "Yes" --> Pay_Sibi_Labor["Pay Sibi:<br/>Labor cost"]:::money
+        Pay_Sibi_Labor --> Sibi_PaysTax_L["Sibi remits<br/>labor tax to state"]:::partner
+        Dec_SibiLabor -- "No" --> Pay_Contractor["Pay Contractor:<br/>Labor + Tax"]:::money
+
+        Tetra_Receives --> Dec_AddlThermo{"Additional<br/>thermostats?"}:::logic
+        Dec_AddlThermo -- "Yes" --> Pay_Sibi_Thermo["Pay Sibi:<br/>$175 × additional<br/>thermostats"]:::money
+        Dec_AddlThermo -- "No" --> No_Thermo["No thermostat<br/>payment"]:::note
+
+        Tetra_Receives --> Dec_NonSibiAff{"Non-Sibi<br/>labor?"}:::logic
+        Dec_NonSibiAff -- "Yes" --> Pay_Affiliate["Pay Palmetto:<br/>$500 affiliate fee"]:::money
+        Dec_NonSibiAff -- "No" --> No_Affiliate["No affiliate fee"]:::note
+
+        Tetra_Receives --> Dec_NonLease{"Non-lease<br/>project?"}:::logic
+        Dec_NonLease -- "Yes" --> Pay_Palm_1pct["Pay Palmetto:<br/>1% markup"]:::money
+        Dec_NonLease -- "No (Lease)" --> No_Palm_1pct["No 1% payment"]:::note
+
+        Tetra_Receives --> Pay_Commission["Pay Sales Org:<br/>Commission − Discount"]:::money
+
+        Tetra_Receives --> Tetra_Keeps["Tetra retains:<br/>5% markup"]:::tetra
+    end
+
+    Balance_Later --> Tetra_Receives
+    Balance_Later_CO --> Tetra_Receives
+    Balance_Later_CO2 --> Tetra_Receives
+    Palmetto_Pay --> Tetra_Receives
+    GL_Pay --> Tetra_Receives
