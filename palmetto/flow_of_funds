@@ -27,53 +27,43 @@ flowchart TD
         Dec_Method -- "Cash (CC / Bank)" --> Deposit_30["Tetra: Pulls 30%<br/>deposit from HO"]:::tetra
         Deposit_30 --> Balance_Later["Tetra: Pulls remaining<br/>balance after install"]:::tetra
 
-        Dec_Method -- "Lease" --> GL_Lease["Goodleap: Funds<br/>lease"]:::partner
+        Dec_Method -- "Lease" --> Palm_Lease["Palmetto: Funds<br/>lease"]:::partner
 
         Dec_Method -- "Loan" --> Tetra_Trigger["Tetra: Triggers<br/>loan funding"]:::tetra
         Tetra_Trigger --> GL_Loan["Goodleap: Funds<br/>loan"]:::partner
+
+        Balance_Later --> Tetra_Receives["Tetra: Receives<br/>project funds"]:::tetra
+        Palm_Lease --> Tetra_Receives
     end
 
-    subgraph Distribution_Cash[FUND DISTRIBUTION — CASH — TETRA PAYS OUT]
+    subgraph Distribution[FUND DISTRIBUTION — TETRA PAYS OUT]
         direction TB
-        Tetra_Receives["Tetra: Receives<br/>project funds"]:::tetra
 
-        Tetra_Receives --> Dec_SibiEquip{"Sibi ordered<br/>equipment?"}:::logic
+        Dec_SibiEquip{"Sibi ordered<br/>equipment?"}:::logic
         Dec_SibiEquip -- "Yes" --> Pay_Sibi_Equip["Pay Sibi:<br/>Equipment + Tax"]:::money
         Pay_Sibi_Equip --> Sibi_PaysTax_E["Sibi remits<br/>equipment tax to state"]:::partner
         Dec_SibiEquip -- "No" --> No_Sibi_Equip["N/A"]:::note
 
-        Tetra_Receives --> Dec_SibiLabor{"Sibi managing<br/>labor?"}:::logic
+        Dec_SibiLabor{"Sibi managing<br/>labor?"}:::logic
         Dec_SibiLabor -- "Yes" --> Pay_Sibi_Labor["Pay Sibi:<br/>Labor cost"]:::money
         Pay_Sibi_Labor --> Sibi_PaysTax_L["Sibi remits<br/>labor tax to state"]:::partner
         Dec_SibiLabor -- "No" --> Pay_Contractor["Pay Contractor:<br/>Labor + Tax"]:::money
 
-        Tetra_Receives --> Dec_AddlThermo{"Additional<br/>thermostats?"}:::logic
+        Dec_AddlThermo{"Additional<br/>thermostats?"}:::logic
         Dec_AddlThermo -- "Yes" --> Pay_Sibi_Thermo["Pay Sibi:<br/>$175 × additional<br/>thermostats"]:::money
         Dec_AddlThermo -- "No" --> No_Thermo["No thermostat<br/>payment"]:::note
 
-        Tetra_Receives --> Dec_NonSibiAff{"Non-Sibi<br/>labor?"}:::logic
+        Dec_NonSibiAff{"Non-Sibi<br/>labor?"}:::logic
         Dec_NonSibiAff -- "Yes" --> Pay_Affiliate["Pay Palmetto:<br/>$500 affiliate fee"]:::money
         Dec_NonSibiAff -- "No" --> No_Affiliate["No affiliate fee"]:::note
 
-        Tetra_Receives --> Dec_NonLease{"Non-lease<br/>project?"}:::logic
+        Dec_NonLease{"Non-lease<br/>project?"}:::logic
         Dec_NonLease -- "Yes" --> Pay_Palm_1pct["Pay Palmetto:<br/>1% markup"]:::money
         Dec_NonLease -- "No (Lease)" --> No_Palm_1pct["No 1% payment"]:::note
 
-        Tetra_Receives --> Pay_Commission["Pay Sales Org:<br/>Commission − Discount"]:::money
+        Pay_Commission["Pay Sales Org:<br/>Commission − Discount"]:::money
 
-        Tetra_Receives --> Tetra_Keeps["Tetra retains:<br/>5% markup"]:::tetra
+        Tetra_Keeps["Tetra retains:<br/>5% markup"]:::tetra
     end
 
-    subgraph Distribution_GL[FUND DISTRIBUTION — LEASE / LOAN — GOODLEAP PAYS OUT]
-        direction TB
-        GL_Receives["Goodleap: Disburses<br/>project funds"]:::partner
-
-        GL_Receives --> GL_Pay_Contractor["Pay Contractors:<br/>Labor"]:::money
-        GL_Receives --> GL_Pay_Sales["Pay Sales Org:<br/>Commission"]:::money
-        GL_Receives --> GL_Pay_Tetra["Pay Tetra"]:::money
-        GL_Receives --> GL_Pay_Palmetto["Pay Palmetto"]:::money
-    end
-
-    Balance_Later --> Tetra_Receives
-    GL_Lease --> GL_Receives
-    GL_Loan --> GL_Receives
+    Collection --> Distribution
